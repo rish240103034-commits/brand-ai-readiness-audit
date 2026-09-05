@@ -106,7 +106,8 @@ PY
 ```
 
 ## 8. Not done / possible next steps
-- [ ] `git init` + first commit (repo is not under version control yet).
+- [x] `git init` + first commit — done (branch `main`, commit bd8aa53).
+- [x] Published to GitHub (PUBLIC): https://github.com/rish240103034-commits/brand-ai-readiness-audit
 - [ ] Optional: a "60-second demo" section for judges in README.
 - [ ] Optional new checks (drop-in, no core edits — see README "Add a new skill"):
       hreflang/i18n, canonical conflicts, FAQ/HowTo schema opportunities, sitemap freshness.
