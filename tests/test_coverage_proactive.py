@@ -102,22 +102,30 @@ class ProactiveTests(unittest.TestCase):
 
 
 class DynamicFilterTests(unittest.TestCase):
-    def test_no_empty_severity_filters(self):
-        # Only severities that occur should appear as filter buttons (no empty 'Critical').
-        findings = [{"dimension": "discoverability", "severity": "low"},
-                    {"dimension": "discoverability", "severity": "medium"}]
+    def test_no_empty_severity_options(self):
+        # Only severities that occur should appear as options (no empty 'Critical'/'High').
+        findings = [{"dimension": "discoverability", "severity": "low", "confidence": "high"},
+                    {"dimension": "discoverability", "severity": "medium", "confidence": "high"}]
         html = render._filter_controls(findings)
-        self.assertNotIn('data-filter="critical"', html)
-        self.assertNotIn('data-filter="high"', html)
-        self.assertIn('data-filter="low"', html)
+        self.assertIn('id="f-severity"', html)
+        self.assertIn('value="low"', html)
+        self.assertIn('value="medium"', html)
+        self.assertNotIn('value="critical"', html)
+        self.assertNotIn('value="high"', html)
 
     def test_no_single_dimension_filter(self):
-        # If every finding is one dimension, don't show dimension filters.
-        findings = [{"dimension": "discoverability", "severity": "low"},
-                    {"dimension": "discoverability", "severity": "high"}]
+        # If every finding is one dimension, don't show a dimension filter at all.
+        findings = [{"dimension": "discoverability", "severity": "low", "confidence": "high"},
+                    {"dimension": "discoverability", "severity": "high", "confidence": "high"}]
+        self.assertNotIn('id="f-dimension"', render._filter_controls(findings))
+
+    def test_search_and_sort_always_present_with_findings(self):
+        findings = [{"dimension": "discoverability", "severity": "low", "confidence": "high"},
+                    {"dimension": "engagement", "severity": "high", "confidence": "medium"}]
         html = render._filter_controls(findings)
-        self.assertNotIn('data-filter="engagement"', html)
-        self.assertNotIn('data-filter="discoverability"', html)
+        self.assertIn('id="f-search"', html)
+        self.assertIn('id="f-sort"', html)
+        self.assertIn('id="f-dimension"', html)  # both dimensions present -> shown
 
     def test_controls_hidden_for_single_finding(self):
         self.assertEqual(render._filter_controls([{"dimension": "discoverability", "severity": "low"}]), "")

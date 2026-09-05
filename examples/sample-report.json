@@ -1,17 +1,17 @@
 {
   "site": "smashingmagazine.com",
-  "audited_at": "2026-09-05T11:46:49Z",
-  "started_at": "2026-09-05T11:46:31Z",
-  "auditor": "brand-ai-readiness-audit/2.0",
+  "audited_at": "2026-09-05T14:46:16Z",
+  "started_at": "2026-09-05T14:43:12Z",
+  "auditor": "brand-ai-readiness-audit/2.1",
   "pages_crawled": 12,
   "summary": {
-    "total_findings": 9,
+    "total_findings": 10,
     "high": 2,
-    "medium": 3,
+    "medium": 4,
     "low": 4,
     "by_dimension": {
       "discoverability": 9,
-      "engagement": 0
+      "engagement": 1
     }
   },
   "findings": [
@@ -154,6 +154,37 @@
     },
     {
       "id": "F-006",
+      "title": "Slow server response on sampled pages",
+      "severity": "medium",
+      "dimension": "engagement",
+      "category": "performance",
+      "confidence": "medium",
+      "kind": "defect",
+      "evidence": "4 of 12 page(s) (33%) took over 3s to return HTML (e.g. https://www.smashingmagazine.com/: 47021 ms).",
+      "affected_pages": [
+        "https://www.smashingmagazine.com/",
+        "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+        "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
+      ],
+      "suggested_action": {
+        "summary": "Investigate TTFB (caching, CDN, server work) so pages start rendering quickly; each added second measurably increases abandonment.",
+        "priority": "medium"
+      },
+      "details": {},
+      "why": "A slow first byte (TTFB) delays everything downstream, so the page starts rendering late and visitors abandon before it appears.",
+      "how_to_fix": "Investigate TTFB — add caching/CDN, reduce per-request server work, and warm slow endpoints.",
+      "scope": "4 of 12 page(s) (33%)",
+      "measurements": {
+        "slow_pages": 4,
+        "worst_ms": 47021,
+        "threshold_ms": 3000
+      },
+      "impact": 3,
+      "priority": 6
+    },
+    {
+      "id": "F-007",
       "title": "Heading hierarchy skips levels",
       "severity": "low",
       "dimension": "discoverability",
@@ -185,10 +216,10 @@
         "pages_with_skipped_levels": 12
       },
       "impact": 2,
-      "priority": 6
+      "priority": 7
     },
     {
-      "id": "F-007",
+      "id": "F-008",
       "title": "Meta descriptions likely to be truncated",
       "severity": "low",
       "dimension": "discoverability",
@@ -219,10 +250,10 @@
         "max": 160
       },
       "impact": 2,
-      "priority": 7
+      "priority": 8
     },
     {
-      "id": "F-008",
+      "id": "F-009",
       "title": "Substantial content offloaded to PDF files",
       "severity": "low",
       "dimension": "discoverability",
@@ -242,10 +273,10 @@
         "pdf_links": 3
       },
       "impact": 2,
-      "priority": 8
+      "priority": 9
     },
     {
-      "id": "F-009",
+      "id": "F-010",
       "title": "Title tags outside the useful length range",
       "severity": "low",
       "dimension": "discoverability",
@@ -278,11 +309,11 @@
         "max": 65
       },
       "impact": 2,
-      "priority": 9
+      "priority": 10
     }
   ],
   "notes": [
-    "Crawled 12 page(s) in 18132 ms; 25 HTTP request(s). Static, read-only analysis."
+    "Crawled 12 page(s) in 183368 ms; 17 HTTP request(s). Static, read-only analysis."
   ],
   "profile": "balanced",
   "skills_run": [
@@ -293,11 +324,11 @@
     "engagement-audit"
   ],
   "score": {
-    "value": 59,
+    "value": 56,
     "grade": "F",
     "discoverability": 31.0,
-    "engagement": 100.0,
-    "headline": "AI Visibility Score 59/100 (F)"
+    "engagement": 94.0,
+    "headline": "AI Visibility Score 56/100 (F)"
   },
   "opportunities": [
     {
@@ -334,126 +365,1541 @@
         "label": "Crawlability",
         "status": "healthy",
         "status_label": "verified healthy",
-        "checks": "crawlability, indexability, reachability",
+        "checks": [
+          {
+            "id": "robots_ai",
+            "label": "AI crawler access (robots.txt)",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "robots_pages",
+            "label": "Key pages crawlable",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "reachability",
+            "label": "Pages return 2xx",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "sitemap",
+            "label": "XML sitemap present",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "canonical",
+            "label": "Canonical consistency",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "internal_links",
+            "label": "Internal links resolve",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "nofollow",
+            "label": "Internal links followable",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          }
+        ],
+        "checks_total": 7,
+        "passed": 7,
+        "failed": 0,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 12,
         "findings": 0,
         "confidence": "high",
-        "note": "Assessed across the sampled pages; no issues detected."
+        "note": "All checks passed across the sampled pages."
       },
       {
         "key": "rendering",
         "label": "Rendering",
-        "status": "healthy",
-        "status_label": "verified healthy",
-        "checks": "js-render-gap",
+        "status": "partial",
+        "status_label": "partial",
+        "checks": [
+          {
+            "id": "ssr_content",
+            "label": "Primary content in static HTML",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "noscript_notice",
+            "label": "No 'enable JavaScript' wall",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "rendered_dom",
+            "label": "Rendered-DOM parity",
+            "state": "not_verified",
+            "note": "Requires executing the page in a browser; this audit is static."
+          }
+        ],
+        "checks_total": 3,
+        "passed": 2,
+        "failed": 0,
+        "not_verified": 1,
+        "partial_checks": 0,
         "pages_assessed": 12,
         "findings": 0,
         "confidence": "medium",
-        "note": "Assessed across the sampled pages; no issues detected."
+        "note": "1 check(s) require rendered/browser validation (not executed)."
       },
       {
         "key": "structured_data",
         "label": "Structured Data",
         "status": "issues",
         "status_label": "issues detected",
-        "checks": "structured-data",
+        "checks": [
+          {
+            "id": "present",
+            "label": "Structured data present",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "valid",
+            "label": "Structured data parses",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "complete",
+            "label": "Recommended properties present",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "product",
+            "label": "Product schema on product pages",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "article",
+            "label": "Article schema on articles",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          }
+        ],
+        "checks_total": 5,
+        "passed": 2,
+        "failed": 3,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 12,
         "findings": 3,
         "confidence": "high",
-        "note": "3 finding(s) detected across the sampled pages."
+        "note": "3 check(s) failed across the sampled pages."
       },
       {
         "key": "extractability",
         "label": "Extractability",
         "status": "issues",
         "status_label": "issues detected",
-        "checks": "extractability",
+        "checks": [
+          {
+            "id": "title",
+            "label": "Every page has a <title>",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "title_quality",
+            "label": "Titles are a useful length",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "meta_desc",
+            "label": "Meta descriptions present",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "h1",
+            "label": "One clear H1 per page",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "hierarchy",
+            "label": "Heading hierarchy ordered",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "alt",
+            "label": "Images have alt text",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "lang",
+            "label": "Language declared",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          }
+        ],
+        "checks_total": 7,
+        "passed": 4,
+        "failed": 3,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 12,
         "findings": 5,
         "confidence": "medium",
-        "note": "5 finding(s) detected across the sampled pages."
+        "note": "3 check(s) failed across the sampled pages."
       },
       {
         "key": "entity_identity",
         "label": "Entity Identity",
         "status": "issues",
         "status_label": "issues detected",
-        "checks": "entity-identity",
+        "checks": [
+          {
+            "id": "homepage_identity",
+            "label": "Homepage identity schema",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "name_consistency",
+            "label": "Consistent brand identity",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          }
+        ],
+        "checks_total": 2,
+        "passed": 1,
+        "failed": 1,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 12,
         "findings": 1,
         "confidence": "high",
-        "note": "1 finding(s) detected across the sampled pages."
+        "note": "1 check(s) failed across the sampled pages."
       },
       {
         "key": "freshness",
         "label": "Freshness",
         "status": "healthy",
         "status_label": "verified healthy",
-        "checks": "freshness",
+        "checks": [
+          {
+            "id": "dated",
+            "label": "Content is dated",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "current",
+            "label": "Content looks current",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          }
+        ],
+        "checks_total": 2,
+        "passed": 2,
+        "failed": 0,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 5,
         "findings": 0,
         "confidence": "high",
-        "note": "Date signals found on 5 page(s); none looked stale."
+        "note": "All checks passed across the sampled pages."
       },
       {
         "key": "corroboration",
         "label": "Corroboration",
         "status": "partial",
         "status_label": "partial",
-        "checks": "corroboration",
+        "checks": [
+          {
+            "id": "sameas",
+            "label": "sameAs corroboration links",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "external_presence",
+            "label": "Links to external profiles",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "external_verification",
+            "label": "Independent external verification",
+            "state": "partial",
+            "note": "On-page signals only; no independent external source was queried."
+          }
+        ],
+        "checks_total": 3,
+        "passed": 2,
+        "failed": 0,
+        "not_verified": 0,
+        "partial_checks": 1,
         "pages_assessed": 12,
         "findings": 0,
         "confidence": "medium",
-        "note": "On-page corroboration signals present; independent external verification of claims is out of scope for this static audit."
+        "note": "1 check(s) only partially verifiable (no external verification)."
       },
       {
         "key": "engagement",
         "label": "Engagement",
-        "status": "healthy",
-        "status_label": "verified healthy",
-        "checks": "accessibility, conversion, mobile, orientation, performance, readability",
+        "status": "issues",
+        "status_label": "issues detected",
+        "checks": [
+          {
+            "id": "mobile",
+            "label": "Responsive viewport",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "cta",
+            "label": "Clear call-to-action",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "navigation",
+            "label": "Semantic navigation & onward links",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "performance",
+            "label": "Reasonable weight & response",
+            "state": "fail",
+            "note": "A finding was detected for this check."
+          },
+          {
+            "id": "readability",
+            "label": "Scannable content",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "orientation",
+            "label": "Orientation / breadcrumbs",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "accessibility",
+            "label": "Accessibility basics",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          },
+          {
+            "id": "barriers",
+            "label": "No login/interstitial barriers",
+            "state": "pass",
+            "note": "No issue detected across the sampled pages."
+          }
+        ],
+        "checks_total": 8,
+        "passed": 7,
+        "failed": 1,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 12,
-        "findings": 0,
-        "confidence": "high",
-        "note": "Assessed across the sampled pages; no issues detected."
+        "findings": 1,
+        "confidence": "medium",
+        "note": "1 check(s) failed across the sampled pages."
       },
       {
         "key": "proactive",
         "label": "Proactive Opportunities",
         "status": "opportunities",
         "status_label": "opportunities available",
-        "checks": "context-driven",
+        "checks": [],
+        "checks_total": 0,
+        "passed": 0,
+        "failed": 0,
+        "not_verified": 0,
+        "partial_checks": 0,
         "pages_assessed": 12,
         "findings": 2,
         "confidence": "medium",
-        "note": "Recommendations that raise AI-readiness beyond fixing defects."
+        "note": "Context-justified recommendations beyond fixing defects."
       }
     ],
     "summary": {
       "areas_total": 8,
-      "areas_assessed": 8,
+      "areas_fully_assessed": 6,
+      "areas_partial": 2,
       "areas_not_assessed": 0,
+      "areas_assessed": 8,
       "pages_crawled": 12
     }
   },
+  "pages": [
+    {
+      "url": "https://www.smashingmagazine.com/",
+      "is_home": true,
+      "status": 200,
+      "redirected": true,
+      "final_url": "https://www.smashingmagazine.com/",
+      "score": 61,
+      "finding_count": 6,
+      "finding_ids": [
+        "F-001",
+        "F-004",
+        "F-006",
+        "F-007",
+        "F-009",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability",
+        "engagement"
+      ],
+      "confidence": "medium",
+      "title": "Smashing Magazine — For Web Designers And DevelopersClear SearchBack to top",
+      "title_len": 75,
+      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
+      "h1": "",
+      "h1_count": 1,
+      "h2_count": 22,
+      "headings_outline": [
+        [
+          "h1",
+          ""
+        ],
+        [
+          "h2",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Rethinking Data Visualisation: A UX Approach To Dashboards That Actually Drives "
+        ],
+        [
+          "h2",
+          "Why Your Website Should Never Stop Changing"
+        ],
+        [
+          "h2",
+          "Accessible Front-End Components"
+        ],
+        [
+          "h2",
+          "CSS Generators & Tools"
+        ],
+        [
+          "h2",
+          "Front-End Boilerplates & Starter Kits"
+        ],
+        [
+          "h4",
+          "Latest Posts"
+        ],
+        [
+          "h2",
+          "Timing Charts: A Blueprint For SMIL Animations"
+        ],
+        [
+          "h2",
+          "New EU Guidelines For AI Labelling"
+        ],
+        [
+          "h2",
+          "Building Tactile UX: Honoring Intentional Design With Lottie"
+        ],
+        [
+          "h2",
+          "How Baseline Can Help You Ship Less JavaScript"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/",
+      "indexable": true,
+      "internal_links": 160,
+      "external_links": 39,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 25,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 287,
+      "response_ms": 47021,
+      "word_count": 1384,
+      "rendering": {
+        "static_text_words": 1384,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+      "score": 69,
+      "finding_count": 5,
+      "finding_ids": [
+        "F-002",
+        "F-006",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability",
+        "engagement"
+      ],
+      "confidence": "medium",
+      "title": "Front-End eBook Bundle (4 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 76,
+      "meta_description": "Tailored to the needs of front-end developers, this eBook bundle contains four selected Smashing eBooks on HTML, CSS, responsive web design, and more. A valuable companion to master your daily front-end challenges.",
+      "h1": "Front-End eBook Bundle (4 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Front-End eBook Bundle (4 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 172,
+      "response_ms": 15240,
+      "word_count": 1948,
+      "rendering": {
+        "static_text_words": 1948,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+      "score": 69,
+      "finding_count": 5,
+      "finding_ids": [
+        "F-002",
+        "F-006",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability",
+        "engagement"
+      ],
+      "confidence": "medium",
+      "title": "Web Design eBook Bundle (10 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 78,
+      "meta_description": "Every web designer, whether freelanced or employed, should have a reference literature that accompanies him or her throughout their professional routine. In this bundle you will find ten Smashing eBooks that will help you improve your skills in the web design field. You will be able to apply techniques to adapt your designs for mobile gadgets, combine different typefaces and intensify your professional abilities.",
+      "h1": "Web Design eBook Bundle (10 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Web Design eBook Bundle (10 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 174,
+      "response_ms": 15262,
+      "word_count": 1453,
+      "rendering": {
+        "static_text_words": 1453,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "The Smashing Library (69 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 75,
+      "meta_description": "Since over 19 years, Smashing Magazine is where thousands of designers and developers go to learn about design trends and advanced coding techniques. \n\nThat is why we have developed the Smashing Library, a comprehensive access to **69 valuable eBooks**. The Library includes our latest releases _Accessible UX Research_, _Success at Scale_, _Understanding Privacy_, _Touch Design for Mobile Interfaces_, and _Image Optimization_, too! ",
+      "h1": "The Smashing Library (69 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "The Smashing Library (69 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "Latest Additions To The Smashing Library"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success at Scale"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h3",
+          "A Few Valuable Library Features:"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "indexable": true,
+      "internal_links": 121,
+      "external_links": 11,
+      "pdf_links": 3,
+      "cta_signal": true,
+      "images": 29,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 294,
+      "response_ms": 605,
+      "word_count": 12892,
+      "rendering": {
+        "static_text_words": 12892,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Accessibility eBook Bundle (3 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 80,
+      "meta_description": "We try to build the best experiences we can, but more often than not, we make them for ourselves and users like us. With this eBook bundle, you’ll learn to enrich the web for everyone by removing existing barriers and creating experiences that are usable to more people.",
+      "h1": "Accessibility eBook Bundle (3 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Accessibility eBook Bundle (3 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 170,
+      "response_ms": 524,
+      "word_count": 1701,
+      "rendering": {
+        "static_text_words": 1701,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Business eBook Bundle (8 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 75,
+      "meta_description": "If you need support when it comes to the business aspects of the web industry, then these eBooks will be a treasure chest for you. Learn to adapt your business to the digital challenges. Get insights into building better products. Read up on how to pitch like a pro and handle your finances properly. Get precious tips on a key issue in your career: communication with clients and partners.",
+      "h1": "Business eBook Bundle (8 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Business eBook Bundle (8 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 169,
+      "response_ms": 258,
+      "word_count": 1253,
+      "rendering": {
+        "static_text_words": 1253,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Content Strategy eBook Bundle (3 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 83,
+      "meta_description": "With this bundle you will master content and copywriting in no time. Three eBooks contain Smashing Magazine’s best articles on content, carefully prepared, edited and — of course — without advertising. Perfect for those looking to get into the world of content development for online platforms, this eBook expertly pinpoints the key things one must know before beginning a journey into copywriting.",
+      "h1": "Content Strategy eBook Bundle (3 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Content Strategy eBook Bundle (3 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 164,
+      "response_ms": 294,
+      "word_count": 796,
+      "rendering": {
+        "static_text_words": 796,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "UX eBook Bundle (12 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 70,
+      "meta_description": "This eBook collection will guide you into the usability for web design field showing you how to use design elements for each purpose. The various possibilities for developing websites foster not only a designer’s creativity, but also the necessity of applying techniques that enhance the user experience and website’s usability.",
+      "h1": "UX eBook Bundle (12 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "UX eBook Bundle (12 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 175,
+      "response_ms": 267,
+      "word_count": 1634,
+      "rendering": {
+        "static_text_words": 1634,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/articles/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/articles/",
+      "score": 82,
+      "finding_count": 3,
+      "finding_ids": [
+        "F-003",
+        "F-005",
+        "F-007"
+      ],
+      "top_severity": "medium",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Articles — Smashing MagazineClear SearchNextBack to top",
+      "title_len": 55,
+      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
+      "h1": "",
+      "h1_count": 0,
+      "h2_count": 11,
+      "headings_outline": [
+        [
+          "h2",
+          "2274 articles Articles"
+        ],
+        [
+          "h2",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Rethinking Data Visualisation: A UX Approach To Dashboards That Actually Drives "
+        ],
+        [
+          "h2",
+          "Why Your Website Should Never Stop Changing"
+        ],
+        [
+          "h2",
+          "Timing Charts: A Blueprint For SMIL Animations"
+        ],
+        [
+          "h2",
+          "New EU Guidelines For AI Labelling"
+        ],
+        [
+          "h2",
+          "Building Tactile UX: Honoring Intentional Design With Lottie"
+        ],
+        [
+          "h2",
+          "How Baseline Can Help You Ship Less JavaScript"
+        ],
+        [
+          "h2",
+          "Small Joys And Big Adventures (August 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "The Bull And Bear Case For Digital Design In The Age Of AI"
+        ],
+        [
+          "h2",
+          "Thinking Outside The Box: Digital Design In The AI Era"
+        ],
+        [
+          "h4",
+          "Browse All Smashing Magazine Topics"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/articles/",
+      "indexable": true,
+      "internal_links": 140,
+      "external_links": 7,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 11,
+      "images_missing_alt": 0,
+      "scripts": 4,
+      "html_kb": 252,
+      "response_ms": 361,
+      "word_count": 822,
+      "rendering": {
+        "static_text_words": 822,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
+      "score": 90,
+      "finding_count": 3,
+      "finding_ids": [
+        "F-006",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "medium",
+      "dimensions": [
+        "discoverability",
+        "engagement"
+      ],
+      "confidence": "medium",
+      "title": "The Many Faces Of September (2026 Wallpapers Edition) — Smashing MagazineClear SearchBack to top",
+      "title_len": 96,
+      "meta_description": "Could there be a better way to welcome the new month than with a new collection of desktop wallpapers? Whether you’re holding tightly onto summer or eagerly awaiting autumn, we’ve got some eye-catching designs to make your September just a bit more colorful. Enjoy!",
+      "h1": "The Many Faces Of September (2026 Wallpapers Edition)",
+      "h1_count": 1,
+      "h2_count": 31,
+      "headings_outline": [
+        [
+          "h1",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h4",
+          "About The Author"
+        ],
+        [
+          "h4",
+          "Email Newsletter"
+        ],
+        [
+          "h2",
+          "Welcome Autumn"
+        ],
+        [
+          "h2",
+          "September On Repeat"
+        ],
+        [
+          "h2",
+          "A Stream Of Consciousness"
+        ],
+        [
+          "h2",
+          "Autumn Rains"
+        ],
+        [
+          "h2",
+          "Funny Cats"
+        ],
+        [
+          "h2",
+          "Terrazzo"
+        ],
+        [
+          "h2",
+          "Summer Ending"
+        ],
+        [
+          "h2",
+          "Cacti Everywhere"
+        ],
+        [
+          "h2",
+          "Flower Soul"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
+      "indexable": true,
+      "internal_links": 703,
+      "external_links": 100,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 41,
+      "images_missing_alt": 0,
+      "scripts": 4,
+      "html_kb": 358,
+      "response_ms": 45983,
+      "word_count": 3122,
+      "rendering": {
+        "static_text_words": 3122,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/author/cosima-mielke/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/author/cosima-mielke/",
+      "score": 98,
+      "finding_count": 1,
+      "finding_ids": [
+        "F-007"
+      ],
+      "top_severity": "low",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Author Cosima Mielke — Smashing MagazineClear SearchBack to top",
+      "title_len": 63,
+      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
+      "h1": "Author Cosima Mielke",
+      "h1_count": 1,
+      "h2_count": 180,
+      "headings_outline": [
+        [
+          "h1",
+          "Author Cosima Mielke"
+        ],
+        [
+          "h2",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Small Joys And Big Adventures (August 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Snapshots Of Summer (July 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "June Is For Exploring (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Fresh View In May (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "The Joy Of A Fresh Beginning (April 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Fresh Energy In March (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Short Month, Big Ideas (February 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Countdown To New Adventures (January 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Sparkle Of December Magic (2025 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Fading Light And Falling Leaves (November 2025 Wallpapers Edition)"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/author/cosima-mielke/",
+      "indexable": true,
+      "internal_links": 978,
+      "external_links": 12,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 182,
+      "images_missing_alt": 0,
+      "scripts": 5,
+      "html_kb": 1403,
+      "response_ms": 327,
+      "word_count": 14877,
+      "rendering": {
+        "static_text_words": 14877,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/category/wallpapers/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/category/wallpapers/",
+      "score": 100,
+      "finding_count": 0,
+      "finding_ids": [],
+      "top_severity": null,
+      "dimensions": [],
+      "confidence": "high",
+      "title": "Desktop Wallpapers — Smashing MagazineClear SearchNextBack to top",
+      "title_len": 65,
+      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
+      "h1": "Category Desktop Wallpapers",
+      "h1_count": 1,
+      "h2_count": 10,
+      "headings_outline": [
+        [
+          "h1",
+          "Category Desktop Wallpapers"
+        ],
+        [
+          "h4",
+          "211\narticles"
+        ],
+        [
+          "h2",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Small Joys And Big Adventures (August 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Snapshots Of Summer (July 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "June Is For Exploring (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Fresh View In May (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "The Joy Of A Fresh Beginning (April 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Fresh Energy In March (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Short Month, Big Ideas (February 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Countdown To New Adventures (January 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Sparkle Of December Magic (2025 Wallpapers Edition)"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/categories/wallpapers/",
+      "indexable": true,
+      "internal_links": 133,
+      "external_links": 7,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 11,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 247,
+      "response_ms": 489,
+      "word_count": 826,
+      "rendering": {
+        "static_text_words": 826,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    }
+  ],
   "analytics": {
     "generated_from": "scored report (deterministic, no extra data collected)",
     "kpis": {
-      "ai_visibility_score": 59,
+      "ai_visibility_score": 56,
       "grade": "F",
       "discoverability": 31.0,
-      "engagement": 100.0,
-      "total_findings": 9,
+      "engagement": 94.0,
+      "total_findings": 10,
       "critical_high": 2,
       "quick_wins": 2,
-      "projected_score": 68,
-      "projected_gain": 9,
+      "projected_score": 66,
+      "projected_gain": 10,
       "potential_score": 100,
       "pages_analyzed": 12,
       "weakest_pillar": "Structured Data",
       "weakest_pillar_score": 48.0,
       "strongest_pillar": "Crawl & Render",
-      "total_effort_points": 25,
+      "total_effort_points": 29,
       "effort_band": "Substantial",
       "opportunities": 2,
       "areas_assessed": 8,
@@ -466,7 +1912,7 @@
         "label": "Crawl & Render",
         "dimension": "discoverability",
         "score": 100.0,
-        "status": "healthy",
+        "status": "partial",
         "assessed": true,
         "findings": 0
       },
@@ -510,10 +1956,10 @@
         "key": "engagement",
         "label": "Engagement",
         "dimension": "engagement",
-        "score": 100.0,
+        "score": 94.0,
         "status": "healthy",
         "assessed": true,
-        "findings": 0
+        "findings": 1
       }
     ],
     "distribution": {
@@ -521,53 +1967,63 @@
         {
           "key": "high",
           "count": 2,
-          "pct": 22
+          "pct": 20
         },
         {
           "key": "medium",
-          "count": 3,
-          "pct": 33
+          "count": 4,
+          "pct": 40
         },
         {
           "key": "low",
           "count": 4,
-          "pct": 44
+          "pct": 40
         }
       ],
       "by_confidence": [
         {
           "key": "high",
           "count": 5,
-          "pct": 56
+          "pct": 50
         },
         {
           "key": "medium",
-          "count": 4,
-          "pct": 44
+          "count": 5,
+          "pct": 50
         }
       ],
       "by_dimension": [
         {
           "key": "discoverability",
           "count": 9,
-          "pct": 100
+          "pct": 90
+        },
+        {
+          "key": "engagement",
+          "count": 1,
+          "pct": 10
         }
       ],
       "by_category": [
         {
           "key": "extractability",
           "count": 5,
-          "pct": 56
+          "pct": 50
         },
         {
           "key": "structured-data",
           "count": 3,
-          "pct": 33
+          "pct": 30
         },
         {
           "key": "entity-identity",
           "count": 1,
-          "pct": 11
+          "pct": 10
+        },
+        {
+          "key": "performance",
+          "count": 1,
+          "pct": 10
         }
       ]
     },
@@ -584,7 +2040,7 @@
         "effort": 3,
         "effort_label": "Medium",
         "quadrant": "major_project",
-        "points_at_stake": 10,
+        "points_at_stake": 11,
         "affected_pages": []
       },
       {
@@ -599,7 +2055,7 @@
         "effort": 4,
         "effort_label": "High",
         "quadrant": "major_project",
-        "points_at_stake": 10,
+        "points_at_stake": 11,
         "affected_pages": [
           "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
           "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
@@ -622,7 +2078,7 @@
         "effort": 3,
         "effort_label": "Medium",
         "quadrant": "major_project",
-        "points_at_stake": 4,
+        "points_at_stake": 5,
         "affected_pages": [
           "https://www.smashingmagazine.com/articles/"
         ]
@@ -639,7 +2095,7 @@
         "effort": 2,
         "effort_label": "Low",
         "quadrant": "quick_win",
-        "points_at_stake": 4,
+        "points_at_stake": 5,
         "affected_pages": []
       },
       {
@@ -654,24 +2110,44 @@
         "effort": 2,
         "effort_label": "Low",
         "quadrant": "quick_win",
-        "points_at_stake": 4,
+        "points_at_stake": 5,
         "affected_pages": [
           "https://www.smashingmagazine.com/articles/"
         ]
       },
       {
         "id": "F-006",
+        "title": "Slow server response on sampled pages",
+        "severity": "medium",
+        "dimension": "engagement",
+        "category": "performance",
+        "confidence": "medium",
+        "priority": 6,
+        "impact": 3,
+        "effort": 4,
+        "effort_label": "High",
+        "quadrant": "major_project",
+        "points_at_stake": 3,
+        "affected_pages": [
+          "https://www.smashingmagazine.com/",
+          "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+          "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
+        ]
+      },
+      {
+        "id": "F-007",
         "title": "Heading hierarchy skips levels",
         "severity": "low",
         "dimension": "discoverability",
         "category": "extractability",
         "confidence": "medium",
-        "priority": 6,
+        "priority": 7,
         "impact": 2,
         "effort": 3,
         "effort_label": "Medium",
         "quadrant": "low_priority",
-        "points_at_stake": 1,
+        "points_at_stake": 2,
         "affected_pages": [
           "https://www.smashingmagazine.com/",
           "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
@@ -686,18 +2162,18 @@
         ]
       },
       {
-        "id": "F-007",
+        "id": "F-008",
         "title": "Meta descriptions likely to be truncated",
         "severity": "low",
         "dimension": "discoverability",
         "category": "extractability",
         "confidence": "medium",
-        "priority": 7,
+        "priority": 8,
         "impact": 2,
         "effort": 3,
         "effort_label": "Medium",
         "quadrant": "low_priority",
-        "points_at_stake": 1,
+        "points_at_stake": 2,
         "affected_pages": [
           "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
           "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
@@ -710,33 +2186,33 @@
         ]
       },
       {
-        "id": "F-008",
-        "title": "Substantial content offloaded to PDF files",
-        "severity": "low",
-        "dimension": "discoverability",
-        "category": "extractability",
-        "confidence": "medium",
-        "priority": 8,
-        "impact": 2,
-        "effort": 2,
-        "effort_label": "Low",
-        "quadrant": "fill_in",
-        "points_at_stake": 1,
-        "affected_pages": []
-      },
-      {
         "id": "F-009",
-        "title": "Title tags outside the useful length range",
+        "title": "Substantial content offloaded to PDF files",
         "severity": "low",
         "dimension": "discoverability",
         "category": "extractability",
         "confidence": "medium",
         "priority": 9,
         "impact": 2,
+        "effort": 2,
+        "effort_label": "Low",
+        "quadrant": "fill_in",
+        "points_at_stake": 2,
+        "affected_pages": []
+      },
+      {
+        "id": "F-010",
+        "title": "Title tags outside the useful length range",
+        "severity": "low",
+        "dimension": "discoverability",
+        "category": "extractability",
+        "confidence": "medium",
+        "priority": 10,
+        "impact": 2,
         "effort": 3,
         "effort_label": "Medium",
         "quadrant": "low_priority",
-        "points_at_stake": 1,
+        "points_at_stake": 2,
         "affected_pages": [
           "https://www.smashingmagazine.com/",
           "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
@@ -752,7 +2228,7 @@
     ],
     "quadrant_counts": {
       "quick_win": 2,
-      "major_project": 3,
+      "major_project": 4,
       "fill_in": 1,
       "low_priority": 3
     },
@@ -769,7 +2245,7 @@
         "effort": 2,
         "effort_label": "Low",
         "quadrant": "quick_win",
-        "points_at_stake": 4,
+        "points_at_stake": 5,
         "affected_pages": []
       },
       {
@@ -784,29 +2260,41 @@
         "effort": 2,
         "effort_label": "Low",
         "quadrant": "quick_win",
-        "points_at_stake": 4,
+        "points_at_stake": 5,
         "affected_pages": [
           "https://www.smashingmagazine.com/articles/"
         ]
       }
     ],
     "projection": {
-      "current": 59,
+      "current": 56,
       "current_grade": "F",
-      "after_quick_wins": 68,
+      "after_quick_wins": 66,
       "after_quick_wins_grade": "D",
-      "quick_win_gain": 9,
+      "quick_win_gain": 10,
       "after_all_fixed": 100,
       "after_all_grade": "A",
-      "headroom": 41,
+      "headroom": 44,
       "to_next_grade": {
         "grade": "D",
-        "points": 1,
+        "points": 4,
         "at_least": 60
       },
       "quick_wins_reach_next_grade": true
     },
     "hotspots": [
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+        "findings": 5,
+        "impact": 13,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+        "findings": 5,
+        "impact": 13,
+        "top_severity": "high"
+      },
       {
         "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
         "findings": 4,
@@ -832,19 +2320,7 @@
         "top_severity": "high"
       },
       {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
-        "findings": 4,
-        "impact": 10,
-        "top_severity": "high"
-      },
-      {
         "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-        "findings": 4,
-        "impact": 10,
-        "top_severity": "high"
-      },
-      {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
         "findings": 4,
         "impact": 10,
         "top_severity": "high"
@@ -865,7 +2341,7 @@
           "impact": 4,
           "effort_label": "Medium",
           "quadrant": "major_project",
-          "points_at_stake": 10
+          "points_at_stake": 11
         },
         {
           "id": "F-002",
@@ -874,7 +2350,7 @@
           "impact": 4,
           "effort_label": "High",
           "quadrant": "major_project",
-          "points_at_stake": 10
+          "points_at_stake": 11
         },
         {
           "id": "F-004",
@@ -883,7 +2359,7 @@
           "impact": 3,
           "effort_label": "Low",
           "quadrant": "quick_win",
-          "points_at_stake": 4
+          "points_at_stake": 5
         },
         {
           "id": "F-005",
@@ -892,7 +2368,7 @@
           "impact": 3,
           "effort_label": "Low",
           "quadrant": "quick_win",
-          "points_at_stake": 4
+          "points_at_stake": 5
         }
       ],
       "next": [
@@ -903,54 +2379,63 @@
           "impact": 3,
           "effort_label": "Medium",
           "quadrant": "major_project",
-          "points_at_stake": 4
+          "points_at_stake": 5
+        },
+        {
+          "id": "F-006",
+          "title": "Slow server response on sampled pages",
+          "severity": "medium",
+          "impact": 3,
+          "effort_label": "High",
+          "quadrant": "major_project",
+          "points_at_stake": 3
         }
       ],
       "later": [
         {
-          "id": "F-006",
+          "id": "F-007",
           "title": "Heading hierarchy skips levels",
           "severity": "low",
           "impact": 2,
           "effort_label": "Medium",
           "quadrant": "low_priority",
-          "points_at_stake": 1
+          "points_at_stake": 2
         },
         {
-          "id": "F-007",
+          "id": "F-008",
           "title": "Meta descriptions likely to be truncated",
           "severity": "low",
           "impact": 2,
           "effort_label": "Medium",
           "quadrant": "low_priority",
-          "points_at_stake": 1
+          "points_at_stake": 2
         },
         {
-          "id": "F-008",
+          "id": "F-009",
           "title": "Substantial content offloaded to PDF files",
           "severity": "low",
           "impact": 2,
           "effort_label": "Low",
           "quadrant": "fill_in",
-          "points_at_stake": 1
+          "points_at_stake": 2
         },
         {
-          "id": "F-009",
+          "id": "F-010",
           "title": "Title tags outside the useful length range",
           "severity": "low",
           "impact": 2,
           "effort_label": "Medium",
           "quadrant": "low_priority",
-          "points_at_stake": 1
+          "points_at_stake": 2
         }
       ]
     },
     "narrative": [
-      "smashingmagazine.com scores 59/100 (grade F — At risk). Core problems make the brand hard for AI assistants to find or trust.",
+      "smashingmagazine.com scores 56/100 (grade F — At risk). Core problems make the brand hard for AI assistants to find or trust.",
       "2 finding(s) are critical or high severity and should be addressed first; the weakest area is Structured Data (48/100).",
-      "2 quick win(s) (high impact, low effort) would lift the score by about 9 point(s) to ~68/100 — enough to move up a grade.",
-      "Fixing every finding would raise the score to about 100/100 (+41); estimated effort overall is substantial.",
-      "Discoverability (31) and engagement (100) diverge by 69 points; discoverability is the side pulling the score down.",
+      "2 quick win(s) (high impact, low effort) would lift the score by about 10 point(s) to ~66/100 — enough to move up a grade.",
+      "Fixing every finding would raise the score to about 100/100 (+44); estimated effort overall is substantial.",
+      "Discoverability (31) and engagement (94) diverge by 63 points; discoverability is the side pulling the score down.",
       "Assessed 8 of 8 areas. 2 proactive opportunity(ies) identified."
     ]
   }

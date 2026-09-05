@@ -53,6 +53,7 @@ def analyze(ctx: AuditContext) -> List[Finding]:
     findings += _intrusive(pages)
     findings += _login_barrier(pages, ctx.cfg)
     findings += _link_quality(pages, ctx.cfg)
+    findings += _accessibility(pages, ctx.cfg)
     return findings
 
 
@@ -306,6 +307,77 @@ def _link_quality(pages: List[Page], cfg) -> List[Finding]:
             suggested_action_priority="low", confidence="medium",
         )]
     return []
+
+
+_LABEL_FOR_RE = re.compile(r"<label[^>]*\bfor=[\"']([^\"']+)[\"']", re.I)
+_CONTROL_RE = re.compile(r"<(input|select|textarea)\b([^>]*)>", re.I)
+_TYPE_RE = re.compile(r"\btype=[\"']?([a-z]+)", re.I)
+_ATTR_RE = lambda name: re.compile(r'\b' + name + r'=[\"\']?[^\s"\'>]+', re.I)
+_NONLABELABLE = {"hidden", "submit", "button", "reset", "image"}
+
+
+def _accessibility(pages: List[Page], cfg) -> List[Finding]:
+    """Statically-inferable accessibility issues: unlabeled form controls and untitled iframes.
+
+    Conservative by design (medium confidence): wrapping <label> and JS-set ARIA can't be seen in
+    static markup, so a control counts as 'unlabeled' only when it has no for-associated <label>,
+    no aria-label/aria-labelledby, no title, and no placeholder.
+    """
+    out: List[Finding] = []
+    total = len(pages)
+    unlabeled_pages, unlabeled_total = [], 0
+    iframe_pages, iframe_total = [], 0
+    for p in pages:
+        html_l = p.raw_html
+        label_ids = set(_LABEL_FOR_RE.findall(html_l))
+        n_unlabeled = 0
+        for tag, attrs in _CONTROL_RE.findall(html_l):
+            typ = (_TYPE_RE.search(attrs).group(1).lower() if _TYPE_RE.search(attrs) else "text")
+            if tag.lower() == "input" and typ in _NONLABELABLE:
+                continue
+            has_aria = any(a in attrs.lower() for a in ("aria-label", "aria-labelledby", "title=", "placeholder="))
+            id_m = re.search(r'\bid=[\"\']([^\"\']+)', attrs)
+            has_label = bool(id_m and id_m.group(1) in label_ids)
+            if not has_aria and not has_label:
+                n_unlabeled += 1
+        if n_unlabeled:
+            unlabeled_pages.append(p.url)
+            unlabeled_total += n_unlabeled
+        # iframes carrying content should have a title; skip aria-hidden ones.
+        for m in re.findall(r"<iframe\b([^>]*)>", html_l, re.I):
+            if "title=" in m.lower() or "aria-hidden" in m.lower():
+                continue
+            iframe_total += 1
+            if p.url not in iframe_pages:
+                iframe_pages.append(p.url)
+
+    if unlabeled_total >= cfg.t("unlabeled_controls_min"):
+        out.append(Finding(
+            title="Form controls without an associated label",
+            severity="low", dimension="engagement", category="accessibility",
+            evidence=f"{unlabeled_total} form control(s) across {scope_str(len(unlabeled_pages), total)} have no "
+                     f"for-associated <label>, aria-label, title, or placeholder, e.g. {unlabeled_pages[0]}.",
+            why="Unlabeled inputs are unusable with a screen reader and ambiguous to everyone, so forms "
+                "(search, contact, sign-up) become friction points that end the visit.",
+            how_to_fix="Associate every control with a <label for>, or add aria-label/aria-labelledby where a visible label isn't possible.",
+            scope=scope_str(len(unlabeled_pages), total),
+            measurements={"unlabeled_controls": unlabeled_total, "pages_affected": len(unlabeled_pages)},
+            suggested_action_summary="Give every form control a programmatic label (<label for>, or aria-label).",
+            suggested_action_priority="low", confidence="medium", affected_pages=unlabeled_pages,
+        ))
+    if iframe_total:
+        out.append(Finding(
+            title="Iframes without a title attribute",
+            severity="low", dimension="engagement", category="accessibility",
+            evidence=f"{iframe_total} iframe(s) across {scope_str(len(iframe_pages), total)} have no title attribute, e.g. {iframe_pages[0]}.",
+            why="A screen reader announces an untitled iframe only as 'frame', so embedded content (maps, videos, forms) is unnavigable for those users.",
+            how_to_fix="Add a descriptive title=\"…\" to each content iframe (or aria-hidden if purely decorative).",
+            scope=scope_str(len(iframe_pages), total),
+            measurements={"iframes_without_title": iframe_total, "pages_affected": len(iframe_pages)},
+            suggested_action_summary="Add a descriptive title to each content iframe.",
+            suggested_action_priority="low", confidence="medium", affected_pages=iframe_pages,
+        ))
+    return out
 
 
 # --- helpers ----------------------------------------------------------------------

@@ -8,6 +8,7 @@ canonical consistency, nofollow'd internal links, and (bounded) broken internal 
 from __future__ import annotations
 
 import re
+import time
 import urllib.parse
 from typing import List
 
@@ -29,7 +30,8 @@ SPA_MARKERS = [
     (r"ng-version=", "Angular app shell"),
     (r"data-reactroot", "React root without server markup"),
 ]
-MAX_LINK_CHECKS = 10  # bounded broken-link probing to stay well within the time budget
+MAX_LINK_CHECKS = 6       # bounded broken-link probing to stay well within the time budget
+LINK_PROBE_BUDGET_S = 20  # hard wall-clock cap for probing, so slow hosts can't blow the budget
 
 
 def analyze(ctx: AuditContext) -> List[Finding]:
@@ -231,8 +233,12 @@ def _broken_link_findings(ctx: AuditContext) -> List[Finding]:
         if re.search(r"\.(png|jpe?g|gif|svg|webp|css|js|ico|pdf|zip|mp4|woff2?)(\?|$)", n, re.I):
             continue
         candidates.append(n)
-    broken = []
+    broken, probed = [], 0
+    deadline = time.monotonic() + LINK_PROBE_BUDGET_S
     for n in sorted(candidates)[:MAX_LINK_CHECKS]:
+        if time.monotonic() > deadline:
+            break  # respect the wall-clock budget on slow hosts
+        probed += 1
         try:
             r = ctx.fetcher.fetch(n)
         except Exception:
@@ -245,10 +251,10 @@ def _broken_link_findings(ctx: AuditContext) -> List[Finding]:
     return [Finding(
         title="Broken internal links found",
         severity="medium", dimension="discoverability", category="reachability",
-        evidence=f"{len(broken)} of {min(len(candidates), MAX_LINK_CHECKS)} probed internal link(s) failed, e.g. {u} ({st}).",
+        evidence=f"{len(broken)} of {probed} probed internal link(s) failed, e.g. {u} ({st}).",
         why="Broken internal links dead-end both visitors and crawlers, wasting crawl budget and stranding any content behind them.",
         how_to_fix="Fix or redirect the broken targets, and update the links that point to them.",
-        measurements={"broken_links": len(broken), "links_probed": min(len(candidates), MAX_LINK_CHECKS)},
+        measurements={"broken_links": len(broken), "links_probed": probed},
         details={"examples": [{"url": bu, "status": str(bs)} for bu, bs in broken[:5]]},
         suggested_action_summary="Repair or 301-redirect broken internal link targets and update the referring links.",
         suggested_action_priority="medium", confidence="high",

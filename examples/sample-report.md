@@ -1,25 +1,25 @@
 # AI Readiness Audit — smashingmagazine.com
 
-**AI Visibility Score: 59/100 (Grade F)** · discoverability 31.0 · engagement 100.0
+**AI Visibility Score: 56/100 (Grade F)** · discoverability 31.0 · engagement 94.0
 
-_Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
+_Audited 2026-09-05T14:46:16Z · profile balanced · 12 page(s) crawled_
 
-> smashingmagazine.com scores 59/100 (grade F — At risk). Core problems make the brand hard for AI assistants to find or trust.
+> smashingmagazine.com scores 56/100 (grade F — At risk). Core problems make the brand hard for AI assistants to find or trust.
 > 2 finding(s) are critical or high severity and should be addressed first; the weakest area is Structured Data (48/100).
-> 2 quick win(s) (high impact, low effort) would lift the score by about 9 point(s) to ~68/100 — enough to move up a grade.
-> Fixing every finding would raise the score to about 100/100 (+41); estimated effort overall is substantial.
-> Discoverability (31) and engagement (100) diverge by 69 points; discoverability is the side pulling the score down.
+> 2 quick win(s) (high impact, low effort) would lift the score by about 10 point(s) to ~66/100 — enough to move up a grade.
+> Fixing every finding would raise the score to about 100/100 (+44); estimated effort overall is substantial.
+> Discoverability (31) and engagement (94) diverge by 63 points; discoverability is the side pulling the score down.
 > Assessed 8 of 8 areas. 2 proactive opportunity(ies) identified.
 
 ## Key metrics
 
 | Metric | Value |
 |---|---|
-| AI Visibility Score | 59/100 (F) |
-| Total findings | 9 |
+| AI Visibility Score | 56/100 (F) |
+| Total findings | 10 |
 | Critical + high | 2 |
 | Quick wins | 2 |
-| Projected after quick wins | 68/100 (+9) |
+| Projected after quick wins | 66/100 (+10) |
 | Full potential | 100/100 |
 | Weakest pillar | Structured Data (48.0/100) |
 | Estimated effort | Substantial |
@@ -29,17 +29,17 @@ _Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
 
 | Pillar | Score | Status | Findings |
 |---|---|---|---|
-| Crawl & Render | 100/100 | healthy | 0 |
+| Crawl & Render | 100/100 | partial | 0 |
 | Structured Data | 48/100 | critical | 4 |
 | Extractability | 83/100 | warning | 5 |
 | Freshness | 100/100 | healthy | 0 |
 | Corroboration | 100/100 | partial | 0 |
-| Engagement | 100/100 | healthy | 0 |
+| Engagement | 94/100 | healthy | 1 |
 
 ## Quick wins (do these first)
 
-- **Homepage lacks Organization/WebSite structured data** — impact 3/5, low effort, +4 pts (F-004)
-- **Pages missing an H1 heading** — impact 3/5, low effort, +4 pts (F-005)
+- **Homepage lacks Organization/WebSite structured data** — impact 3/5, low effort, +5 pts (F-004)
+- **Pages missing an H1 heading** — impact 3/5, low effort, +5 pts (F-005)
 
 ## Roadmap
 
@@ -53,6 +53,7 @@ _Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
 **Next**
 
 - 🟡 Article/blog pages missing Article schema (medium, medium effort)
+- 🟡 Slow server response on sampled pages (medium, high effort)
 
 **Later**
 
@@ -101,7 +102,15 @@ _Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
 - **Fix (medium):** Add exactly one descriptive H1 per page stating what the page is about in plain words.
 - **Affected pages:** https://www.smashingmagazine.com/articles/
 
-### 🟢 F-006 · Heading hierarchy skips levels  
+### 🟡 F-006 · Slow server response on sampled pages  
+`medium` · engagement / performance · confidence medium · impact 3/5
+
+- **Why it hurts:** A slow first byte (TTFB) delays everything downstream, so the page starts rendering late and visitors abandon before it appears.
+- **Evidence:** 4 of 12 page(s) (33%) took over 3s to return HTML (e.g. https://www.smashingmagazine.com/: 47021 ms).
+- **Fix (medium):** Investigate TTFB (caching, CDN, server work) so pages start rendering quickly; each added second measurably increases abandonment.
+- **Affected pages:** https://www.smashingmagazine.com/, https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/, https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/, https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/
+
+### 🟢 F-007 · Heading hierarchy skips levels  
 `low` · discoverability / extractability · confidence medium · impact 2/5
 
 - **Why it hurts:** A machine reconstructs a page's outline from heading levels; skipped levels break that nesting, so the relationship between sections is ambiguous.
@@ -109,7 +118,7 @@ _Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
 - **Fix (low):** Nest headings in order (no H1→H3 jumps) so the document outline is unambiguous.
 - **Affected pages:** https://www.smashingmagazine.com/, https://www.smashingmagazine.com/ebook-bundles/smashing-library/, https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/, https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/, https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/ …
 
-### 🟢 F-007 · Meta descriptions likely to be truncated  
+### 🟢 F-008 · Meta descriptions likely to be truncated  
 `low` · discoverability / extractability · confidence medium · impact 2/5
 
 - **Why it hurts:** Over-long descriptions are cut off, so the most important summary sentence may never be shown or quoted.
@@ -117,14 +126,14 @@ _Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
 - **Fix (low):** Keep meta descriptions under ~160 characters, key fact first.
 - **Affected pages:** https://www.smashingmagazine.com/ebook-bundles/smashing-library/, https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/, https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/, https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/, https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/ …
 
-### 🟢 F-008 · Substantial content offloaded to PDF files  
+### 🟢 F-009 · Substantial content offloaded to PDF files  
 `low` · discoverability / extractability · confidence medium · impact 2/5
 
 - **Why it hurts:** Scanned or image-only PDFs are frequently unreadable to crawlers, so any key information that lives only inside them cannot be extracted or cited.
 - **Evidence:** 3 PDF link(s) found across sampled pages.
 - **Fix (low):** Publish the key information as HTML pages (the PDF can remain as a download). Ensure any essential PDFs contain real, selectable text, not scans.
 
-### 🟢 F-009 · Title tags outside the useful length range  
+### 🟢 F-010 · Title tags outside the useful length range  
 `low` · discoverability / extractability · confidence medium · impact 2/5
 
 - **Why it hurts:** Very short titles under-describe the page while very long ones get truncated in results and answers, so the specific topic is lost either way.
@@ -133,4 +142,4 @@ _Audited 2026-09-05T11:46:49Z · profile balanced · 12 page(s) crawled_
 - **Affected pages:** https://www.smashingmagazine.com/, https://www.smashingmagazine.com/ebook-bundles/smashing-library/, https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/, https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/, https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/ …
 
 ---
-_Generated by brand-ai-readiness-audit · brand-ai-readiness-audit/2.0 · read-only, recommend-only. JSON is the canonical output._
+_Generated by brand-ai-readiness-audit · brand-ai-readiness-audit/2.1 · read-only, recommend-only. JSON is the canonical output._

@@ -50,8 +50,10 @@ running every other skill's checks over a shared crawl and merging their finding
 5. **Score**: compute the 0–100 AI Visibility Score (+ A–F grade and per-dimension
    sub-scores), enrich each finding with a plain-English *why* and an `impact`, and order
    findings most-actionable-first.
-6. **Coverage + opportunities**: build the per-area coverage matrix (healthy / issues / partial /
-   not-assessed, so 0 findings ≠ healthy) and surface context-justified proactive opportunities.
+6. **Coverage + opportunities + pages**: build the per-area coverage matrix with named
+   PASS/FAIL/NOT_VERIFIED/PARTIAL checks (so 0 findings ≠ healthy and rendered-DOM parity is marked
+   not-verified, not healthy), surface context-justified proactive opportunities, and assemble
+   per-page detail for the page explorer.
 7. **Analyze** (analyst layer): derive pillar sub-scores (with coverage-aware status), an
    impact×effort matrix with quick wins, a "what-if" score projection, page hotspots, a
    Now/Next/Later roadmap, and a short auto-written executive summary — the `analytics` block.

@@ -10,6 +10,7 @@ findings list if analytics is absent.
 from __future__ import annotations
 
 import html
+import json
 import math
 from typing import Any, Dict, List
 
@@ -18,6 +19,7 @@ _SEV_COLOR = {
     "low": "#3f9d63", "info": "#6b7a8d",
 }
 _GRADE_COLOR = {"A": "#2e7d32", "B": "#66a838", "C": "#e0a500", "D": "#ef6c00", "F": "#c0182f"}
+_SEV_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 _STATUS_COLOR = {"healthy": "#2e7d32", "warning": "#e0a500", "critical": "#c0182f",
                  "partial": "#2f6fb0", "not_assessed": "#8a8f98", "issues": "#e05a1e",
                  "opportunities": "#7a4fd0"}
@@ -43,6 +45,7 @@ def render_html(report: Dict[str, Any]) -> str:
 
     sections = [
         _hero(report, site, score, value, grade),
+        _toolbar(),
         _kpi_row(an, summary),
         _exec_summary(an),
         _coverage_section(report),
@@ -53,11 +56,15 @@ def render_html(report: Dict[str, Any]) -> str:
         _roadmap_section(an),
         _hotspots_section(an),
         _findings_section(findings),
+        _page_explorer_section(report),
         _opportunities_section(report),
         _limitations_section(report),
         _methodology(report),
     ]
     body = "\n".join(s for s in sections if s)
+    # Embed the CANONICAL report so the UI (page explorer, exports, filters) reads one source of
+    # truth — the rendered report and the exported JSON can never silently disagree.
+    data = json.dumps(report, ensure_ascii=False).replace("</", "<\\/")
 
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -66,8 +73,19 @@ def render_html(report: Dict[str, Any]) -> str:
 <style>{_CSS}</style></head>
 <body>
 {body}
+<script id="audit-data" type="application/json">{data}</script>
 <script>{_JS}</script>
 </body></html>"""
+
+
+def _toolbar() -> str:
+    """Export/print controls (progressive-enhancement; hidden without JS)."""
+    return """<div class="toolbar" hidden>
+  <button id="dl-json" class="tbtn">⬇ Download JSON</button>
+  <button id="copy-json" class="tbtn">⧉ Copy JSON</button>
+  <button id="print" class="tbtn">🖶 Print</button>
+  <span id="copy-note" class="tbtn-note" hidden>copied</span>
+</div>"""
 
 
 # --- hero -------------------------------------------------------------------------
@@ -185,31 +203,59 @@ def _exec_summary(an) -> str:
 
 # --- coverage matrix --------------------------------------------------------------
 
+_CHECK_STATE = {"pass": ("✓", "#2e7d32"), "fail": ("✕", "#c0182f"),
+                "not_verified": ("?", "#8a8f98"), "partial": ("~", "#2f6fb0")}
+
+
 def _coverage_section(report) -> str:
     cov = report.get("coverage") or {}
     areas = cov.get("areas")
     if not areas:
         return ""
-    rows = ""
-    for a in areas:
-        color = _STATUS_COLOR.get(a["status"], "#889")
-        rows += (
-            f'<tr><td class="area">{html.escape(a["label"])}</td>'
-            f'<td class="checks">{html.escape(a.get("checks", ""))}</td>'
-            f'<td class="num">{a.get("pages_assessed", 0)}</td>'
-            f'<td class="num">{a.get("findings", 0)}</td>'
-            f'<td><span class="chip mini" style="background:{color}">{html.escape(a.get("status_label", a["status"]))}</span></td>'
-            f'<td class="conf">{html.escape(a.get("confidence", ""))}</td></tr>')
+    rows = "".join(_coverage_row(a) for a in areas)
     s = cov.get("summary", {})
-    note = (f'{s.get("areas_assessed")} of {s.get("areas_total")} areas assessed'
-            + (f' · {s.get("areas_not_assessed")} not assessed' if s.get("areas_not_assessed") else ""))
+    parts = []
+    if s.get("areas_fully_assessed") is not None:
+        parts.append(f'{s["areas_fully_assessed"]} fully assessed')
+    if s.get("areas_partial"):
+        parts.append(f'{s["areas_partial"]} partially assessed')
+    if s.get("areas_not_assessed"):
+        parts.append(f'{s["areas_not_assessed"]} not assessed')
+    note = " · ".join(parts) + " — 0 findings ≠ healthy"
     return f"""<section class="card">
-  <h2>Coverage <span class="hint">{html.escape(note)} — 0 findings ≠ healthy</span></h2>
-  <table class="coverage">
-    <thead><tr><th>Area</th><th>Checks</th><th>Pages</th><th>Findings</th><th>Status</th><th>Confidence</th></tr></thead>
-    <tbody>{rows}</tbody>
-  </table>
+  <h2>Coverage <span class="hint">{html.escape(note)}</span></h2>
+  <div class="cov-list">{rows}</div>
 </section>"""
+
+
+def _coverage_row(a: Dict[str, Any]) -> str:
+    color = _STATUS_COLOR.get(a["status"], "#889")
+    checks = a.get("checks", [])
+    summary_counts = []
+    if a.get("passed"):
+        summary_counts.append(f'{a["passed"]}✓')
+    if a.get("failed"):
+        summary_counts.append(f'<span style="color:#c0182f">{a["failed"]}✕</span>')
+    if a.get("not_verified"):
+        summary_counts.append(f'{a["not_verified"]}?')
+    if a.get("partial_checks"):
+        summary_counts.append(f'{a["partial_checks"]}~')
+    counts = " · ".join(summary_counts) or "—"
+    check_items = "".join(
+        f'<li><span class="cstate" style="color:{_CHECK_STATE.get(c["state"], ("•","#889"))[1]}">'
+        f'{_CHECK_STATE.get(c["state"], ("•","#889"))[0]}</span> {html.escape(c["label"])} '
+        f'<em>{html.escape(c["state"].replace("_"," "))}</em></li>' for c in checks)
+    body = (f'<ul class="clist">{check_items}</ul>' if check_items else
+            f'<p class="hint">{html.escape(a.get("note",""))}</p>')
+    return f"""<details class="cov-row">
+  <summary>
+    <span class="chip mini" style="background:{color}">{html.escape(a.get("status_label", a["status"]))}</span>
+    <span class="cov-area">{html.escape(a["label"])}</span>
+    <span class="cov-counts">{counts}</span>
+    <span class="cov-meta">{a.get("pages_assessed",0)} pg · {html.escape(a.get("confidence",""))} conf</span>
+  </summary>
+  <div class="cov-body"><p class="cov-note">{html.escape(a.get("note",""))}</p>{body}</div>
+</details>"""
 
 
 # --- score explanation ------------------------------------------------------------
@@ -383,7 +429,7 @@ def _radar_svg(pillars: List[Dict[str, Any]]) -> str:
         labels.append(f'<text x="{lx:.1f}" y="{ly+4:.1f}" text-anchor="{anchor}" '
                       f'font-size="11" fill="#5a6472">{short}</text>')
     poly = " ".join(pts)
-    return f"""<svg viewBox="0 0 380 300" width="100%" height="auto" role="img" aria-label="Pillar radar chart">
+    return f"""<svg viewBox="0 0 380 300" width="100%" role="img" aria-label="Pillar radar chart">
   {rings}
   {''.join(axes)}
   <polygon points="{poly}" fill="rgba(47,111,176,.20)" stroke="#2f6fb0" stroke-width="2"/>
@@ -487,7 +533,7 @@ def _matrix_svg(items: List[Dict[str, Any]]) -> str:
             f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{rad}" fill="{color}" fill-opacity="0.85" '
             f'stroke="#fff" stroke-width="1"><title>{html.escape(it["title"])} — '
             f'impact {it["impact"]}, effort {it["effort"]}, +{it.get("points_at_stake",0)} pts</title></circle>')
-    return f"""<svg class="matrix-svg" viewBox="0 0 {W} {H}" width="100%" height="auto" role="img" aria-label="Impact by effort matrix">
+    return f"""<svg class="matrix-svg" viewBox="0 0 {W} {H}" width="100%" role="img" aria-label="Impact by effort matrix">
   <rect x="{pad_l}" y="{pad_t}" width="{bx-pad_l:.1f}" height="{by-pad_t:.1f}" fill="rgba(46,125,50,.08)"/>
   <text x="{(pad_l+bx)/2:.0f}" y="{pad_t+14}" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="700">QUICK WINS</text>
   <text x="{(bx+W-pad_r)/2:.0f}" y="{pad_t+14}" text-anchor="middle" font-size="10" fill="#2f6fb0" font-weight="700">MAJOR PROJECTS</text>
@@ -511,9 +557,9 @@ def _roadmap_section(an) -> str:
     if not rm or not (rm.get("now") or rm.get("next") or rm.get("later")):
         return ""
     cols = []
-    for bucket, title, sub in (("now", "Now", "critical, high & quick wins"),
-                               ("next", "Next", "medium-severity fixes"),
-                               ("later", "Later", "low-severity refinements")):
+    for bucket, title, sub in (("now", "Now", "critical & high severity, plus quick wins (any severity)"),
+                               ("next", "Next", "remaining medium-severity fixes"),
+                               ("later", "Later", "remaining low-severity refinements")):
         items = rm.get(bucket, [])
         lis = "".join(
             f'<li><span class="chip mini" style="background:{_SEV_COLOR.get(it["severity"], "#889")}">'
@@ -559,23 +605,40 @@ def _findings_section(findings: List[Dict[str, Any]]) -> str:
 
 
 def _filter_controls(findings: List[Dict[str, Any]]) -> str:
-    """Build filter buttons ONLY for dimensions/severities that actually occur."""
+    """Combined, dynamic filters — only dimensions/severities/confidences that actually occur.
+
+    Dimension + severity + confidence + text search are AND-combined; results are sortable.
+    """
     if len(findings) < 2:
         return ""
     dims = [d for d in ("discoverability", "engagement")
             if any(f.get("dimension") == d for f in findings)]
     sevs = [s for s in ("critical", "high", "medium", "low", "info")
             if any(f.get("severity") == s for f in findings)]
-    buttons = ['<button class="fbtn active" data-filter="all">All</button>']
+    confs = [c for c in ("high", "medium", "low")
+             if any(f.get("confidence") == c for f in findings)]
+
+    def sel(sid, label, opts):
+        options = '<option value="all">All</option>' + "".join(
+            f'<option value="{o}">{o.title()}</option>' for o in opts)
+        return f'<label class="fsel">{label}<select id="{sid}">{options}</select></label>'
+
+    controls = []
     if len(dims) > 1:
-        for d in dims:
-            buttons.append(f'<button class="fbtn" data-filter="{d}">{d.title()}</button>')
+        controls.append(sel("f-dimension", "Dimension", dims))
     if len(sevs) > 1:
-        for s in sevs:
-            buttons.append(f'<button class="fbtn" data-filter="{s}">{s.title()}</button>')
-    if len(buttons) == 1:  # nothing meaningful to filter by
-        return ""
-    return f'<div class="filters" role="group" aria-label="Filter findings">{"".join(buttons)}</div>'
+        controls.append(sel("f-severity", "Severity", sevs))
+    if len(confs) > 1:
+        controls.append(sel("f-confidence", "Confidence", confs))
+    controls.append('<label class="fsel">Sort<select id="f-sort">'
+                    '<option value="priority">Priority</option>'
+                    '<option value="severity">Severity</option>'
+                    '<option value="impact">Impact</option>'
+                    '<option value="page">Affected pages</option></select></label>')
+    controls.append('<input id="f-search" type="search" placeholder="Search findings…" aria-label="Search findings">')
+    controls.append('<button id="f-reset" class="fbtn">Reset</button>')
+    controls.append('<span id="f-count" class="fcount"></span>')
+    return f'<div class="filters" role="group" aria-label="Filter findings">{"".join(controls)}</div>'
 
 
 def _findings_html(findings: List[Dict[str, Any]]) -> str:
@@ -590,10 +653,23 @@ def _findings_html(findings: List[Dict[str, Any]]) -> str:
         pages = f.get("affected_pages", []) or []
         pages_html = ""
         if pages:
-            items = "".join(f"<li>{html.escape(str(u))}</li>" for u in pages[:10])
-            pages_html = f'<div class="pages"><span>Affected pages</span><ul>{items}</ul></div>'
-        out.append(f"""<details class="finding" data-severity="{html.escape(sev)}"
-    data-dimension="{html.escape(str(f.get('dimension','')))}">
+            items = "".join(
+                f'<li><a href="{html.escape(str(u))}" target="_blank" rel="noopener noreferrer">'
+                f'{html.escape(str(u))} ↗</a> '
+                f'<button class="fjump-pg" data-url="{html.escape(str(u))}">in explorer</button></li>'
+                for u in pages[:10])
+            more = f'<li class="more">+{len(pages)-10} more</li>' if len(pages) > 10 else ""
+            pages_html = (f'<div class="pages"><span>Affected pages ({len(pages)})</span>'
+                          f'<ul>{items}{more}</ul></div>')
+        sortkey = _SEV_ORDER.get(sev, 9)
+        out.append(f"""<details class="finding" id="{html.escape(str(f.get('id','')))}"
+    data-severity="{html.escape(sev)}"
+    data-dimension="{html.escape(str(f.get('dimension','')))}"
+    data-confidence="{html.escape(str(f.get('confidence','')))}"
+    data-category="{html.escape(str(f.get('category','')))}"
+    data-impact="{f.get('impact', 0)}" data-priority="{f.get('priority', 999)}"
+    data-pages="{len(pages)}" data-sev-order="{sortkey}"
+    data-text="{html.escape((str(f.get('title',''))+' '+str(f.get('evidence',''))).lower())}">
   <summary>
     <span class="chip" style="background:{color}">{html.escape(sev.upper())}</span>
     <span class="dim">{html.escape(str(f.get('dimension','')))}</span>
@@ -633,6 +709,77 @@ def _measurements_html(f: Dict[str, Any]) -> str:
     chips = "".join(f'<span class="mchip">{html.escape(str(k))}: {html.escape(str(v))}</span>'
                     for k, v in list(m.items())[:8])
     return f'<div class="measures">{chips}</div>'
+
+
+# --- page explorer ----------------------------------------------------------------
+
+def _page_explorer_section(report) -> str:
+    pages = report.get("pages") or []
+    if not pages:
+        return ""
+    controls = """<div class="pe-controls">
+      <input id="pe-search" type="search" placeholder="Search pages by URL / title…" aria-label="Search pages">
+      <select id="pe-sort" aria-label="Sort pages">
+        <option value="score">Lowest score first</option>
+        <option value="findings">Most findings first</option>
+        <option value="url">URL A–Z</option>
+      </select>
+      <span id="pe-count" class="pe-cnt"></span>
+    </div>"""
+    cards = "".join(_page_card(i, p) for i, p in enumerate(pages))
+    return f"""<section class="card">
+  <h2>Page explorer <span class="hint">{len(pages)} page(s) audited — click to expand</span></h2>
+  {controls}
+  <div id="page-list">{cards}</div>
+</section>"""
+
+
+def _page_card(i: int, p: Dict[str, Any]) -> str:
+    sev = p.get("top_severity") or "none"
+    sev_color = _SEV_COLOR.get(sev, "#8a8f98")
+    url = html.escape(str(p.get("url", "")))
+    title = html.escape(str(p.get("title", "")) or "(no title)")
+    dims = ", ".join(p.get("dimensions", [])) or "—"
+    sd = ", ".join(p.get("structured_data_types", [])) or "none"
+
+    def row(label, val):
+        return f'<div class="pf"><span>{html.escape(label)}</span><b>{html.escape(str(val))}</b></div>'
+
+    idx = "yes" if p.get("indexable") else "NO (noindex)"
+    facts = "".join([
+        row("Title", (p.get("title") or "—")[:90] + (f"  ({p.get('title_len')} chars)" if p.get("title_len") else "")),
+        row("Meta description", (p.get("meta_description") or "— none —")[:120]),
+        row("H1", (p.get("h1") or "— none —")[:90] + (f"  (×{p.get('h1_count')})" if p.get("h1_count", 0) != 1 else "")),
+        row("H2 sections", p.get("h2_count", 0)),
+        row("Structured data", sd),
+        row("Language", p.get("lang") or "— not set —"),
+        row("Canonical", (p.get("canonical") or "— none —")[:90]),
+        row("Indexable", idx),
+        row("Links", f"{p.get('internal_links',0)} internal · {p.get('external_links',0)} external · {p.get('pdf_links',0)} PDF"),
+        row("Primary CTA", "present" if p.get("cta_signal") else "not detected"),
+        row("Images", f"{p.get('images',0)} ({p.get('images_missing_alt',0)} missing alt)"),
+        row("Weight", f"{p.get('html_kb',0)} KB HTML · {p.get('scripts',0)} scripts" +
+            (f" · {p.get('response_ms')} ms" if p.get("response_ms") is not None else "")),
+        row("Rendering", "static HTML only (rendered DOM not verified)"),
+        row("HTTP", f"{p.get('status','?')}" + (" · redirected" if p.get("redirected") else "")),
+        row("Confidence", p.get("confidence", "—")),
+    ])
+    fids = p.get("finding_ids") or []
+    fids_html = ""
+    if fids:
+        chips = "".join(f'<button class="fjump" data-fid="{html.escape(str(x))}">{html.escape(str(x))}</button>' for x in fids)
+        fids_html = f'<div class="pf-findings"><span>Findings on this page</span>{chips}</div>'
+    return f"""<details class="pcard" id="pg-{i}" data-url="{url}" data-score="{p.get('score',100)}"
+    data-findings="{p.get('finding_count',0)}" data-title="{html.escape(str(p.get('title','')).lower())}">
+  <summary>
+    <span class="pscore" style="color:{sev_color}">{p.get('score',100)}</span>
+    <span class="ptitle">{title}</span>
+    <span class="purl">{url}</span>
+    <span class="pmeta">{p.get('finding_count',0)} finding(s) · {html.escape(dims)}</span>
+    <a class="popen" href="{url}" target="_blank" rel="noopener noreferrer">Open ↗</a>
+  </summary>
+  <div class="pbody">{facts}{fids_html}</div>
+</details>"""
 
 
 # --- methodology / footer ---------------------------------------------------------
@@ -763,7 +910,54 @@ footer h2 { font-size:16px; } .method { color:#4a5563; font-size:13px; }
 .notes { color:var(--muted); font-size:12px; padding-left:18px; } .notes li { margin:3px 0; }
 .fine { color:#aab2bd; font-size:12px; margin-top:12px; }
 code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
-/* coverage matrix */
+/* toolbar */
+.toolbar { position:sticky; top:0; z-index:20; display:flex; gap:8px; align-items:center;
+  padding:10px 24px; background:rgba(255,255,255,.92); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); }
+.tbtn { border:1px solid var(--line); background:#fff; color:#33404f; border-radius:8px;
+  padding:6px 12px; font-size:13px; cursor:pointer; }
+.tbtn:hover { border-color:var(--accent); color:var(--accent); }
+.tbtn-note { font-size:12px; color:#2e7d32; }
+@media print { .toolbar,.filters,.pe-controls { display:none !important; } .finding,.pcard,.cov-row { break-inside:avoid; } details{} details>*{display:revert;} }
+/* coverage as expandable rows */
+.cov-list { display:flex; flex-direction:column; }
+.cov-row { border-bottom:1px solid #f2f4f7; }
+.cov-row > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; padding:10px 4px; }
+.cov-row > summary::-webkit-details-marker { display:none; }
+.cov-area { font-weight:600; color:#33404f; min-width:150px; }
+.cov-counts { font-size:13px; color:#4a5563; } .cov-meta { margin-left:auto; color:var(--muted); font-size:12px; }
+.cov-body { padding:4px 4px 14px 12px; } .cov-note { color:var(--muted); font-size:12px; margin:0 0 8px; }
+.clist { list-style:none; margin:0; padding:0; columns:2; }
+.clist li { font-size:13px; padding:3px 0; color:#33404f; break-inside:avoid; }
+.clist .cstate { font-weight:700; margin-right:6px; } .clist em { color:var(--muted); font-style:normal; font-size:11px; }
+/* filters (selects) */
+.filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.fsel { font-size:12px; color:var(--muted); display:flex; flex-direction:column; gap:2px; }
+.fsel select, #f-search, #pe-search, #pe-sort { border:1px solid var(--line); border-radius:8px;
+  padding:5px 8px; font-size:13px; background:#fff; color:#1c2430; }
+#f-search, #pe-search { min-width:180px; flex:1; max-width:280px; }
+.fcount, .pe-cnt { font-size:12px; color:var(--muted); margin-left:auto; }
+.finding[hidden] { display:none; }
+.flash { outline:2px solid var(--accent); outline-offset:2px; border-radius:10px; }
+/* page explorer */
+.pe-controls { display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+.pcard { border:1px solid var(--line); border-radius:10px; margin:8px 0; }
+.pcard[hidden] { display:none; }
+.pcard > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; padding:12px 14px; flex-wrap:wrap; }
+.pcard > summary::-webkit-details-marker { display:none; }
+.pscore { font-weight:700; font-size:18px; min-width:32px; }
+.ptitle { font-weight:600; } .purl { color:var(--muted); font-size:12px; word-break:break-all; flex:1; min-width:120px; }
+.pmeta { color:var(--muted); font-size:12px; } .popen { font-size:12px; color:var(--accent); text-decoration:none; }
+.pbody { padding:0 14px 14px; border-top:1px solid #f2f4f7; display:grid; grid-template-columns:1fr 1fr; gap:2px 24px; }
+.pf { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:5px 0; border-bottom:1px solid #f7f8fa; }
+.pf span { color:var(--muted); } .pf b { color:#33404f; text-align:right; word-break:break-word; font-weight:500; }
+.pf-findings { grid-column:1/-1; margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.pf-findings span { color:var(--muted); font-size:12px; }
+.fjump, .fjump-pg { border:1px solid var(--line); background:#f6f8fb; color:var(--accent);
+  border-radius:6px; padding:2px 8px; font-size:11px; cursor:pointer; font-family:ui-monospace,Consolas,monospace; }
+.pages a { color:var(--accent); text-decoration:none; word-break:break-all; }
+.pages li { margin:3px 0; }
+/* legacy coverage table (unused, kept harmless) */
 .coverage { width:100%; border-collapse:collapse; font-size:13px; }
 .coverage th, .coverage td { text-align:left; padding:8px 10px; border-bottom:1px solid #f2f4f7; vertical-align:top; }
 .coverage th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
@@ -794,17 +988,102 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
 }
 """
 
-_JS = """
-document.addEventListener('click', function(e){
-  var b = e.target.closest('.fbtn'); if(!b) return;
-  document.querySelectorAll('.fbtn').forEach(function(x){x.classList.remove('active');});
-  b.classList.add('active');
-  var f = b.getAttribute('data-filter');
-  document.querySelectorAll('#findings .finding').forEach(function(el){
-    var show = f==='all'
-      || el.getAttribute('data-dimension')===f
-      || el.getAttribute('data-severity')===f;
-    el.style.display = show ? '' : 'none';
+_JS = r"""
+(function(){
+  'use strict';
+  function $(s,r){return (r||document).querySelector(s);}
+  function $all(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+  function val(id){var e=$('#'+id);return e?e.value:'all';}
+
+  // --- canonical data + exports (single source of truth) --------------------------
+  function data(){try{return JSON.parse($('#audit-data').textContent);}catch(e){return {};}}
+  var tb=$('.toolbar'); if(tb) tb.hidden=false;
+  function download(){
+    var blob=new Blob([JSON.stringify(data(),null,2)],{type:'application/json'});
+    var d=data(), name=((d.site||'audit')+'-audit.json').replace(/[^a-z0-9.-]/gi,'_');
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  }
+  function copy(){
+    var text=JSON.stringify(data(),null,2);
+    var done=function(){var n=$('#copy-note'); if(n){n.hidden=false; setTimeout(function(){n.hidden=true;},1500);}};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,fallback);}
+    else fallback();
+    function fallback(){var t=document.createElement('textarea'); t.value=text; document.body.appendChild(t);
+      t.select(); try{document.execCommand('copy');done();}catch(e){} t.remove();}
+  }
+  if($('#dl-json')) $('#dl-json').addEventListener('click',download);
+  if($('#copy-json')) $('#copy-json').addEventListener('click',copy);
+  if($('#print')) $('#print').addEventListener('click',function(){window.print();});
+
+  // --- findings: combined filter + search + sort ----------------------------------
+  var list=$('#findings');
+  function applyFindings(){
+    if(!list) return;
+    var dim=val('f-dimension'), sev=val('f-severity'), conf=val('f-confidence');
+    var q=(($('#f-search')||{}).value||'').trim().toLowerCase();
+    var shown=0;
+    $all('.finding',list).forEach(function(el){
+      var ok=(dim==='all'||el.getAttribute('data-dimension')===dim)
+        &&(sev==='all'||el.getAttribute('data-severity')===sev)
+        &&(conf==='all'||el.getAttribute('data-confidence')===conf)
+        &&(!q||(el.getAttribute('data-text')||'').indexOf(q)>=0);
+      el.hidden=!ok; if(ok) shown++;
+    });
+    var sort=val('f-sort'); if(sort==='all') sort='priority';
+    var nodes=$all('.finding',list).filter(function(e){return !e.hidden;});
+    nodes.sort(function(a,b){
+      if(sort==='severity') return num(a,'data-sev-order')-num(b,'data-sev-order');
+      if(sort==='impact') return num(b,'data-impact')-num(a,'data-impact');
+      if(sort==='page') return num(b,'data-pages')-num(a,'data-pages');
+      return num(a,'data-priority')-num(b,'data-priority');
+    });
+    nodes.forEach(function(n){list.appendChild(n);});
+    var c=$('#f-count'); if(c) c.textContent=shown+' of '+$all('.finding',list).length+' findings';
+  }
+  function num(el,a){return parseFloat(el.getAttribute(a))||0;}
+  ['f-dimension','f-severity','f-confidence','f-sort'].forEach(function(id){
+    var e=$('#'+id); if(e) e.addEventListener('change',applyFindings);});
+  if($('#f-search')) $('#f-search').addEventListener('input',applyFindings);
+  if($('#f-reset')) $('#f-reset').addEventListener('click',function(){
+    ['f-dimension','f-severity','f-confidence','f-sort'].forEach(function(id){var e=$('#'+id); if(e) e.selectedIndex=0;});
+    if($('#f-search')) $('#f-search').value=''; applyFindings();});
+  applyFindings();
+
+  // --- page explorer: search + sort -----------------------------------------------
+  var plist=$('#page-list');
+  function applyPages(){
+    if(!plist) return;
+    var q=(($('#pe-search')||{}).value||'').trim().toLowerCase(), shown=0;
+    $all('.pcard',plist).forEach(function(el){
+      var ok=!q||(el.getAttribute('data-url')||'').toLowerCase().indexOf(q)>=0
+        ||(el.getAttribute('data-title')||'').indexOf(q)>=0;
+      el.hidden=!ok; if(ok) shown++;
+    });
+    var sort=val('pe-sort'); var nodes=$all('.pcard',plist).filter(function(e){return !e.hidden;});
+    nodes.sort(function(a,b){
+      if(sort==='findings') return num(b,'data-findings')-num(a,'data-findings');
+      if(sort==='url') return (a.getAttribute('data-url')||'').localeCompare(b.getAttribute('data-url')||'');
+      return num(a,'data-score')-num(b,'data-score');
+    });
+    nodes.forEach(function(n){plist.appendChild(n);});
+    var c=$('#pe-count'); if(c) c.textContent=shown+' of '+$all('.pcard',plist).length+' pages';
+  }
+  if($('#pe-search')) $('#pe-search').addEventListener('input',applyPages);
+  if($('#pe-sort')) $('#pe-sort').addEventListener('change',applyPages);
+  applyPages();
+
+  // --- cross-navigation: finding <-> page -----------------------------------------
+  function reveal(el){ if(!el) return; if(el.tagName==='DETAILS') el.open=true;
+    el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.add('flash');
+    setTimeout(function(){el.classList.remove('flash');},1200);}
+  document.addEventListener('click',function(e){
+    var pg=e.target.closest('.fjump-pg');
+    if(pg){var u=pg.getAttribute('data-url');
+      var card=$all('.pcard').filter(function(c){return c.getAttribute('data-url')===u;})[0];
+      reveal(card); return;}
+    var fj=e.target.closest('.fjump');
+    if(fj){reveal(document.getElementById(fj.getAttribute('data-fid'))); return;}
   });
-});
+})();
 """

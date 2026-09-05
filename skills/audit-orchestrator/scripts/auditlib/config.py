@@ -13,7 +13,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Dict, Mapping
 
 # --- Network / crawl defaults -----------------------------------------------------
-DEFAULT_USER_AGENT = "brand-ai-readiness-audit/2.0 (+read-only audit bot; respects robots.txt)"
+DEFAULT_USER_AGENT = "brand-ai-readiness-audit/2.1 (+read-only audit bot; respects robots.txt)"
 DEFAULT_TIMEOUT = 15            # seconds per request
 DEFAULT_MAX_BYTES = 3_000_000   # 3 MB body cap
 DEFAULT_DELAY = 0.4             # polite seconds between requests to one host
@@ -55,6 +55,7 @@ BASE_THRESHOLDS: Dict[str, float] = {
     "empty_link_ratio": 0.25,        # share of links with no discernible text
     "empty_link_min": 4,
     "login_wall_min_pages": 2,       # min content pages behind an apparent login before flagging
+    "unlabeled_controls_min": 2,     # min form controls with no associable label before flagging
 }
 
 # Profile overlays: multiply/replace selected thresholds. "strict" flags more aggressively

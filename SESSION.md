@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.0.0_
+_Last updated: 2026-09-05 · version 2.1.0_
 
 ---
 
@@ -32,7 +32,13 @@ The brief PDF is at:
   detections (canonical, broken links, nofollow, render-blocking, login walls, link-text, empty/
   conflicting schema, heading hierarchy, title/meta quality, retrieval-vs-training robots), and a
   report UI with coverage/opportunities/limitations + **dynamic filters**.
-- **104 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+- **v2.1 is an interactive-report + engine-depth pass**: `pages.py` (per-URL detail → **page
+  explorer**), coverage rewritten as a **check registry** (named PASS/FAIL/NOT_VERIFIED/PARTIAL;
+  Rendering honestly *partial*, never fake-healthy), report now renders from the **embedded
+  canonical JSON** (report/export can't disagree) with combined filters + search + sort, two-way
+  finding↔page nav, and Download/Copy/Print. Added accessibility checks (form labels, iframe titles).
+- **105 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+  Interactive UI verified in-browser (filters, page explorer, jumps, exports, 0 console errors).
   Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
@@ -61,7 +67,8 @@ skills/
         context.py         AuditContext (shared crawl passed to checks)
         report.py          Finding model, build_report, validate
         scoring.py         AI Visibility Score, grade, why(fallback)/impact/priority (+ reusable compute_scores)
-        coverage.py        COVERAGE MATRIX: per-area status (healthy/issues/partial/not_assessed)
+        coverage.py        COVERAGE MATRIX + CHECK REGISTRY: per-area PASS/FAIL/NOT_VERIFIED/PARTIAL
+        pages.py           PAGE EXPLORER data: per-URL facts, signals, findings, per-page score
         proactive.py       PROACTIVE OPPORTUNITIES: context-justified, non-defect recommendations
         analytics.py       ANALYST LAYER: pillars (coverage-aware status), matrix, projection, hotspots, roadmap, KPIs, narrative
         render.py          self-contained HTML DASHBOARD (coverage, opportunities, limitations, score explanation, dynamic filters)

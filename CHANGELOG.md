@@ -4,6 +4,35 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] — 2026-09-05
+
+Interactive report + engine depth. The HTML report is now rendered from the **embedded canonical
+JSON** (so the report and the exported JSON can never disagree), with a page explorer, combined
+filters, and per-area passed-check breakdowns. Still one entrypoint, stdlib-only, read-only.
+
+### Added
+- **Page explorer** (`auditlib/pages.py`, `report.pages`): one record per audited URL — score,
+  finding count/ids, top severity, dimensions, title, meta, H1/H2, structured-data types, lang,
+  canonical, indexability, internal/external/PDF link counts, CTA/accessibility/performance
+  signals, redirect + HTTP status, and confidence. Rendered as a searchable, sortable explorer.
+- **Passed checks** — `coverage.py` is now driven by an explicit **check registry**: each area
+  reports named checks resolved to PASS / FAIL / NOT_VERIFIED / PARTIAL, with counts. Rendering's
+  rendered-DOM parity is honestly **NOT_VERIFIED** (this static audit executes no browser), so
+  Rendering reads *partial*, never a false "healthy". Coverage summary now says
+  "N fully assessed · M partially · K not assessed".
+- **Interactive report**: sticky **Download JSON / Copy JSON / Print** toolbar; **combined**
+  findings filters (dimension + severity + confidence, AND-combined) with **search**, **sort**
+  (priority/severity/impact/affected-pages), reset, and a live result count; clickable affected
+  pages (`target=_blank rel=noopener noreferrer`) with two-way **finding ↔ page** navigation.
+- **Accessibility checks** (`engagement.py`): form controls without an associated label, and
+  content iframes without a title (both medium-confidence, static-safe).
+
+### Changed
+- `render.py` embeds the canonical report and renders the page explorer/coverage/filters from it.
+- Roadmap "Now" bucket label clarified ("critical & high, plus quick wins of any severity").
+- SVG charts no longer set an invalid `height="auto"` attribute (no console warning).
+- Version strings bumped to `2.1`.
+
 ## [2.0.0] — 2026-09-05
 
 Round-3 depth pass. Substantially more detection, an honest coverage model, a richer evidence

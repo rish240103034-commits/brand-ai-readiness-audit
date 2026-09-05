@@ -33,6 +33,7 @@ from auditlib.registry import discover_skills, select_skills  # noqa: E402
 from auditlib.scoring import score_report                   # noqa: E402
 from auditlib import analytics as analytics_mod             # noqa: E402
 from auditlib import coverage as coverage_mod               # noqa: E402
+from auditlib import pages as pages_mod                     # noqa: E402
 from auditlib import proactive as proactive_mod             # noqa: E402
 from auditlib import exports as exports_mod                 # noqa: E402
 from auditlib import render as render_mod                   # noqa: E402
@@ -81,6 +82,7 @@ def run(url: str, cfg, external: bool = True, only_skills=None):
     signals = {"date_signal_pages": _freshness.count_date_signal_pages(ctx.pages),
                "external_lookups": external}
     rpt["coverage"] = coverage_mod.build(rpt, signals)
+    rpt["pages"] = pages_mod.build(ctx, rpt)  # per-page detail for the page explorer
     analytics_mod.attach(rpt)  # attach the analyst layer (pillars, matrix, projection, …)
 
     errs = report_mod.validate(rpt)

@@ -114,6 +114,17 @@ formula and each finding's exact point cost).
 markup, product ratings, FAQPage/BreadcrumbList, logo, key-facts summary) that raise AI-readiness
 beyond fixing defects. They never affect the score and only appear when the crawl justifies them.
 
+**Passed checks, not just failures.** Every area lists its named checks resolved to
+**PASS / FAIL / NOT_VERIFIED / PARTIAL** (e.g. Rendering's rendered-DOM parity is honestly
+NOT_VERIFIED — this static audit runs no browser — so Rendering reads *partial*, never a false
+"healthy"). This is what makes the coverage summary trustworthy.
+
+**Interactive report.** The HTML is rendered from the **embedded canonical JSON** (report and
+export can't disagree). It ships a **page explorer** (searchable/sortable per-URL detail with
+"Open ↗"), **combined filters** (dimension + severity + confidence, AND-combined) with search,
+sort, and a live count, two-way **finding ↔ page** navigation, and a **Download JSON / Copy JSON /
+Print** toolbar — all vanilla JS, no dependencies, degrading to a static report without JavaScript.
+
 ```
 AI Visibility Score  63 / 100  (D — Weak)     → 72 (C) after 2 quick wins  → 100 if all fixed
   Discoverability ▓▓▓▓░░░░░░  38      Engagement ▓▓▓▓▓▓▓▓▓▓ 100
@@ -151,12 +162,12 @@ run_audit.py (ENTRYPOINT)
    │     └─ engagement.analyze(ctx)
    │
    ├─ report.build_report() → scoring.score_report() → proactive.build()
-   │        → coverage.build() → analytics.attach() → report.validate()
-   └─ output: json | html dashboard | md brief | csv   ·  history.record_and_compare() [optional]
+   │        → coverage.build() → pages.build() → analytics.attach() → report.validate()
+   └─ output: json | interactive html | md brief | csv   ·  history.record_and_compare() [optional]
 
 auditlib/  (shared engine, stdlib only)
    config.py  logutil.py  http.py  htmlparse.py  frontmatter.py
-   registry.py  context.py  report.py  scoring.py  coverage.py  proactive.py
+   registry.py  context.py  report.py  scoring.py  coverage.py  pages.py  proactive.py
    analytics.py  render.py  exports.py  history.py  runner.py
    checks/  crawl_render · structured_data · extractability · freshness · corroboration · engagement
 ```

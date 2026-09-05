@@ -16,6 +16,7 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `coverage` | object | — | Per-area assessment matrix (see below) — distinguishes not-assessed from healthy. |
 | `analytics` | object | — | Analyst layer derived from the scored report (see below). |
 | `opportunities` | array | — | Proactive, context-justified recommendations (non-defect; see below). |
+| `pages` | array | — | Per-page detail for the page explorer (see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
 | `profile` | string | — | Scoring profile used (`strict`/`balanced`/`lenient`). |
 | `skills_run` | array<string> | — | Ids of the skills that executed. |
@@ -89,12 +90,25 @@ Explicit per-area assessment so **0 findings ≠ healthy**. Built by `auditlib/c
 
 `coverage.areas[]` — one row per area (`Crawlability`, `Rendering`, `Structured Data`,
 `Extractability`, `Entity Identity`, `Freshness`, `Corroboration`, `Engagement`, `Proactive
-Opportunities`): `{ key, label, status, status_label, checks, pages_assessed, findings,
-confidence, note }`. `status` ∈ `healthy` (verified) · `issues` · `partial` · `not_assessed` ·
-`opportunities`. A skill that didn't run, or an area without enough signal (e.g. Freshness with no
-dates), is `not_assessed` — never silently scored as healthy. Corroboration is at most `partial`
-(on-page signals only; no independent external verification). `coverage.summary` gives
-`{ areas_total, areas_assessed, areas_not_assessed, pages_crawled }`.
+Opportunities`): `{ key, label, status, status_label, checks[], checks_total, passed, failed,
+not_verified, partial_checks, pages_assessed, findings, confidence, note }`. Each `checks[]` entry
+is `{ id, label, state, note }` where `state` ∈ `pass` · `fail` · `not_verified` (browser/render
+dependent — this static audit executes no browser) · `partial` (e.g. corroboration's external
+verification). `status` ∈ `healthy` (all checks pass) · `issues` (≥1 finding) · `partial` (clean
+but some checks not_verified/partial — e.g. Rendering, whose rendered-DOM parity is never executed)
+· `not_assessed` (skill didn't run / no signal — e.g. Freshness with no dates) · `opportunities`.
+`coverage.summary` gives `{ areas_total, areas_fully_assessed, areas_partial, areas_not_assessed,
+areas_assessed, pages_crawled }`.
+
+## `pages`
+Per-page detail powering the report's **page explorer** (built by `auditlib/pages.py`). One record
+per sampled URL: `{ url, final_url, redirected, status, is_home, score, finding_count, finding_ids,
+top_severity, dimensions, confidence, title, title_len, meta_description, h1, h1_count, h2_count,
+headings_outline, structured_data_types, lang, canonical, indexable, internal_links,
+external_links, pdf_links, cta_signal, images, images_missing_alt, scripts, html_kb, response_ms,
+word_count, rendering }`. `rendering` is `{ static_text_words, verified: false, note }` — rendering
+is assessed from static HTML only and explicitly marked not verified. The per-page `score` is
+`100 − Σ penalties` of the findings affecting that page (site-wide findings attach to the homepage).
 
 ## `opportunities`
 Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They
