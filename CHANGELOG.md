@@ -4,6 +4,26 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] — 2026-09-05
+
+Analysis tools. Two features that turn the report from a readout into something you explore.
+
+### Added
+- **Interactive what-if planner**: tick findings you plan to fix and the AI Visibility Score
+  recomputes **live** in the page. The exact scoring model is now embedded as
+  `report.scoring_model` (severity penalties, confidence factors, dimension weights, grade bands),
+  so the in-page recompute is identical to the engine — one source of truth. Includes "tick all
+  quick wins", "tick all", and reset; the planner's *Current* value always equals the engine score.
+- **Site-section analysis** (`report.sections`, via `pages.build_sections`): pages are grouped by
+  top-level URL path (`/products/*`, `/blog/*`, …) and each section is scored (mean of its page
+  scores) with its distinct finding count and worst severity — so the weakest part of the site is
+  obvious at a glance. Rendered as a weakest-first bar list (shown only when ≥2 sections exist).
+
+### Changed
+- `scoring.py` exposes `report.scoring_model`; `render.py` adds the what-if panel (a "mark fixed"
+  checkbox per finding that doesn't expand it) and the section-analysis card.
+- Version strings bumped to `2.2`.
+
 ## [2.1.0] — 2026-09-05
 
 Interactive report + engine depth. The HTML report is now rendered from the **embedded canonical

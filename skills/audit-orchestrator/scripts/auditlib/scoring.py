@@ -135,9 +135,19 @@ def score_report(report: Dict[str, Any]) -> Dict[str, Any]:
         f.pop("_priority_score", None)
 
     # Dimension + overall scores. Only weight dimensions that were actually assessed.
-    scores = compute_scores(findings, dimensions_present(report))
+    dims_present = dimensions_present(report)
+    scores = compute_scores(findings, dims_present)
     scores["headline"] = f"AI Visibility Score {scores['value']}/100 ({scores['grade']})"
     report["score"] = scores
+    # Expose the exact model so the report can recompute "what-if" scores client-side and stay
+    # consistent with this engine (one source of truth for the maths).
+    weights = {d: w for d, w in DIMENSION_WEIGHT.items() if d in dims_present} or dict(DIMENSION_WEIGHT)
+    report["scoring_model"] = {
+        "severity_penalty": dict(SEVERITY_PENALTY),
+        "confidence_factor": dict(CONFIDENCE_FACTOR),
+        "weights": weights,
+        "grade_bands": GRADE_BANDS,
+    }
     return report
 
 

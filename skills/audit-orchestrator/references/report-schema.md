@@ -17,6 +17,8 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `analytics` | object | — | Analyst layer derived from the scored report (see below). |
 | `opportunities` | array | — | Proactive, context-justified recommendations (non-defect; see below). |
 | `pages` | array | — | Per-page detail for the page explorer (see below). |
+| `sections` | array | — | Per-URL-section scores (see below). |
+| `scoring_model` | object | — | The exact deduction model, so the report can recompute "what-if" scores identically (see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
 | `profile` | string | — | Scoring profile used (`strict`/`balanced`/`lenient`). |
 | `skills_run` | array<string> | — | Ids of the skills that executed. |
@@ -109,6 +111,19 @@ external_links, pdf_links, cta_signal, images, images_missing_alt, scripts, html
 word_count, rendering }`. `rendering` is `{ static_text_words, verified: false, note }` — rendering
 is assessed from static HTML only and explicitly marked not verified. The per-page `score` is
 `100 − Σ penalties` of the findings affecting that page (site-wide findings attach to the homepage).
+
+## `sections`
+Pages grouped by top-level URL path so the weakest area of the site is obvious. One entry per
+section, weakest-first: `{ key (e.g. "/products"), label, pages, score (mean of the section's page
+scores), findings (distinct finding ids in the section), top_severity, dimensions, examples }`.
+Present only when the crawl spans ≥2 sections.
+
+## `scoring_model`
+The exact deduction model, embedded so the report's **what-if planner** recomputes scores
+identically to the engine (one source of truth): `{ severity_penalty, confidence_factor,
+weights (restricted to the dimensions actually assessed), grade_bands }`. Overall =
+`round(Σ dimension_score × weight / Σ weight)`, where each dimension starts at 100 and loses
+`severity_penalty × confidence_factor` per finding.
 
 ## `opportunities`
 Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They

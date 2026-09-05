@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.1.0_
+_Last updated: 2026-09-05 · version 2.2.0_
 
 ---
 
@@ -37,8 +37,12 @@ The brief PDF is at:
   Rendering honestly *partial*, never fake-healthy), report now renders from the **embedded
   canonical JSON** (report/export can't disagree) with combined filters + search + sort, two-way
   finding↔page nav, and Download/Copy/Print. Added accessibility checks (form labels, iframe titles).
-- **105 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
-  Interactive UI verified in-browser (filters, page explorer, jumps, exports, 0 console errors).
+- **v2.2 adds analysis tools**: an in-report **what-if planner** (tick findings → score recomputes
+  live from the embedded `scoring_model`; planner's Current == engine score) and **site-section
+  analysis** (`sections`, pages grouped by URL path, scored weakest-first).
+- **109 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+  Interactive UI verified in-browser (what-if recompute, filters, page explorer, jumps, exports,
+  0 console errors).
   Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.

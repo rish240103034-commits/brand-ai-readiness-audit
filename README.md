@@ -125,6 +125,14 @@ export can't disagree). It ships a **page explorer** (searchable/sortable per-UR
 sort, and a live count, two-way **finding ↔ page** navigation, and a **Download JSON / Copy JSON /
 Print** toolbar — all vanilla JS, no dependencies, degrading to a static report without JavaScript.
 
+**What-if planner.** Tick the findings you plan to fix and the AI Visibility Score recomputes
+**live** — build and compare remediation plans yourself. The scoring model is embedded
+(`report.scoring_model`), so the in-page maths is identical to the engine's (the planner's
+*Current* value always equals the reported score); "tick all quick wins" shows the fastest path up.
+
+**Section analysis.** Pages are grouped by top-level URL path (`/products/*`, `/blog/*`, …) and
+each section is scored, so you can see *which part* of the site drags the score down.
+
 ```
 AI Visibility Score  63 / 100  (D — Weak)     → 72 (C) after 2 quick wins  → 100 if all fixed
   Discoverability ▓▓▓▓░░░░░░  38      Engagement ▓▓▓▓▓▓▓▓▓▓ 100

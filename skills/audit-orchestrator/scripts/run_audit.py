@@ -83,6 +83,7 @@ def run(url: str, cfg, external: bool = True, only_skills=None):
                "external_lookups": external}
     rpt["coverage"] = coverage_mod.build(rpt, signals)
     rpt["pages"] = pages_mod.build(ctx, rpt)  # per-page detail for the page explorer
+    rpt["sections"] = pages_mod.build_sections(rpt["pages"], rpt["findings"])  # per-URL-section scores
     analytics_mod.attach(rpt)  # attach the analyst layer (pillars, matrix, projection, …)
 
     errs = report_mod.validate(rpt)

@@ -55,6 +55,7 @@ def render_html(report: Dict[str, Any]) -> str:
         _charts_section(an),
         _roadmap_section(an),
         _hotspots_section(an),
+        _sections_section(report),
         _findings_section(findings),
         _page_explorer_section(report),
         _opportunities_section(report),
@@ -592,16 +593,71 @@ def _hotspots_section(an) -> str:
 </section>"""
 
 
+# --- site-section analysis --------------------------------------------------------
+
+def _section_color(score: float) -> str:
+    return "#2e7d32" if score >= 90 else "#e0a500" if score >= 70 else "#c0182f"
+
+
+def _sections_section(report) -> str:
+    sections = report.get("sections") or []
+    if not sections:
+        return ""
+    rows = ""
+    for s in sections:
+        color = _section_color(s["score"])
+        sev = s.get("top_severity")
+        sev_chip = (f'<span class="chip mini" style="background:{_SEV_COLOR.get(sev, "#889")}">{html.escape(sev.upper())}</span>'
+                    if sev else '<span class="sec-ok">clean</span>')
+        rows += f"""<div class="sec-row">
+          <span class="sec-l">{html.escape(s["label"])}</span>
+          <span class="sec-track"><i style="width:{max(2,min(100,s['score']))}%;background:{color}"></i></span>
+          <b class="sec-score" style="color:{color}">{s['score']}</b>
+          <span class="sec-meta">{s['pages']} pg · {s['findings']} finding(s)</span>
+          {sev_chip}
+        </div>"""
+    return f"""<section class="card">
+  <h2>Section analysis <span class="hint">which part of the site drags the score — weakest first</span></h2>
+  <div class="sec-list">{rows}</div>
+</section>"""
+
+
 # --- findings ---------------------------------------------------------------------
 
 def _findings_section(findings: List[Dict[str, Any]]) -> str:
     inner = _findings_html(findings)
     controls = _filter_controls(findings)
+    whatif = _whatif_panel(findings)
     return f"""<main class="card">
   <h2>Findings <span class="hint">(most actionable first)</span></h2>
+  {whatif}
   {controls}
   <div id="findings">{inner}</div>
 </main>"""
+
+
+def _whatif_panel(findings: List[Dict[str, Any]]) -> str:
+    """Live 'what-if' planner: tick findings to fix and watch the score recompute in the page."""
+    if not findings:
+        return ""
+    return """<div class="whatif" hidden>
+  <div class="wi-head">
+    <span class="wi-title">What-if planner</span>
+    <span class="wi-hint">tick findings below to simulate fixing them</span>
+  </div>
+  <div class="wi-scores">
+    <div class="wi-box"><span>Current</span><b id="wi-current">–</b></div>
+    <div class="wi-arrow">→</div>
+    <div class="wi-box wi-proj"><span>Projected</span><b id="wi-proj">–</b> <em id="wi-grade"></em></div>
+    <div class="wi-box"><span>Change</span><b id="wi-delta">+0</b></div>
+    <div class="wi-box"><span>Fixed</span><b id="wi-count">0</b></div>
+  </div>
+  <div class="wi-actions">
+    <button id="wi-quick" class="fbtn">Tick all quick wins</button>
+    <button id="wi-all" class="fbtn">Tick all</button>
+    <button id="wi-reset" class="fbtn">Reset</button>
+  </div>
+</div>"""
 
 
 def _filter_controls(findings: List[Dict[str, Any]]) -> str:
@@ -671,6 +727,7 @@ def _findings_html(findings: List[Dict[str, Any]]) -> str:
     data-pages="{len(pages)}" data-sev-order="{sortkey}"
     data-text="{html.escape((str(f.get('title',''))+' '+str(f.get('evidence',''))).lower())}">
   <summary>
+    <label class="wi-check" title="Mark as fixed (what-if)"><input type="checkbox" class="wi-cb"></label>
     <span class="chip" style="background:{color}">{html.escape(sev.upper())}</span>
     <span class="dim">{html.escape(str(f.get('dimension','')))}</span>
     <span class="ftitle">{html.escape(str(f.get('title','')))}</span>
@@ -957,6 +1014,27 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
   border-radius:6px; padding:2px 8px; font-size:11px; cursor:pointer; font-family:ui-monospace,Consolas,monospace; }
 .pages a { color:var(--accent); text-decoration:none; word-break:break-all; }
 .pages li { margin:3px 0; }
+/* section analysis */
+.sec-list { display:flex; flex-direction:column; gap:4px; }
+.sec-row { display:flex; align-items:center; gap:12px; padding:6px 0; border-bottom:1px solid #f2f4f7; }
+.sec-l { width:150px; font-weight:600; color:#33404f; word-break:break-all; }
+.sec-track { flex:1; height:10px; background:#eef1f5; border-radius:6px; overflow:hidden; }
+.sec-track i { display:block; height:100%; border-radius:6px; }
+.sec-score { width:34px; text-align:right; } .sec-meta { width:150px; text-align:right; color:var(--muted); font-size:12px; }
+.sec-ok { color:#2e7d32; font-size:11px; font-weight:600; }
+/* what-if planner */
+.whatif { border:1px solid #d7cdf5; background:linear-gradient(180deg,#faf8ff,#fff); border-radius:12px;
+  padding:14px 16px; margin-bottom:14px; }
+.wi-head { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
+.wi-title { font-weight:700; color:#4a2fa0; } .wi-hint { color:var(--muted); font-size:12px; }
+.wi-scores { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
+.wi-box { display:flex; flex-direction:column; } .wi-box span { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+.wi-box b { font-size:24px; font-weight:700; color:#1c2430; }
+.wi-proj b { color:#4a2fa0; } .wi-proj em { font-style:normal; color:#4a2fa0; font-size:14px; }
+.wi-arrow { font-size:22px; color:var(--muted); }
+.wi-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.wi-check { display:inline-flex; align-items:center; cursor:pointer; margin-right:2px; }
+.wi-check input { width:15px; height:15px; cursor:pointer; }
 /* legacy coverage table (unused, kept harmless) */
 .coverage { width:100%; border-collapse:collapse; font-size:13px; }
 .coverage th, .coverage td { text-align:left; padding:8px 10px; border-bottom:1px solid #f2f4f7; vertical-align:top; }
@@ -1072,6 +1150,49 @@ _JS = r"""
   if($('#pe-search')) $('#pe-search').addEventListener('input',applyPages);
   if($('#pe-sort')) $('#pe-sort').addEventListener('change',applyPages);
   applyPages();
+
+  // --- what-if planner: recompute the score as findings are ticked "fixed" --------
+  var D=data(), model=D.scoring_model, wi=$('.whatif');
+  if(wi && model && list){
+    wi.hidden=false;
+    var sp=model.severity_penalty||{}, cf=model.confidence_factor||{}, w=model.weights||{};
+    var bands=model.grade_bands||[[90,'A'],[80,'B'],[70,'C'],[60,'D'],[0,'F']];
+    var qw=(((D.analytics||{}).quick_wins)||[]).map(function(q){return q.id;});
+    function pen(el){return (sp[el.getAttribute('data-severity')]||8)*(cf[el.getAttribute('data-confidence')]||1);}
+    function grade(v){for(var i=0;i<bands.length;i++){if(v>=bands[i][0])return bands[i][1];}return 'F';}
+    function dimScore(sum){return Math.max(0,Math.round((100-sum)*10)/10);}
+    function recompute(){
+      var sums={discoverability:0,engagement:0}, fixed=0;
+      $all('.finding',list).forEach(function(el){
+        var cb=$('.wi-cb',el); if(cb&&cb.checked){fixed++;return;}
+        var d=el.getAttribute('data-dimension'); if(sums[d]!==undefined) sums[d]+=pen(el);
+      });
+      var disc=dimScore(sums.discoverability), eng=dimScore(sums.engagement);
+      var wd=w.discoverability||0, we=w.engagement||0, tot=(wd+we)||1;
+      var overall=Math.round((disc*wd+eng*we)/tot);
+      var cur=(D.score||{}).value; if(cur===undefined) cur=overall;
+      $('#wi-current').textContent=cur;
+      $('#wi-proj').textContent=overall;
+      $('#wi-grade').textContent='('+grade(overall)+')';
+      var dl=overall-cur; var de=$('#wi-delta'); de.textContent=(dl>=0?'+':'')+dl;
+      de.style.color=dl>0?'#2e7d32':(dl<0?'#c0182f':'#666');
+      $('#wi-count').textContent=fixed;
+    }
+    // Toggle the checkbox without expanding/collapsing the finding.
+    $all('.finding > summary',list).forEach(function(sm){
+      sm.addEventListener('click',function(e){
+        if(e.target.closest('.wi-check')){e.preventDefault();
+          var box=sm.querySelector('.wi-cb'); box.checked=!box.checked; recompute();}
+      });
+    });
+    if($('#wi-quick')) $('#wi-quick').addEventListener('click',function(){
+      $all('.finding',list).forEach(function(el){var cb=$('.wi-cb',el); if(cb) cb.checked=qw.indexOf(el.id)>=0;}); recompute();});
+    if($('#wi-all')) $('#wi-all').addEventListener('click',function(){
+      $all('.wi-cb',list).forEach(function(cb){cb.checked=true;}); recompute();});
+    if($('#wi-reset')) $('#wi-reset').addEventListener('click',function(){
+      $all('.wi-cb',list).forEach(function(cb){cb.checked=false;}); recompute();});
+    recompute();
+  }
 
   // --- cross-navigation: finding <-> page -----------------------------------------
   function reveal(el){ if(!el) return; if(el.tagName==='DETAILS') el.open=true;

@@ -49,6 +49,51 @@ def build(ctx, report: Dict[str, Any]) -> List[Dict[str, Any]]:
     return out
 
 
+def _section_of(url: str) -> tuple:
+    """Return (key, label) for a URL's top-level section, e.g. /products/x -> ('/products','/products/')."""
+    path = urllib.parse.urlsplit(url).path or "/"
+    segs = [s for s in path.split("/") if s]
+    if not segs:
+        return ("/", "Home (/)")
+    return ("/" + segs[0], "/" + segs[0] + "/")
+
+
+def build_sections(page_records: List[Dict[str, Any]], findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Group pages by top-level URL section and score each, so the weakest area of the site is
+    obvious. Returns [] for a single-section site (nothing to compare)."""
+    sev_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    by_id = {f.get("id"): f for f in findings}
+    groups: Dict[str, Dict[str, Any]] = {}
+    for p in page_records:
+        key, label = _section_of(p["url"])
+        g = groups.setdefault(key, {"key": key, "label": label, "pages": 0, "_scores": [],
+                                    "_fids": set(), "examples": []})
+        g["pages"] += 1
+        g["_scores"].append(p["score"])
+        g["_fids"].update(p.get("finding_ids") or [])
+        if len(g["examples"]) < 3:
+            g["examples"].append(p["url"])
+
+    sections = []
+    for g in groups.values():
+        fids = [i for i in g["_fids"] if i in by_id]
+        sev = sorted((by_id[i].get("severity", "info") for i in fids),
+                     key=lambda s: sev_rank.get(s, 5))
+        dims = sorted({by_id[i].get("dimension", "") for i in fids if by_id[i].get("dimension")})
+        sections.append({
+            "key": g["key"], "label": g["label"], "pages": g["pages"],
+            "score": round(sum(g["_scores"]) / len(g["_scores"])) if g["_scores"] else 100,
+            "findings": len(fids),
+            "top_severity": sev[0] if sev else None,
+            "dimensions": dims,
+            "examples": g["examples"],
+        })
+    if len(sections) < 2:
+        return []
+    sections.sort(key=lambda s: (s["score"], -s["findings"]))
+    return sections
+
+
 def _page_record(p: Page, r, page_findings, is_home) -> Dict[str, Any]:
     internal = external = pdf = 0
     for a in p.links:

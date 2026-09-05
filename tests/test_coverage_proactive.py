@@ -1,8 +1,9 @@
 """Tests for the coverage matrix, proactive opportunities, and the richer evidence model."""
 import unittest
 
-from auditlib import coverage, proactive, report as R
+from auditlib import coverage, proactive, pages as pages_mod, report as R
 from auditlib import render
+from auditlib.scoring import score_report
 from tests.helpers import make_ctx, GOOD_HOME
 
 
@@ -129,6 +130,50 @@ class DynamicFilterTests(unittest.TestCase):
 
     def test_controls_hidden_for_single_finding(self):
         self.assertEqual(render._filter_controls([{"dimension": "discoverability", "severity": "low"}]), "")
+
+
+class SectionAnalysisTests(unittest.TestCase):
+    def _pages(self):
+        return [
+            {"url": "https://x/", "score": 60, "finding_ids": ["F-001"]},
+            {"url": "https://x/products/a", "score": 40, "finding_ids": ["F-002", "F-003"]},
+            {"url": "https://x/products/b", "score": 42, "finding_ids": ["F-002"]},
+            {"url": "https://x/blog/p", "score": 85, "finding_ids": []},
+        ]
+
+    def _findings(self):
+        return [{"id": "F-001", "severity": "medium", "dimension": "discoverability"},
+                {"id": "F-002", "severity": "high", "dimension": "discoverability"},
+                {"id": "F-003", "severity": "low", "dimension": "engagement"}]
+
+    def test_groups_by_path_and_sorts_weakest_first(self):
+        secs = pages_mod.build_sections(self._pages(), self._findings())
+        self.assertEqual(secs[0]["key"], "/products")  # lowest average score first
+        self.assertEqual(secs[0]["pages"], 2)
+        keys = {s["key"] for s in secs}
+        self.assertEqual(keys, {"/", "/products", "/blog"})
+
+    def test_distinct_findings_per_section(self):
+        secs = {s["key"]: s for s in pages_mod.build_sections(self._pages(), self._findings())}
+        # F-002 affects both product pages but counts once for the section.
+        self.assertEqual(secs["/products"]["findings"], 2)
+        self.assertEqual(secs["/products"]["top_severity"], "high")
+
+    def test_single_section_returns_empty(self):
+        one = [{"url": "https://x/", "score": 50, "finding_ids": []}]
+        self.assertEqual(pages_mod.build_sections(one, []), [])
+
+
+class ScoringModelTests(unittest.TestCase):
+    def test_scoring_model_attached(self):
+        rpt = R.build_report("x.example", [])
+        score_report(rpt)
+        m = rpt.get("scoring_model")
+        self.assertIsNotNone(m)
+        self.assertIn("severity_penalty", m)
+        self.assertIn("confidence_factor", m)
+        self.assertIn("weights", m)
+        self.assertEqual(m["severity_penalty"]["critical"], 35)
 
 
 class EvidenceModelTests(unittest.TestCase):
