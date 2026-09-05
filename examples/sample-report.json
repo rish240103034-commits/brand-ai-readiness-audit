@@ -1,0 +1,97 @@
+{
+  "site": "python.org",
+  "audited_at": "2026-09-05T08:58:48Z",
+  "started_at": "2026-09-05T08:58:41Z",
+  "auditor": "brand-ai-readiness-audit/1.0",
+  "pages_crawled": 8,
+  "summary": {
+    "total_findings": 3,
+    "low": 3,
+    "by_dimension": {
+      "discoverability": 2,
+      "engagement": 1
+    }
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Multiple H1 headings on a page",
+      "severity": "low",
+      "dimension": "discoverability",
+      "category": "extractability",
+      "confidence": "high",
+      "evidence": "2 page(s) declare more than one H1, e.g. https://www.python.org/, diluting the topic signal.",
+      "affected_pages": [
+        "https://www.python.org/",
+        "https://blog.python.org/2026/09/python-3150-rc2/"
+      ],
+      "suggested_action": {
+        "summary": "Use a single H1 for the main topic and H2/H3 for sub-sections to give a clean outline.",
+        "priority": "low"
+      },
+      "details": {},
+      "impact": 2,
+      "why": "A fact locked in an image or missing its text anchor can't be extracted or quoted.",
+      "priority": 1
+    },
+    {
+      "id": "F-002",
+      "title": "No XML sitemap found",
+      "severity": "low",
+      "dimension": "discoverability",
+      "category": "crawlability",
+      "confidence": "high",
+      "evidence": "Neither /sitemap.xml nor a Sitemap: directive in robots.txt was found.",
+      "affected_pages": [],
+      "suggested_action": {
+        "summary": "Publish an XML sitemap and reference it from robots.txt so crawlers discover all key pages efficiently.",
+        "priority": "low"
+      },
+      "details": {},
+      "impact": 2,
+      "why": "If the crawler can't fetch the page, no AI assistant can ever cite it.",
+      "priority": 2
+    },
+    {
+      "id": "F-003",
+      "title": "Deep pages lack breadcrumbs / positional context",
+      "severity": "low",
+      "dimension": "engagement",
+      "category": "orientation",
+      "confidence": "high",
+      "evidence": "4 deep page(s) show no breadcrumb trail, so visitors landing mid-site can't tell where they are or move up a level.",
+      "affected_pages": [
+        "https://blog.python.org/2026/09/python-3150-rc2/",
+        "https://docs.python.org/3/faq/",
+        "https://docs.python.org/3/license.html",
+        "https://docs.python.org/3/tutorial/"
+      ],
+      "suggested_action": {
+        "summary": "Add a breadcrumb trail (and BreadcrumbList schema) on deep pages so visitors keep their bearings and explore laterally.",
+        "priority": "low"
+      },
+      "details": {},
+      "impact": 2,
+      "why": "Disoriented visitors who can't tell where they are or where to go bounce.",
+      "priority": 3
+    }
+  ],
+  "notes": [
+    "Crawled 8 page(s) in 7042 ms; 11 HTTP request(s). Static, read-only analysis."
+  ],
+  "profile": "balanced",
+  "skills_run": [
+    "crawl-render-audit",
+    "structured-data-audit",
+    "content-extractability-audit",
+    "freshness-corroboration",
+    "engagement-audit"
+  ],
+  "score": {
+    "value": 95,
+    "grade": "A",
+    "discoverability": 94.0,
+    "engagement": 97.0,
+    "headline": "AI Visibility Score 95/100 (A)"
+  }
+}

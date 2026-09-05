@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local audit history (created by --compare-previous)
+*.audit-history.sqlite
+.audit-history.sqlite
+
+# Scratch audit outputs at the repo root (canonical samples live in examples/)
+/report.html
+/report.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

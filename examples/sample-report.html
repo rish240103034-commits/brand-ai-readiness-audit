@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Readiness Audit — python.org</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:#1a1a1a; background:#f6f7f9; }
+.hero { display:flex; gap:24px; align-items:center; padding:28px 32px; background:#fff;
+  border-bottom:1px solid #e6e6e6; flex-wrap:wrap; }
+.hero-meta h1 { margin:2px 0 10px; font-size:24px; word-break:break-all; }
+.eyebrow { text-transform:uppercase; letter-spacing:.08em; font-size:12px; color:#888; }
+.subscores { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:8px; }
+.subscore { display:flex; align-items:center; gap:8px; font-size:13px; color:#555; }
+.subscore .bar { width:140px; height:8px; background:#eee; border-radius:5px; overflow:hidden; }
+.subscore .bar i { display:block; height:100%; background:#4a7; }
+.subscore b { color:#222; }
+.meta-line { font-size:12px; color:#888; }
+.tiles { display:flex; gap:14px; padding:20px 32px; flex-wrap:wrap; }
+.tile { background:#fff; border:1px solid #e6e6e6; border-radius:10px; padding:14px 20px;
+  min-width:96px; text-align:center; }
+.tile-n { font-size:26px; font-weight:700; }
+.tile-l { font-size:12px; color:#888; text-transform:uppercase; letter-spacing:.05em; }
+main { padding:8px 32px 40px; }
+h2 { font-size:18px; } .hint { font-weight:400; color:#999; font-size:13px; }
+.finding { background:#fff; border:1px solid #e6e6e6; border-radius:10px; margin:10px 0; }
+.finding summary { cursor:pointer; padding:14px 16px; display:flex; gap:10px; align-items:center;
+  list-style:none; }
+.finding summary::-webkit-details-marker { display:none; }
+.chip { color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px; }
+.dim { font-size:11px; color:#777; text-transform:uppercase; letter-spacing:.04em; }
+.ftitle { font-weight:600; flex:1; }
+.impact { font-size:12px; color:#999; }
+.finding .body { padding:0 16px 16px; border-top:1px solid #f0f0f0; }
+.finding .body p { margin:10px 0; }
+.why { color:#333; } .evidence { color:#444; }
+.fix { background:#f2f8f4; border-left:3px solid #4a7; padding:8px 12px; border-radius:4px; }
+.pages span { font-size:12px; color:#888; } .pages ul { margin:4px 0; padding-left:18px; font-size:13px; color:#556; }
+.cat { font-size:11px; color:#aaa; }
+.empty { color:#4a7; font-weight:600; }
+footer { padding:20px 32px; color:#999; font-size:12px; border-top:1px solid #e6e6e6; background:#fff; }
+</style></head>
+<body>
+<header class="hero">
+  <div class="gauge"><svg viewBox="0 0 130 130" width="130" height="130" role="img" aria-label="Score 95 of 100">
+  <circle cx="65" cy="65" r="52" fill="none" stroke="#e6e6e6" stroke-width="12"/>
+  <circle cx="65" cy="65" r="52" fill="none" stroke="#2e7d32" stroke-width="12"
+    stroke-linecap="round" stroke-dasharray="310.4 326.7"
+    transform="rotate(-90 65 65)"/>
+  <text x="65" y="60" text-anchor="middle" font-size="30" font-weight="700" fill="#2e7d32">95</text>
+  <text x="65" y="84" text-anchor="middle" font-size="15" fill="#666">grade A</text>
+</svg></div>
+  <div class="hero-meta">
+    <div class="eyebrow">AI Visibility Score</div>
+    <h1>python.org</h1>
+    <div class="subscores">
+      <div class="subscore"><span>Discoverability</span>
+      <div class="bar"><i style="width:94.0%"></i></div><b>94.0</b></div>
+      <div class="subscore"><span>Engagement</span>
+      <div class="bar"><i style="width:97.0%"></i></div><b>97.0</b></div>
+    </div>
+    <div class="meta-line">Audited 2026-09-05T08:58:55Z ·
+      profile: balanced ·
+      8 page(s) crawled</div>
+    
+  </div>
+</header>
+
+<section class="tiles">
+  <div class="tile"><div class="tile-n" style="color:#334">3</div>
+      <div class="tile-l">Findings</div></div>
+  <div class="tile"><div class="tile-n" style="color:#b00020">0</div>
+      <div class="tile-l">Critical</div></div>
+  <div class="tile"><div class="tile-n" style="color:#d84315">0</div>
+      <div class="tile-l">High</div></div>
+  <div class="tile"><div class="tile-n" style="color:#e6a100">0</div>
+      <div class="tile-l">Medium</div></div>
+  <div class="tile"><div class="tile-n" style="color:#4a7">3</div>
+      <div class="tile-l">Low</div></div>
+</section>
+
+<main>
+  <h2>Findings <span class="hint">(most actionable first)</span></h2>
+  <details class="finding">
+  <summary>
+    <span class="chip" style="background:#4a7">LOW</span>
+    <span class="dim">discoverability</span>
+    <span class="ftitle">Multiple H1 headings on a page</span>
+    <span class="impact" title="impact 1–5">impact 2</span>
+  </summary>
+  <div class="body">
+    <p class="why"><b>Why it hurts:</b> A fact locked in an image or missing its text anchor can&#x27;t be extracted or quoted.</p>
+    <p class="evidence"><b>Evidence:</b> 2 page(s) declare more than one H1, e.g. https://www.python.org/, diluting the topic signal.</p>
+    <p class="fix"><b>Fix (low):</b>
+       Use a single H1 for the main topic and H2/H3 for sub-sections to give a clean outline.</p>
+    <div class="pages"><span>Affected pages</span><ul><li>https://www.python.org/</li><li>https://blog.python.org/2026/09/python-3150-rc2/</li></ul></div>
+    <p class="cat">category: extractability ·
+       confidence: high · id: F-001</p>
+  </div>
+</details>
+<details class="finding">
+  <summary>
+    <span class="chip" style="background:#4a7">LOW</span>
+    <span class="dim">discoverability</span>
+    <span class="ftitle">No XML sitemap found</span>
+    <span class="impact" title="impact 1–5">impact 2</span>
+  </summary>
+  <div class="body">
+    <p class="why"><b>Why it hurts:</b> If the crawler can&#x27;t fetch the page, no AI assistant can ever cite it.</p>
+    <p class="evidence"><b>Evidence:</b> Neither /sitemap.xml nor a Sitemap: directive in robots.txt was found.</p>
+    <p class="fix"><b>Fix (low):</b>
+       Publish an XML sitemap and reference it from robots.txt so crawlers discover all key pages efficiently.</p>
+    
+    <p class="cat">category: crawlability ·
+       confidence: high · id: F-002</p>
+  </div>
+</details>
+<details class="finding">
+  <summary>
+    <span class="chip" style="background:#4a7">LOW</span>
+    <span class="dim">engagement</span>
+    <span class="ftitle">Deep pages lack breadcrumbs / positional context</span>
+    <span class="impact" title="impact 1–5">impact 2</span>
+  </summary>
+  <div class="body">
+    <p class="why"><b>Why it hurts:</b> Disoriented visitors who can&#x27;t tell where they are or where to go bounce.</p>
+    <p class="evidence"><b>Evidence:</b> 4 deep page(s) show no breadcrumb trail, so visitors landing mid-site can&#x27;t tell where they are or move up a level.</p>
+    <p class="fix"><b>Fix (low):</b>
+       Add a breadcrumb trail (and BreadcrumbList schema) on deep pages so visitors keep their bearings and explore laterally.</p>
+    <div class="pages"><span>Affected pages</span><ul><li>https://blog.python.org/2026/09/python-3150-rc2/</li><li>https://docs.python.org/3/faq/</li><li>https://docs.python.org/3/license.html</li><li>https://docs.python.org/3/tutorial/</li></ul></div>
+    <p class="cat">category: orientation ·
+       confidence: high · id: F-003</p>
+  </div>
+</details>
+</main>
+
+<footer>
+  <p>Generated by brand-ai-readiness-audit · recommend-only, read-only static audit.
+  JSON remains the canonical machine-readable output.</p>
+</footer>
+</body></html>

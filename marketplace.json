@@ -1,0 +1,58 @@
+{
+  "name": "brand-ai-readiness-audit",
+  "version": "1.1.0",
+  "description": "Audit any website for the problems that hurt its AI discoverability (getting found and cited by AI assistants) and its on-site engagement (keeping visitors once they arrive), and emit a single prioritized report of findings plus suggested actions.",
+  "entrypoint": "audit-orchestrator",
+  "runtime": {
+    "language": "python",
+    "min_version": "3.8",
+    "dependencies": [],
+    "notes": "Standard library only. No third-party packages, no model weights, no network services beyond read-only HTTP(S) to the audited site."
+  },
+  "safety": {
+    "recommend_only": true,
+    "read_only": true,
+    "respects_robots_txt": true,
+    "authenticated_actions": false,
+    "site_altering_actions": false
+  },
+  "skills": [
+    {
+      "id": "audit-orchestrator",
+      "path": "skills/audit-orchestrator",
+      "entrypoint": true,
+      "dimension": "both",
+      "summary": "Receives the audit request, crawls a robots-respecting page sample once, invokes every other skill's checks over that sample, and composes their findings into one report against the fixed schema."
+    },
+    {
+      "id": "crawl-render-audit",
+      "path": "skills/crawl-render-audit",
+      "dimension": "discoverability",
+      "summary": "Can the crawler get in and read the page? robots.txt (incl. AI-assistant bots), HTTP status, noindex/canonical, sitemap, and client-side-render gaps."
+    },
+    {
+      "id": "structured-data-audit",
+      "path": "skills/structured-data-audit",
+      "dimension": "discoverability",
+      "summary": "Is the key fact machine-quotable? Presence and validity of JSON-LD / microdata / RDFa and entity identity (Organization/WebSite, Product, Article)."
+    },
+    {
+      "id": "content-extractability-audit",
+      "path": "skills/content-extractability-audit",
+      "dimension": "discoverability",
+      "summary": "Are facts stated in readable text? Titles, meta, headings, image alt / text-in-images, language, and PDF-locked content."
+    },
+    {
+      "id": "freshness-corroboration",
+      "path": "skills/freshness-corroboration",
+      "dimension": "discoverability",
+      "summary": "Is the fact current and agreed upon elsewhere? Stale dates, undated content, sameAs corroboration, external presence, and entity disambiguation."
+    },
+    {
+      "id": "engagement-audit",
+      "path": "skills/engagement-audit",
+      "dimension": "engagement",
+      "summary": "Will the visitor stay? Mobile viewport, clear CTA, navigation/orientation, page weight and response time, readability, and breadcrumbs."
+    }
+  ]
+}
