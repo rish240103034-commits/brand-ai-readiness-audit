@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.2.0_
+_Last updated: 2026-09-05 · version 2.3.0_
 
 ---
 
@@ -40,9 +40,13 @@ The brief PDF is at:
 - **v2.2 adds analysis tools**: an in-report **what-if planner** (tick findings → score recomputes
   live from the embedded `scoring_model`; planner's Current == engine score) and **site-section
   analysis** (`sections`, pages grouped by URL path, scored weakest-first).
-- **109 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+- **v2.3 adds opt-in off-site corroboration** (`external.py`, `--verify-external`,
+  `report.external_verification`): Wikidata entity + P856 link-back + Wikipedia, and resolving the
+  brand's declared sameAs/social links; upgrades Corroboration from *partial* to verified/not-found.
+  Default runs still touch no third-party sites. Keyless, bounded, SSRF-guarded, never fabricated.
+- **114 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
   Interactive UI verified in-browser (what-if recompute, filters, page explorer, jumps, exports,
-  0 console errors).
+  0 console errors). `--verify-external` verified live on python.org (Wikidata Q28865, links_back).
   Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
@@ -74,6 +78,7 @@ skills/
         coverage.py        COVERAGE MATRIX + CHECK REGISTRY: per-area PASS/FAIL/NOT_VERIFIED/PARTIAL
         pages.py           PAGE EXPLORER data: per-URL facts, signals, findings, per-page score
         proactive.py       PROACTIVE OPPORTUNITIES: context-justified, non-defect recommendations
+        external.py        OPT-IN off-site corroboration (--verify-external): Wikidata + declared profiles
         analytics.py       ANALYST LAYER: pillars (coverage-aware status), matrix, projection, hotspots, roadmap, KPIs, narrative
         render.py          self-contained HTML DASHBOARD (coverage, opportunities, limitations, score explanation, dynamic filters)
         exports.py         Markdown brief + findings CSV

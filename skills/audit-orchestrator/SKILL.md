@@ -29,6 +29,7 @@ running every other skill's checks over a shared crawl and merging their finding
 - Optional: `--max-pages N` (default 12), `--profile strict|balanced|lenient`,
   `--crawl-scope host|domain` (default host), `--skills a,b` (subset),
   `--format json|html|md`, `--out FILE`, `--csv FILE`, `--no-external`,
+  `--verify-external` (opt-in Wikidata + declared-profile corroboration),
   `--compare-previous` (+ `--history-db PATH`), `--dry-run`, `--verbose`/`--quiet`.
 
 ## Procedure (deterministic)

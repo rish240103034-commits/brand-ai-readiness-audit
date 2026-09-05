@@ -19,6 +19,7 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `pages` | array | — | Per-page detail for the page explorer (see below). |
 | `sections` | array | — | Per-URL-section scores (see below). |
 | `scoring_model` | object | — | The exact deduction model, so the report can recompute "what-if" scores identically (see below). |
+| `external_verification` | object | — | Present only with `--verify-external`: off-site corroboration results (see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
 | `profile` | string | — | Scoring profile used (`strict`/`balanced`/`lenient`). |
 | `skills_run` | array<string> | — | Ids of the skills that executed. |
@@ -124,6 +125,17 @@ identically to the engine (one source of truth): `{ severity_penalty, confidence
 weights (restricted to the dimensions actually assessed), grade_bands }`. Overall =
 `round(Σ dimension_score × weight / Σ weight)`, where each dimension starts at 100 and loses
 `severity_penalty × confidence_factor` per finding.
+
+## `external_verification`
+Present **only** when the user opts in with `--verify-external` (the default audit never queries
+third-party sites). Built by `auditlib/external.py` from keyless, ToS-friendly public sources plus
+the brand's own declared links — never search-engine/social scraping, never fabricated.
+`{ performed: true, brand, domain, sources, verified (bool), wikidata { searched, found,
+links_back, id, label, description, official_website, wikipedia }, profiles [ { url, state
+(verified|unreachable|skipped), status } ], notes }`. `wikidata.links_back` is true only when the
+entity's official-website property (P856) resolves to the audited domain — a definitive match; a
+name-only hit is `found` but not `links_back`. When present, this drives Corroboration's
+`external_verification` coverage check to PASS/FAIL instead of the default PARTIAL.
 
 ## `opportunities`
 Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They

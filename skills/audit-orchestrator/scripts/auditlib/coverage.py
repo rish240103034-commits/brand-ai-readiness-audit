@@ -108,12 +108,14 @@ def build(report: Dict[str, Any], signals: Optional[Dict[str, Any]] = None) -> D
     pages = int(report.get("pages_crawled", 0) or 0)
     date_pages = int(signals.get("date_signal_pages", 0) or 0)
     external_done = bool(signals.get("external_lookups", False))
+    external_verified = signals.get("external_verified")  # None=not performed, True/False if --verify-external
 
     rows: List[Dict[str, Any]] = []
     for key, label, skills, cats in AREAS:
         area_findings = [f for f in findings if f.get("category") in cats]
         ran = bool(skills & skills_run)
-        rows.append(_row(key, label, ran, area_findings, cats, pages, date_pages, external_done))
+        rows.append(_row(key, label, ran, area_findings, cats, pages, date_pages,
+                         external_done, external_verified))
 
     opps = report.get("opportunities", [])
     rows.append({
@@ -140,7 +142,7 @@ def build(report: Dict[str, Any], signals: Optional[Dict[str, Any]] = None) -> D
     }
 
 
-def _row(key, label, ran, area_findings, cats, pages, date_pages, external_done):
+def _row(key, label, ran, area_findings, cats, pages, date_pages, external_done, external_verified=None):
     not_assessed_note = None
     if not ran:
         not_assessed_note = "The skill covering this area was not run."
@@ -150,7 +152,8 @@ def _row(key, label, ran, area_findings, cats, pages, date_pages, external_done)
         not_assessed_note = ("No publication, modified, or copyright dates were found on the "
                              "sampled pages, so recency could not be judged either way.")
 
-    checks = _checks_for(key, area_findings, assessable=(not_assessed_note is None))
+    checks = _checks_for(key, area_findings, assessable=(not_assessed_note is None),
+                         external_verified=external_verified)
     passed = sum(1 for c in checks if c["state"] == PASS)
     failed = sum(1 for c in checks if c["state"] == FAIL)
     nver = sum(1 for c in checks if c["state"] == NOT_VERIFIED)
@@ -185,7 +188,7 @@ def _row(key, label, ran, area_findings, cats, pages, date_pages, external_done)
             "findings": len(area_findings), "confidence": confidence, "note": note}
 
 
-def _checks_for(key, area_findings, assessable) -> List[Dict[str, Any]]:
+def _checks_for(key, area_findings, assessable, external_verified=None) -> List[Dict[str, Any]]:
     titles = [f.get("title", "").lower() for f in area_findings]
     out = []
     for cid, label, keywords, kind in _REG.get(key, []):
@@ -196,7 +199,13 @@ def _checks_for(key, area_findings, assessable) -> List[Dict[str, Any]]:
         elif kind == "browser":
             state, note = NOT_VERIFIED, "Requires executing the page in a browser; this audit is static."
         elif kind == "external":
-            state, note = PARTIAL, "On-page signals only; no independent external source was queried."
+            # PARTIAL by default (on-page signals only); real state when --verify-external is used.
+            if external_verified is True:
+                state, note = PASS, "Verified against an independent external source (Wikidata / declared profiles)."
+            elif external_verified is False:
+                state, note = FAIL, "External verification ran but found no corroborating source."
+            else:
+                state, note = PARTIAL, "On-page signals only; run --verify-external for independent verification."
         else:
             state, note = PASS, "No issue detected across the sampled pages."
         out.append({"id": cid, "label": label, "state": state, "note": note})

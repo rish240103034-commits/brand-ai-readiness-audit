@@ -1,8 +1,8 @@
 {
   "site": "smashingmagazine.com",
-  "audited_at": "2026-09-05T15:20:54Z",
-  "started_at": "2026-09-05T15:17:05Z",
-  "auditor": "brand-ai-readiness-audit/2.2",
+  "audited_at": "2026-09-05T15:43:14Z",
+  "started_at": "2026-09-05T15:42:14Z",
+  "auditor": "brand-ai-readiness-audit/2.3",
   "pages_crawled": 12,
   "summary": {
     "total_findings": 10,
@@ -160,10 +160,10 @@
       "category": "performance",
       "confidence": "medium",
       "kind": "defect",
-      "evidence": "2 of 12 page(s) (17%) took over 3s to return HTML (e.g. https://www.smashingmagazine.com/category/wallpapers/: 31380 ms).",
+      "evidence": "2 of 12 page(s) (17%) took over 3s to return HTML (e.g. https://www.smashingmagazine.com/: 4778 ms).",
       "affected_pages": [
-        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-        "https://www.smashingmagazine.com/category/wallpapers/"
+        "https://www.smashingmagazine.com/",
+        "https://www.smashingmagazine.com/author/cosima-mielke/"
       ],
       "suggested_action": {
         "summary": "Investigate TTFB (caching, CDN, server work) so pages start rendering quickly; each added second measurably increases abandonment.",
@@ -175,7 +175,7 @@
       "scope": "2 of 12 page(s) (17%)",
       "measurements": {
         "slow_pages": 2,
-        "worst_ms": 31380,
+        "worst_ms": 4778,
         "threshold_ms": 3000
       },
       "impact": 3,
@@ -189,7 +189,7 @@
       "category": "extractability",
       "confidence": "medium",
       "kind": "defect",
-      "evidence": "11 of 12 page(s) (92%) jump heading levels (e.g. H1→H3 with no H2), e.g. https://www.smashingmagazine.com/.",
+      "evidence": "12 of 12 page(s) (100%) jump heading levels (e.g. H1→H3 with no H2), e.g. https://www.smashingmagazine.com/.",
       "affected_pages": [
         "https://www.smashingmagazine.com/",
         "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
@@ -200,7 +200,7 @@
         "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
         "https://www.smashingmagazine.com/articles/",
-        "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
+        "https://www.smashingmagazine.com/author/cosima-mielke/"
       ],
       "suggested_action": {
         "summary": "Nest headings in order (no H1→H3 jumps) so the document outline is unambiguous.",
@@ -209,9 +209,9 @@
       "details": {},
       "why": "A machine reconstructs a page's outline from heading levels; skipped levels break that nesting, so the relationship between sections is ambiguous.",
       "how_to_fix": "Use headings in order (H1→H2→H3) without skipping a level; style, don't skip, to change size.",
-      "scope": "11 of 12 page(s) (92%)",
+      "scope": "12 of 12 page(s) (100%)",
       "measurements": {
-        "pages_with_skipped_levels": 11
+        "pages_with_skipped_levels": 12
       },
       "impact": 2,
       "priority": 7
@@ -311,7 +311,7 @@
     }
   ],
   "notes": [
-    "Crawled 12 page(s) in 229055 ms; 19 HTTP request(s). Static, read-only analysis."
+    "Crawled 12 page(s) in 60347 ms; 21 HTTP request(s). Static, read-only analysis."
   ],
   "profile": "balanced",
   "skills_run": [
@@ -678,7 +678,7 @@
             "id": "external_verification",
             "label": "Independent external verification",
             "state": "partial",
-            "note": "On-page signals only; no independent external source was queried."
+            "note": "On-page signals only; run --verify-external for independent verification."
           }
         ],
         "checks_total": 3,
@@ -789,18 +789,20 @@
       "status": 200,
       "redirected": true,
       "final_url": "https://www.smashingmagazine.com/",
-      "score": 67,
-      "finding_count": 5,
+      "score": 61,
+      "finding_count": 6,
       "finding_ids": [
         "F-001",
         "F-004",
+        "F-006",
         "F-007",
         "F-009",
         "F-010"
       ],
       "top_severity": "high",
       "dimensions": [
-        "discoverability"
+        "discoverability",
+        "engagement"
       ],
       "confidence": "medium",
       "title": "Smashing Magazine — For Web Designers And DevelopersClear SearchBack to top",
@@ -871,107 +873,10 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 287,
-      "response_ms": 1825,
+      "response_ms": 4778,
       "word_count": 1384,
       "rendering": {
         "static_text_words": 1384,
-        "verified": false,
-        "note": "static HTML only — rendered DOM not executed"
-      }
-    },
-    {
-      "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-      "is_home": false,
-      "status": 200,
-      "redirected": false,
-      "final_url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-      "score": 69,
-      "finding_count": 5,
-      "finding_ids": [
-        "F-002",
-        "F-006",
-        "F-007",
-        "F-008",
-        "F-010"
-      ],
-      "top_severity": "high",
-      "dimensions": [
-        "discoverability",
-        "engagement"
-      ],
-      "confidence": "medium",
-      "title": "Content Strategy eBook Bundle (3 eBooks) — Smashing MagazineClear SearchBack to top",
-      "title_len": 83,
-      "meta_description": "With this bundle you will master content and copywriting in no time. Three eBooks contain Smashing Magazine’s best articles on content, carefully prepared, edited and — of course — without advertising. Perfect for those looking to get into the world of content development for online platforms, this eBook expertly pinpoints the key things one must know before beginning a journey into copywriting.",
-      "h1": "Content Strategy eBook Bundle (3 eBooks)",
-      "h1_count": 1,
-      "h2_count": 0,
-      "headings_outline": [
-        [
-          "h1",
-          "Content Strategy eBook Bundle (3 eBooks)"
-        ],
-        [
-          "h3",
-          "ePUB, Kindle, PDF"
-        ],
-        [
-          "h3",
-          "About The ebook Bundle"
-        ],
-        [
-          "h3",
-          "ePUB, Kindle, PDF"
-        ],
-        [
-          "h4",
-          "More Books"
-        ],
-        [
-          "h4",
-          "Accessible UX Research"
-        ],
-        [
-          "h4",
-          "Success At Scale"
-        ],
-        [
-          "h4",
-          "Interface Design Checklists"
-        ],
-        [
-          "h4",
-          "Understanding Privacy"
-        ],
-        [
-          "h4",
-          "Touch Design for Mobile Interfaces"
-        ],
-        [
-          "h4",
-          "Image Optimization"
-        ],
-        [
-          "h4",
-          "TypeScript in 50 Lessons"
-        ]
-      ],
-      "structured_data_types": [],
-      "lang": "en",
-      "canonical": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-      "indexable": true,
-      "internal_links": 105,
-      "external_links": 11,
-      "pdf_links": 0,
-      "cta_signal": true,
-      "images": 24,
-      "images_missing_alt": 0,
-      "scripts": 3,
-      "html_kb": 164,
-      "response_ms": 16358,
-      "word_count": 796,
-      "rendering": {
-        "static_text_words": 796,
         "verified": false,
         "note": "static HTML only — rendered DOM not executed"
       }
@@ -1063,7 +968,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 294,
-      "response_ms": 1578,
+      "response_ms": 2375,
       "word_count": 12892,
       "rendering": {
         "static_text_words": 12892,
@@ -1158,7 +1063,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 170,
-      "response_ms": 1355,
+      "response_ms": 1478,
       "word_count": 1701,
       "rendering": {
         "static_text_words": 1701,
@@ -1253,10 +1158,105 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 169,
-      "response_ms": 1769,
+      "response_ms": 2155,
       "word_count": 1253,
       "rendering": {
         "static_text_words": 1253,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Content Strategy eBook Bundle (3 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 83,
+      "meta_description": "With this bundle you will master content and copywriting in no time. Three eBooks contain Smashing Magazine’s best articles on content, carefully prepared, edited and — of course — without advertising. Perfect for those looking to get into the world of content development for online platforms, this eBook expertly pinpoints the key things one must know before beginning a journey into copywriting.",
+      "h1": "Content Strategy eBook Bundle (3 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Content Strategy eBook Bundle (3 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 164,
+      "response_ms": 1449,
+      "word_count": 796,
+      "rendering": {
+        "static_text_words": 796,
         "verified": false,
         "note": "static HTML only — rendered DOM not executed"
       }
@@ -1348,7 +1348,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 172,
-      "response_ms": 752,
+      "response_ms": 1812,
       "word_count": 1948,
       "rendering": {
         "static_text_words": 1948,
@@ -1443,7 +1443,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 175,
-      "response_ms": 1359,
+      "response_ms": 1089,
       "word_count": 1634,
       "rendering": {
         "static_text_words": 1634,
@@ -1538,7 +1538,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 174,
-      "response_ms": 1356,
+      "response_ms": 1428,
       "word_count": 1453,
       "rendering": {
         "static_text_words": 1453,
@@ -1632,10 +1632,104 @@
       "images_missing_alt": 0,
       "scripts": 4,
       "html_kb": 252,
-      "response_ms": 1613,
+      "response_ms": 2893,
       "word_count": 822,
       "rendering": {
         "static_text_words": 822,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      }
+    },
+    {
+      "url": "https://www.smashingmagazine.com/author/cosima-mielke/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/author/cosima-mielke/",
+      "score": 92,
+      "finding_count": 2,
+      "finding_ids": [
+        "F-006",
+        "F-007"
+      ],
+      "top_severity": "medium",
+      "dimensions": [
+        "discoverability",
+        "engagement"
+      ],
+      "confidence": "medium",
+      "title": "Author Cosima Mielke — Smashing MagazineClear SearchBack to top",
+      "title_len": 63,
+      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
+      "h1": "Author Cosima Mielke",
+      "h1_count": 1,
+      "h2_count": 180,
+      "headings_outline": [
+        [
+          "h1",
+          "Author Cosima Mielke"
+        ],
+        [
+          "h2",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Small Joys And Big Adventures (August 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Snapshots Of Summer (July 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "June Is For Exploring (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Fresh View In May (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "The Joy Of A Fresh Beginning (April 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Fresh Energy In March (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Short Month, Big Ideas (February 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Countdown To New Adventures (January 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Sparkle Of December Magic (2025 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Fading Light And Falling Leaves (November 2025 Wallpapers Edition)"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/author/cosima-mielke/",
+      "indexable": true,
+      "internal_links": 978,
+      "external_links": 12,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 182,
+      "images_missing_alt": 0,
+      "scripts": 5,
+      "html_kb": 1403,
+      "response_ms": 4742,
+      "word_count": 14877,
+      "rendering": {
+        "static_text_words": 14877,
         "verified": false,
         "note": "static HTML only — rendered DOM not executed"
       }
@@ -1646,10 +1740,9 @@
       "status": 200,
       "redirected": false,
       "final_url": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
-      "score": 93,
-      "finding_count": 3,
+      "score": 96,
+      "finding_count": 2,
       "finding_ids": [
-        "F-007",
         "F-008",
         "F-010"
       ],
@@ -1718,18 +1811,18 @@
       "lang": "en",
       "canonical": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
       "indexable": true,
-      "internal_links": 707,
-      "external_links": 95,
+      "internal_links": 703,
+      "external_links": 100,
       "pdf_links": 0,
       "cta_signal": true,
       "images": 41,
       "images_missing_alt": 0,
       "scripts": 4,
       "html_kb": 358,
-      "response_ms": 1965,
-      "word_count": 3119,
+      "response_ms": 2348,
+      "word_count": 3130,
       "rendering": {
-        "static_text_words": 3119,
+        "static_text_words": 3130,
         "verified": false,
         "note": "static HTML only — rendered DOM not executed"
       }
@@ -1740,16 +1833,12 @@
       "status": 200,
       "redirected": false,
       "final_url": "https://www.smashingmagazine.com/category/wallpapers/",
-      "score": 94,
-      "finding_count": 1,
-      "finding_ids": [
-        "F-006"
-      ],
-      "top_severity": "medium",
-      "dimensions": [
-        "engagement"
-      ],
-      "confidence": "medium",
+      "score": 100,
+      "finding_count": 0,
+      "finding_ids": [],
+      "top_severity": null,
+      "dimensions": [],
+      "confidence": "high",
       "title": "Desktop Wallpapers — Smashing MagazineClear SearchNextBack to top",
       "title_len": 65,
       "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
@@ -1818,58 +1907,10 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 247,
-      "response_ms": 31380,
+      "response_ms": 2655,
       "word_count": 826,
       "rendering": {
         "static_text_words": 826,
-        "verified": false,
-        "note": "static HTML only — rendered DOM not executed"
-      }
-    },
-    {
-      "url": "https://www.smashingmagazine.com/person-of-the-week/tey-bannerman/",
-      "is_home": false,
-      "status": 200,
-      "redirected": false,
-      "final_url": "https://www.smashingmagazine.com/person-of-the-week/tey-bannerman/",
-      "score": 100,
-      "finding_count": 0,
-      "finding_ids": [],
-      "top_severity": null,
-      "dimensions": [],
-      "confidence": "high",
-      "title": "— Smashing MagazineClear SearchBack to top",
-      "title_len": 42,
-      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
-      "h1": "Person Of The Week — August 31, 2026 Tey Bannerman",
-      "h1_count": 1,
-      "h2_count": 0,
-      "headings_outline": [
-        [
-          "h1",
-          "Person Of The Week — August 31, 2026 Tey Bannerman"
-        ],
-        [
-          "h4",
-          "Browse All Smashing Magazine Topics"
-        ]
-      ],
-      "structured_data_types": [],
-      "lang": "en",
-      "canonical": "https://www.smashingmagazine.com/person-of-the-week/tey-bannerman/",
-      "indexable": true,
-      "internal_links": 62,
-      "external_links": 10,
-      "pdf_links": 0,
-      "cta_signal": true,
-      "images": 2,
-      "images_missing_alt": 0,
-      "scripts": 3,
-      "html_kb": 143,
-      "response_ms": 1082,
-      "word_count": 250,
-      "rendering": {
-        "static_text_words": 250,
         "verified": false,
         "note": "static HTML only — rendered DOM not executed"
       }
@@ -1880,11 +1921,12 @@
       "key": "/",
       "label": "Home (/)",
       "pages": 1,
-      "score": 67,
-      "findings": 5,
+      "score": 61,
+      "findings": 6,
       "top_severity": "high",
       "dimensions": [
-        "discoverability"
+        "discoverability",
+        "engagement"
       ],
       "examples": [
         "https://www.smashingmagazine.com/"
@@ -1894,17 +1936,16 @@
       "key": "/ebook-bundles",
       "label": "/ebook-bundles/",
       "pages": 7,
-      "score": 74,
-      "findings": 5,
+      "score": 75,
+      "findings": 4,
       "top_severity": "high",
       "dimensions": [
-        "discoverability",
-        "engagement"
+        "discoverability"
       ],
       "examples": [
-        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
-        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/"
+        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/"
       ]
     },
     {
@@ -1922,11 +1963,26 @@
       ]
     },
     {
+      "key": "/author",
+      "label": "/author/",
+      "pages": 1,
+      "score": 92,
+      "findings": 2,
+      "top_severity": "medium",
+      "dimensions": [
+        "discoverability",
+        "engagement"
+      ],
+      "examples": [
+        "https://www.smashingmagazine.com/author/cosima-mielke/"
+      ]
+    },
+    {
       "key": "/2026",
       "label": "/2026/",
       "pages": 1,
-      "score": 93,
-      "findings": 3,
+      "score": 96,
+      "findings": 2,
       "top_severity": "low",
       "dimensions": [
         "discoverability"
@@ -1939,26 +1995,12 @@
       "key": "/category",
       "label": "/category/",
       "pages": 1,
-      "score": 94,
-      "findings": 1,
-      "top_severity": "medium",
-      "dimensions": [
-        "engagement"
-      ],
-      "examples": [
-        "https://www.smashingmagazine.com/category/wallpapers/"
-      ]
-    },
-    {
-      "key": "/person-of-the-week",
-      "label": "/person-of-the-week/",
-      "pages": 1,
       "score": 100,
       "findings": 0,
       "top_severity": null,
       "dimensions": [],
       "examples": [
-        "https://www.smashingmagazine.com/person-of-the-week/tey-bannerman/"
+        "https://www.smashingmagazine.com/category/wallpapers/"
       ]
     }
   ],
@@ -2209,8 +2251,8 @@
         "quadrant": "major_project",
         "points_at_stake": 3,
         "affected_pages": [
-          "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-          "https://www.smashingmagazine.com/category/wallpapers/"
+          "https://www.smashingmagazine.com/",
+          "https://www.smashingmagazine.com/author/cosima-mielke/"
         ]
       },
       {
@@ -2236,7 +2278,7 @@
           "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
           "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
           "https://www.smashingmagazine.com/articles/",
-          "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
+          "https://www.smashingmagazine.com/author/cosima-mielke/"
         ]
       },
       {
@@ -2362,12 +2404,6 @@
     },
     "hotspots": [
       {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-        "findings": 5,
-        "impact": 13,
-        "top_severity": "high"
-      },
-      {
         "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
         "findings": 4,
         "impact": 10,
@@ -2381,6 +2417,12 @@
       },
       {
         "url": "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "findings": 4,
+        "impact": 10,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
         "findings": 4,
         "impact": 10,
         "top_severity": "high"

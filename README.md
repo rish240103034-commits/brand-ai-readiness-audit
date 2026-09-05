@@ -133,6 +133,14 @@ Print** toolbar — all vanilla JS, no dependencies, degrading to a static repor
 **Section analysis.** Pages are grouped by top-level URL path (`/products/*`, `/blog/*`, …) and
 each section is scored, so you can see *which part* of the site drags the score down.
 
+**Opt-in off-site corroboration** (`--verify-external`). By default the audit never touches
+third-party sites (deterministic, no keys). When you opt in, it corroborates the brand against
+**Wikidata** (does an entity exist whose official-website property points back to this domain? is
+there a Wikipedia article?) and resolves the brand's **own declared** `sameAs`/social links — then
+upgrades Corroboration from *partial* to a real **verified / found-but-unlinked / not-found**
+result. Keyless, ToS-friendly public sources only; it never scrapes search engines or social feeds
+and never fabricates a result.
+
 ```
 AI Visibility Score  63 / 100  (D — Weak)     → 72 (C) after 2 quick wins  → 100 if all fixed
   Discoverability ▓▓▓▓░░░░░░  38      Engagement ▓▓▓▓▓▓▓▓▓▓ 100
@@ -195,6 +203,7 @@ Full flow: [orchestration.md](skills/audit-orchestrator/references/orchestration
 | `--csv FILE` | Also write findings as CSV (one row per finding, with analytics fields). |
 | `--compare-previous` / `--history-db PATH` | Store the score and show the delta vs last run. |
 | `--no-external` | Skip off-site corroboration lookups. |
+| `--verify-external` | Opt-in: corroborate the brand against Wikidata + its own declared profile links (bounded, read-only requests to public sources; off by default). |
 | `--dry-run` | Validate inputs and print the plan; no network calls. |
 | `--verbose` / `--quiet` | Logging level. |
 | `--allow-private` | Permit localhost/private targets (testing only). |

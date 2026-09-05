@@ -4,6 +4,32 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] — 2026-09-05
+
+Opt-in off-site corroboration. By default the audit still never touches third-party sites
+(deterministic, read-only, no keys); with `--verify-external` it adds *real* external checks.
+
+### Added
+- **`--verify-external`** (`auditlib/external.py`, `report.external_verification`): opt-in
+  corroboration using only keyless, ToS-friendly public sources plus the brand's own declared links:
+  - **Wikidata** — searches a few candidate brand names, then confirms a match by the entity's
+    official-website property (P856) pointing back to the audited domain; also surfaces the
+    Wikipedia article. The P856 gate keeps precision high (a namesake without a link-back is
+    reported as *found-but-not-linked*, not "verified").
+  - **Declared profiles** — fetches the `sameAs`/social URLs the site itself links, to confirm they
+    resolve (SSRF-guarded: only public hosts are probed; 403/429 treated as reachable-but-bot-blocked).
+  - Upgrades Corroboration from *partial* to a real **verified / found-but-unlinked / not-found**
+    result, adjusts the coverage check state accordingly, and emits precise findings (no
+    corroboration found; Wikidata entity not linked to the site; unreachable declared profiles).
+  - Never scrapes search engines or social feeds (ToS/auth/non-determinism) and never fabricates a
+    result; all calls are bounded and time-capped, and an external hiccup can never fail the audit.
+- Report shows an **External corroboration** section (Wikidata link-back, Wikipedia, declared-profile
+  resolution) when the flag is used.
+
+### Changed
+- `coverage.py` corroboration's `external_verification` check reflects the real outcome when
+  `--verify-external` is set (PASS/FAIL) instead of the default PARTIAL. Version bumped to `2.3`.
+
 ## [2.2.0] — 2026-09-05
 
 Analysis tools. Two features that turn the report from a readout into something you explore.

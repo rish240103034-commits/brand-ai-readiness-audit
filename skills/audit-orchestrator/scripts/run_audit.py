@@ -35,6 +35,7 @@ from auditlib import analytics as analytics_mod             # noqa: E402
 from auditlib import coverage as coverage_mod               # noqa: E402
 from auditlib import pages as pages_mod                     # noqa: E402
 from auditlib import proactive as proactive_mod             # noqa: E402
+from auditlib import external as external_mod               # noqa: E402
 from auditlib import exports as exports_mod                 # noqa: E402
 from auditlib import render as render_mod                   # noqa: E402
 from auditlib.checks import freshness as _freshness         # noqa: E402
@@ -44,7 +45,7 @@ LOG = get_logger("orchestrator")
 EXIT_OK, EXIT_PARTIAL, EXIT_BADINPUT = 0, 1, 2
 
 
-def run(url: str, cfg, external: bool = True, only_skills=None):
+def run(url: str, cfg, external: bool = True, only_skills=None, verify_external: bool = False):
     """Crawl once, run the selected skills, and return (report_dict, exit_code)."""
     started = report_mod._now_iso()
     t0 = time.time()
@@ -67,6 +68,15 @@ def run(url: str, cfg, external: bool = True, only_skills=None):
 
     all_findings, notes, partial = _run_skills_concurrently(skills, ctx, cfg)
 
+    ext_result = None
+    if verify_external:
+        try:
+            ext_result, ext_findings = external_mod.verify(ctx)
+            all_findings.extend(ext_findings)
+            notes.append("Opt-in external corroboration performed (Wikidata + declared profiles).")
+        except Exception as e:  # never let an external hiccup fail the whole audit
+            notes.append(f"external verification skipped: {e}")
+
     notes.append(f"Crawled {len(ctx.pages)} page(s) in {int((time.time()-t0)*1000)} ms; "
                  f"{fetcher.request_count} HTTP request(s). Static, read-only analysis.")
     notes.extend(ctx.notes)
@@ -77,10 +87,13 @@ def run(url: str, cfg, external: bool = True, only_skills=None):
     rpt["profile"] = cfg.profile
     rpt["skills_run"] = [s.id for s in skills]
     score_report(rpt)          # attach AI Visibility Score + grade
+    if ext_result is not None:
+        rpt["external_verification"] = ext_result
     rpt["opportunities"] = proactive_mod.build(ctx)  # context-justified, non-defect recommendations
     # Coverage matrix: what each area actually assessed (healthy vs not-assessed vs partial).
     signals = {"date_signal_pages": _freshness.count_date_signal_pages(ctx.pages),
-               "external_lookups": external}
+               "external_lookups": external,
+               "external_verified": (None if ext_result is None else bool(ext_result.get("verified")))}
     rpt["coverage"] = coverage_mod.build(rpt, signals)
     rpt["pages"] = pages_mod.build(ctx, rpt)  # per-page detail for the page explorer
     rpt["sections"] = pages_mod.build_sections(rpt["pages"], rpt["findings"])  # per-URL-section scores
@@ -149,6 +162,9 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("url", help="Website URL or domain to audit")
     ap.add_argument("--max-pages", type=int, default=None, help="Max pages to sample (default 12)")
     ap.add_argument("--no-external", action="store_true", help="Disable off-site corroboration lookups")
+    ap.add_argument("--verify-external", action="store_true",
+                    help="Opt-in: corroborate the brand against Wikidata and its own declared profile "
+                         "links (bounded, read-only requests to public third-party sources; off by default)")
     ap.add_argument("--timeout", type=int, default=None, help="Per-request timeout seconds")
     ap.add_argument("--profile", choices=VALID_PROFILES, default="balanced", help="Scoring/threshold profile")
     ap.add_argument("--crawl-scope", choices=["host", "domain"], default=None,
@@ -189,7 +205,8 @@ def main(argv=None) -> int:
         return EXIT_OK
 
     try:
-        rpt, code = run(target, cfg, external=not args.no_external, only_skills=only)
+        rpt, code = run(target, cfg, external=not args.no_external, only_skills=only,
+                        verify_external=args.verify_external)
     except KeyboardInterrupt:
         LOG.error("interrupted")
         return 130

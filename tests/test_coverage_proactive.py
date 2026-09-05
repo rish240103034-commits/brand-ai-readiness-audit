@@ -2,7 +2,7 @@
 import unittest
 
 from auditlib import coverage, proactive, pages as pages_mod, report as R
-from auditlib import render
+from auditlib import render, external as external_mod
 from auditlib.scoring import score_report
 from tests.helpers import make_ctx, GOOD_HOME
 
@@ -162,6 +162,50 @@ class SectionAnalysisTests(unittest.TestCase):
     def test_single_section_returns_empty(self):
         one = [{"url": "https://x/", "score": 50, "finding_ids": []}]
         self.assertEqual(pages_mod.build_sections(one, []), [])
+
+
+class ExternalVerificationTests(unittest.TestCase):
+    """Offline tests for the opt-in external layer's pure helpers + coverage integration."""
+
+    def test_coverage_external_check_states(self):
+        base = base_report()  # freshness-corroboration ran, no corroboration findings
+        def corro_ext(signals):
+            cov = coverage.build(base, signals)
+            area = by_key(cov)["corroboration"]
+            ext = [c for c in area["checks"] if c["id"] == "external_verification"][0]
+            return area["status"], ext["state"]
+        self.assertEqual(corro_ext({"date_signal_pages": 1}), ("partial", "partial"))            # not performed
+        self.assertEqual(corro_ext({"date_signal_pages": 1, "external_verified": True}),
+                         ("healthy", "pass"))                                                     # verified
+        self.assertEqual(corro_ext({"date_signal_pages": 1, "external_verified": False})[1], "fail")
+
+    def test_collect_profile_urls(self):
+        page = ('<html lang="en"><head><title>t</title>'
+                '<script type="application/ld+json">{"@type":"Organization","name":"Acme",'
+                '"sameAs":["https://www.linkedin.com/company/acme","https://www.wikidata.org/wiki/Q1"]}</script>'
+                '</head><body><a href="https://twitter.com/acme">x</a></body></html>')
+        ctx = make_ctx([("https://acme.example/", page)])
+        urls = external_mod._collect_profile_urls(ctx.pages)
+        self.assertIn("https://www.linkedin.com/company/acme", urls)
+        self.assertIn("https://twitter.com/acme", urls)
+
+    def test_findings_when_no_corroboration(self):
+        result = {"domain": "acme.example", "profiles": []}
+        wd = {"found": False, "links_back": False}
+        titles = {f.title for f in external_mod._findings_from(result, wd, 0)}
+        self.assertIn("No independent external corroboration found", titles)
+
+    def test_no_finding_when_linked_back(self):
+        result = {"domain": "acme.example",
+                  "profiles": [{"url": "https://x", "state": "verified", "status": 200}]}
+        wd = {"found": True, "links_back": True, "id": "Q1"}
+        titles = {f.title for f in external_mod._findings_from(result, wd, 1)}
+        self.assertNotIn("No independent external corroboration found", titles)
+
+    def test_brand_name_from_og(self):
+        page = '<html lang="en"><head><title>t</title><meta property="og:site_name" content="Acme Robotics"></head><body></body></html>'
+        ctx = make_ctx([("https://acme.example/", page)])
+        self.assertEqual(external_mod._brand_name(ctx.pages[0], "https://acme.example/"), "Acme Robotics")
 
 
 class ScoringModelTests(unittest.TestCase):

@@ -49,6 +49,7 @@ def render_html(report: Dict[str, Any]) -> str:
         _kpi_row(an, summary),
         _exec_summary(an),
         _coverage_section(report),
+        _external_section(report),
         _projection_section(an),
         _score_explanation(report, an),
         _pillars_section(an),
@@ -257,6 +258,55 @@ def _coverage_row(a: Dict[str, Any]) -> str:
   </summary>
   <div class="cov-body"><p class="cov-note">{html.escape(a.get("note",""))}</p>{body}</div>
 </details>"""
+
+
+# --- external corroboration (opt-in) ----------------------------------------------
+
+_PROFILE_STATE = {"verified": ("#2e7d32", "verified"), "unreachable": ("#c0182f", "unreachable"),
+                  "skipped": ("#8a8f98", "skipped")}
+
+
+def _external_section(report) -> str:
+    ev = report.get("external_verification")
+    if not ev or not ev.get("performed"):
+        return ""
+    wd = ev.get("wikidata", {})
+    verdict_color = "#2e7d32" if ev.get("verified") else "#e0a500"
+    verdict = "Corroborated by an independent source" if ev.get("verified") else "No independent corroboration found"
+    # Wikidata block
+    if wd.get("links_back"):
+        wd_line = (f'<b style="color:#2e7d32">✓ Wikidata entity linked to this domain</b> — '
+                   f'{html.escape(str(wd.get("id","")))} "{html.escape(str(wd.get("label","")))}"')
+    elif wd.get("found"):
+        wd_line = (f'<b style="color:#e0a500">~ Wikidata entity found but not linked to this domain</b> — '
+                   f'{html.escape(str(wd.get("id","")))} "{html.escape(str(wd.get("label","")))}"')
+    elif wd.get("searched"):
+        wd_line = '<b style="color:#c0182f">✕ No matching Wikidata entity found</b>'
+    else:
+        wd_line = 'Wikidata not searched (no brand name resolved).'
+    wiki = (f' · <a href="{html.escape(wd["wikipedia"])}" target="_blank" rel="noopener noreferrer">Wikipedia ↗</a>'
+            if wd.get("wikipedia") else "")
+    site = (f' · official site: {html.escape(str(wd["official_website"]))}' if wd.get("official_website") else "")
+
+    profiles = ev.get("profiles", [])
+    prows = ""
+    for p in profiles:
+        color, label = _PROFILE_STATE.get(p["state"], ("#889", p["state"]))
+        st = f' ({p["status"]})' if p.get("status") else ""
+        prows += (f'<li><a href="{html.escape(p["url"])}" target="_blank" rel="noopener noreferrer">'
+                  f'{html.escape(p["url"])} ↗</a> '
+                  f'<span class="chip mini" style="background:{color}">{html.escape(label)}{html.escape(st)}</span></li>')
+    prof_html = f'<div class="ext-profiles"><span>Declared profiles</span><ul>{prows}</ul></div>' if prows else \
+        '<p class="hint">No declared sameAs/profile links were found on the site.</p>'
+
+    return f"""<section class="card">
+  <h2>External corroboration <span class="hint">opt-in (--verify-external) · Wikidata + declared profiles</span></h2>
+  <p class="ext-verdict" style="color:{verdict_color}"><b>{html.escape(verdict)}</b> for
+     <b>{html.escape(str(ev.get("brand","")))}</b> ({html.escape(str(ev.get("domain","")))})</p>
+  <p class="ext-wd">{wd_line}{wiki}{site}</p>
+  {prof_html}
+  <p class="fine">Independent, keyless public sources only; results reflect a point-in-time lookup and are never fabricated.</p>
+</section>"""
 
 
 # --- score explanation ------------------------------------------------------------
@@ -1014,6 +1064,10 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
   border-radius:6px; padding:2px 8px; font-size:11px; cursor:pointer; font-family:ui-monospace,Consolas,monospace; }
 .pages a { color:var(--accent); text-decoration:none; word-break:break-all; }
 .pages li { margin:3px 0; }
+/* external corroboration */
+.ext-verdict { font-size:15px; margin:0 0 8px; } .ext-wd { font-size:14px; color:#33404f; margin:0 0 10px; }
+.ext-profiles span { font-size:12px; color:var(--muted); } .ext-profiles ul { margin:4px 0; padding-left:18px; }
+.ext-profiles li { font-size:13px; margin:3px 0; } .ext-profiles a { color:var(--accent); text-decoration:none; word-break:break-all; }
 /* section analysis */
 .sec-list { display:flex; flex-direction:column; gap:4px; }
 .sec-row { display:flex; align-items:center; gap:12px; padding:6px 0; border-bottom:1px solid #f2f4f7; }
