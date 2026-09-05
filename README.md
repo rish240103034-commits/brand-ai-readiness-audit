@@ -48,19 +48,66 @@ Run the tests (fully offline):
 python -m unittest discover -t . -s tests
 ```
 
-## What you get: the AI Visibility Score
-Every audit produces a headline **0–100 score** with an **A–F grade** and discoverability /
-engagement sub-scores, then lists findings **most-actionable-first** — each with evidence,
-the *why it hurts*, an impact rating, and a concrete one-line fix.
+## 60-second demo (for judges)
+Three commands, no setup — each finishes in well under a minute.
+
+**1 · Score a real site and open the analytics dashboard**
+```bash
+python skills/audit-orchestrator/scripts/run_audit.py smashingmagazine.com --format html --out report.html
+```
+Open `report.html` for the full analyst report: the **AI Visibility Score** gauge, a KPI row, an
+auto-written **executive summary**, a **score projection** (where the score lands if you fix the
+quick wins vs. everything), a **pillar radar**, **severity** and **impact × effort** charts, a
+**Now / Next / Later roadmap**, **page hotspots**, and filterable findings.
+
+**2 · Get the machine-readable report + a spreadsheet export**
+```bash
+python skills/audit-orchestrator/scripts/run_audit.py smashingmagazine.com --csv findings.csv
+```
+Prints the canonical JSON (score + `analytics` + prioritized findings) and writes `findings.csv`
+— one row per finding with impact, effort, quadrant, and points-at-stake — ready for a pivot table.
+
+**3 · Prove it's real: run the offline test suite**
+```bash
+python -m unittest discover -t . -s tests
+```
+72 tests, zero network.
+
+**No time to run anything?** Open the prebuilt
+[`examples/sample-report.html`](examples/sample-report.html) (a real audit of
+smashingmagazine.com) — or its [Markdown](examples/sample-report.md),
+[JSON](examples/sample-report.json), and [CSV](examples/sample-report.csv) siblings.
+
+> **What to look at:** the *score projection* ("+9 → a C with 2 quick wins") and the
+> *impact × effort* matrix turn a list of problems into a defensible plan — the analyst
+> judgment layered on top of the raw checks.
+
+## What you get: an analyst-grade report
+Every audit produces a headline **0–100 AI Visibility Score** with an **A–F grade** and
+discoverability / engagement sub-scores, then an **analytics layer** an analyst would write on
+top of it (in JSON as `analytics`, and rendered in the HTML dashboard, Markdown brief, and CSV):
+
+- **Six pillar sub-scores** (crawl & render, structured data, extractability, freshness,
+  corroboration, engagement) with a health status each — the radar chart.
+- **Impact × effort matrix** placing every finding in a quadrant: **quick win**, major project,
+  fill-in, or low-priority.
+- **Score projection** — how far the score would rise if you fixed the quick wins, or everything,
+  and how many points to the next grade.
+- **Page hotspots**, a **Now / Next / Later roadmap**, severity/confidence distributions, and a
+  short auto-written **executive summary**.
+
+Findings are still listed **most-actionable-first** — each with evidence, the *why it hurts*, an
+impact rating, an effort estimate, and a concrete one-line fix.
 
 ```
-AI Visibility Score  72 / 100  (C)
-  Discoverability ▓▓▓▓▓▓▓░░░  68
-  Engagement      ▓▓▓▓▓▓▓▓░░  80
+AI Visibility Score  63 / 100  (D — Weak)     → 72 (C) after 2 quick wins  → 100 if all fixed
+  Discoverability ▓▓▓▓░░░░░░  38      Engagement ▓▓▓▓▓▓▓▓▓▓ 100
+  Weakest pillar: Structured Data (48/100)    Est. effort: substantial
 
 F-001  HIGH   discoverability  No structured data anywhere in the sampled pages   impact 4
        why    Without machine-readable markup, assistants must guess facts from prose.
        fix    Add schema.org JSON-LD (Organization+WebSite on home; Product/Article elsewhere).
+       plan   quadrant: major project · effort: high · fixing it: +9 pts
 ```
 
 ## The skills
@@ -88,12 +135,13 @@ run_audit.py (ENTRYPOINT)
    │     ├─ freshness/corroboration.analyze(ctx)
    │     └─ engagement.analyze(ctx)
    │
-   ├─ report.build_report()  →  scoring.score_report()  →  report.validate()
-   └─ render (json | html)   ·  history.record_and_compare() [optional]
+   ├─ report.build_report() → scoring.score_report() → analytics.attach() → report.validate()
+   └─ output: json | html dashboard | md brief | csv   ·  history.record_and_compare() [optional]
 
 auditlib/  (shared engine, stdlib only)
    config.py  logutil.py  http.py  htmlparse.py  frontmatter.py
-   registry.py  context.py  report.py  scoring.py  render.py  history.py  runner.py
+   registry.py  context.py  report.py  scoring.py  analytics.py  render.py  exports.py
+   history.py  runner.py
    checks/  crawl_render · structured_data · extractability · freshness · corroboration · engagement
 ```
 Each skill exposes one pure `analyze(ctx) -> [Finding]`; the orchestrator owns only the
@@ -106,8 +154,9 @@ Full flow: [orchestration.md](skills/audit-orchestrator/references/orchestration
 | `--max-pages N` | Pages to sample (default 12). |
 | `--profile strict\|balanced\|lenient` | Threshold/scoring profile for the site type. |
 | `--skills a,b` | Run a subset (e.g. `crawl-render,structured-data`). |
-| `--format json\|html` | Output format (JSON is canonical; HTML is the demo view). |
+| `--format json\|html\|md` | Output format: JSON (canonical), HTML (dashboard), Markdown (brief). |
 | `--out FILE` | Write to a file instead of stdout. |
+| `--csv FILE` | Also write findings as CSV (one row per finding, with analytics fields). |
 | `--compare-previous` / `--history-db PATH` | Store the score and show the delta vs last run. |
 | `--no-external` | Skip off-site corroboration lookups. |
 | `--dry-run` | Validate inputs and print the plan; no network calls. |
@@ -118,11 +167,14 @@ Full flow: [orchestration.md](skills/audit-orchestrator/references/orchestration
 
 ## Output schema
 JSON is the canonical output: `site`, `audited_at`, `score`, a severity- and dimension-counted
-`summary`, and a prioritized `findings[]` (each with `id`, `title`, `severity`, `dimension`,
+`summary`, a prioritized `findings[]` (each with `id`, `title`, `severity`, `dimension`,
 `category`, `confidence`, `evidence`, `why`, `impact`, `priority`, `affected_pages`,
-`suggested_action{summary,priority}`). Contract:
-[report-schema.md](skills/audit-orchestrator/references/report-schema.md); worked example:
-[`examples/sample-report.json`](examples/sample-report.json).
+`suggested_action{summary,priority}`), and an additive **`analytics`** block (`kpis`, `pillars`,
+`distribution`, `matrix`, `quick_wins`, `projection`, `hotspots`, `roadmap`, `narrative`).
+Contract: [report-schema.md](skills/audit-orchestrator/references/report-schema.md); worked
+examples: [`sample-report.json`](examples/sample-report.json) ·
+[`.html`](examples/sample-report.html) · [`.md`](examples/sample-report.md) ·
+[`.csv`](examples/sample-report.csv).
 
 ## Add a new skill (no core edits)
 1. Create `skills/<your-skill>/SKILL.md` with valid frontmatter and a
@@ -141,7 +193,7 @@ deterministic · self-contained · target runtime < 5 min · zip ≤ 50 MB · no
 ```
 brand-ai-readiness-audit/
   marketplace.json     README.md     CHANGELOG.md
-  examples/sample-report.json
+  examples/            ← sample-report.{json,html,md,csv} (one real audit, all formats)
   tests/               ← offline unittest suite (unit + mock-server integration)
   skills/
     audit-orchestrator/   SKILL.md  scripts/{run_audit,validate_report,auditlib/…}  references/

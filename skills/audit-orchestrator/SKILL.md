@@ -27,8 +27,9 @@ running every other skill's checks over a shared crawl and merging their finding
 - **`url`** (required): the website or domain to audit, e.g. `https://example.com` (a bare
   domain is fine; https is assumed).
 - Optional: `--max-pages N` (default 12), `--profile strict|balanced|lenient`,
-  `--skills a,b` (subset), `--format json|html`, `--out FILE`, `--no-external`,
-  `--compare-previous` (+ `--history-db PATH`), `--dry-run`, `--verbose`/`--quiet`.
+  `--skills a,b` (subset), `--format json|html|md`, `--out FILE`, `--csv FILE`,
+  `--no-external`, `--compare-previous` (+ `--history-db PATH`), `--dry-run`,
+  `--verbose`/`--quiet`.
 
 ## Procedure (deterministic)
 1. **Normalize** the URL (add scheme if missing) and derive the start host.
@@ -49,9 +50,13 @@ running every other skill's checks over a shared crawl and merging their finding
 5. **Score**: compute the 0–100 AI Visibility Score (+ A–F grade and per-dimension
    sub-scores), enrich each finding with a plain-English *why* and an `impact`, and order
    findings most-actionable-first.
-6. **Summarize**: counts by severity and by dimension (discoverability vs engagement).
-7. **Emit** one JSON audit report (schema below), or a self-contained HTML view with
-   `--format html`, and validate it before returning.
+6. **Analyze** (analyst layer): derive pillar sub-scores, an impact×effort matrix with quick
+   wins, a "what-if" score projection, page hotspots, a Now/Next/Later roadmap, and a short
+   auto-written executive summary — attached as the `analytics` block.
+7. **Summarize**: counts by severity and by dimension (discoverability vs engagement).
+8. **Emit** one JSON audit report (schema below); or the self-contained HTML dashboard
+   (`--format html`), a Markdown brief (`--format md`), and/or a findings CSV (`--csv FILE`).
+   Validate before returning.
 
 Run it:
 ```bash
@@ -91,8 +96,9 @@ crawl, the merge, and the single-report contract. Shared crawl/parse/report logi
 ```
 Required per finding: `id`, `title`, `severity`, `evidence`, `suggested_action{summary,priority}`.
 Required summary metadata: `site`, `audited_at`, counts-by-severity. Everything else is an
-additive extension. See [report-schema](references/report-schema.md) and
-[severity-model](references/severity-model.md).
+additive extension — including `score` and the `analytics` block (pillars, impact×effort matrix,
+projection, hotspots, roadmap, KPIs, narrative). See [report-schema](references/report-schema.md)
+and [severity-model](references/severity-model.md).
 
 ## Guardrails
 Recommend-only, read-only, robots-respecting, no authenticated or destructive actions,

@@ -13,6 +13,7 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `pages_crawled` | int | — | Size of the analyzed sample. |
 | `summary` | object | ✅ | Counts (see below). |
 | `score` | object | — | AI Visibility Score (see below). |
+| `analytics` | object | — | Analyst layer derived from the scored report (see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
 | `profile` | string | — | Scoring profile used (`strict`/`balanced`/`lenient`). |
 | `skills_run` | array<string> | — | Ids of the skills that executed. |
@@ -29,6 +30,28 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `headline` | string | e.g. `AI Visibility Score 72/100 (C)`. |
 
 See [severity-model](severity-model.md) for the scoring weights and the `impact`/`priority` model.
+
+## `analytics`
+Additive analyst layer computed **deterministically from the scored report** (no extra data is
+collected). Built by `auditlib/analytics.py`; consumers may ignore it.
+
+| field | type | notes |
+|---|---|---|
+| `kpis` | object | Headline metrics: `ai_visibility_score`, `grade`, `total_findings`, `critical_high`, `quick_wins`, `projected_score`/`projected_gain`, `potential_score`, `pages_analyzed`, `weakest_pillar`(`_score`), `strongest_pillar`, `total_effort_points`, `effort_band`. |
+| `pillars` | array | Six areas — `crawl_render`, `structured_data`, `extractability`, `freshness`, `corroboration`, `engagement` — each `{key, label, dimension, score (0–100), status (healthy/warning/critical), findings}`. |
+| `distribution` | object | `by_severity` / `by_confidence` / `by_dimension` / `by_category`, each a list of `{key, count, pct}`. |
+| `matrix` | array | One record per finding: `{id, title, severity, dimension, category, confidence, priority, impact (1–5), effort (1–5), effort_label, quadrant, points_at_stake, affected_pages}`. |
+| `quadrant_counts` | object | Count of findings per quadrant (`quick_win`, `major_project`, `fill_in`, `low_priority`). |
+| `quick_wins` | array | The `quick_win` findings (high impact, low effort), best first. |
+| `projection` | object | "What-if" scores: `current`, `after_quick_wins`(`_grade`), `quick_win_gain`, `after_all_fixed`(`_grade`), `headroom`, `to_next_grade {grade, points, at_least}` or `null`, `quick_wins_reach_next_grade`. |
+| `hotspots` | array | Pages carrying the most weighted issues: `{url, findings, impact, top_severity}`. |
+| `roadmap` | object | `now` / `next` / `later`, each a list of finding refs. |
+| `narrative` | array<string> | Auto-written executive-summary sentences. |
+
+**Effort** (1 easy … 5 architectural) is a transparent, category-based heuristic (+1 for
+site-wide findings). A finding is a **quick win** at impact ≥ 3 and effort ≤ 2. `points_at_stake`
+is how many overall points the score would recover if that finding alone were fixed; every
+projection reuses the one score model in `scoring.py`, so the numbers are consistent.
 
 ## `summary`
 | field | type | required | notes |

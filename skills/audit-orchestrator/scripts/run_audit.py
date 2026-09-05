@@ -8,7 +8,7 @@ schema, and prints it as JSON (or HTML).
 Usage:
     python run_audit.py https://example.com [--max-pages 12] [--no-external]
         [--profile strict|balanced|lenient] [--skills crawl-render,structured-data]
-        [--format json|html] [--out FILE] [--dry-run] [--verbose|--quiet]
+        [--format json|html|md] [--out FILE] [--csv FILE] [--dry-run] [--verbose|--quiet]
 
 Read-only and recommend-only. Exit codes: 0 completed, 1 partial (a check errored),
 2 bad input / unauditable.
@@ -30,6 +30,8 @@ from auditlib.context import AuditContext                   # noqa: E402
 from auditlib.logutil import configure_logging, get_logger  # noqa: E402
 from auditlib.registry import discover_skills, select_skills  # noqa: E402
 from auditlib.scoring import score_report                   # noqa: E402
+from auditlib import analytics as analytics_mod             # noqa: E402
+from auditlib import exports as exports_mod                 # noqa: E402
 from auditlib import render as render_mod                   # noqa: E402
 
 LOG = get_logger("orchestrator")
@@ -69,7 +71,8 @@ def run(url: str, cfg, external: bool = True, only_skills=None):
         notes=notes, started_at=started)
     rpt["profile"] = cfg.profile
     rpt["skills_run"] = [s.id for s in skills]
-    score_report(rpt)  # attach AI Visibility Score + grade
+    score_report(rpt)          # attach AI Visibility Score + grade
+    analytics_mod.attach(rpt)  # attach the analyst layer (pillars, matrix, projection, …)
 
     errs = report_mod.validate(rpt)
     if errs:
@@ -124,6 +127,7 @@ def _fatal_report(site: str, message: str, started: str) -> dict:
     rpt = report_mod.build_report(site=site, findings=[f], pages_crawled=0,
                                   notes=[message], started_at=started)
     score_report(rpt)
+    analytics_mod.attach(rpt)
     return rpt
 
 
@@ -136,8 +140,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--timeout", type=int, default=None, help="Per-request timeout seconds")
     ap.add_argument("--profile", choices=VALID_PROFILES, default="balanced", help="Scoring/threshold profile")
     ap.add_argument("--skills", default=None, help="Comma-separated skill ids to run (default: all)")
-    ap.add_argument("--format", choices=["json", "html"], default="json", help="Output format")
+    ap.add_argument("--format", choices=["json", "html", "md"], default="json",
+                    help="Output format: json (canonical), html (dashboard), md (Markdown brief)")
     ap.add_argument("--out", help="Write the report to this file instead of stdout")
+    ap.add_argument("--csv", dest="csv_out", metavar="FILE",
+                    help="Also write findings as CSV to this file (analyst spreadsheet export)")
     ap.add_argument("--compare-previous", action="store_true",
                     help="Record this score and show the delta vs the last run for this domain")
     ap.add_argument("--history-db", default=None, help="Path to the SQLite history file")
@@ -180,7 +187,13 @@ def main(argv=None) -> int:
         if cmp.get("delta") is not None:
             LOG.info("score delta vs previous (%s): %+d", cmp.get("previous_at"), cmp["delta"])
 
-    out = render_mod.render_html(rpt) if args.format == "html" else report_mod.dumps(rpt)
+    if args.format == "html":
+        out = render_mod.render_html(rpt)
+    elif args.format == "md":
+        out = exports_mod.render_markdown(rpt)
+    else:
+        out = report_mod.dumps(rpt)
+
     if args.out:
         with open(args.out, "w", encoding="utf-8") as fh:
             fh.write(out)
@@ -188,6 +201,11 @@ def main(argv=None) -> int:
                  rpt.get("score", {}).get("value"), rpt.get("score", {}).get("grade"))
     else:
         print(out)
+
+    if args.csv_out:
+        with open(args.csv_out, "w", encoding="utf-8", newline="") as fh:
+            fh.write(exports_mod.findings_csv(rpt))
+        LOG.info("wrote %s (%d finding row(s))", args.csv_out, rpt["summary"]["total_findings"])
     return code
 
 

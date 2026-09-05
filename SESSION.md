@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 1.1.0_
+_Last updated: 2026-09-05 · version 1.2.0_
 
 ---
 
@@ -20,10 +20,15 @@ The brief PDF is at:
 
 ## 2. Current status — DONE and working
 - Full marketplace built: entrypoint `audit-orchestrator` + 5 focused skills.
-- **53 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+- **v1.2 adds an analyst layer**: every report now carries an `analytics` block (pillars,
+  impact×effort matrix, score projection, hotspots, roadmap, KPIs, auto-written summary),
+  a rewritten **HTML dashboard**, and two new outputs: `--format md` and `--csv`.
+- **72 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
-- Submission zip was produced (~98 KB) — **regenerate it after any change** (see §7).
+- Canonical sample regenerated in all 4 formats from ONE real audit of smashingmagazine.com
+  (63/D) → `examples/sample-report.{json,html,md,csv}` + root `report.html`.
+- Submission zip produced (~141 KB) — **regenerate it after any change** (see §7).
 
 ## 3. Layout / where things live
 ```
@@ -45,8 +50,10 @@ skills/
         registry.py        skill auto-discovery + validation + check binding
         context.py         AuditContext (shared crawl passed to checks)
         report.py          Finding model, build_report, validate
-        scoring.py         AI Visibility Score, grade, why/impact/priority
-        render.py          self-contained HTML report
+        scoring.py         AI Visibility Score, grade, why/impact/priority (+ reusable compute_scores)
+        analytics.py       ANALYST LAYER: pillars, impact×effort matrix, projection, hotspots, roadmap, KPIs, narrative
+        render.py          self-contained HTML analytics DASHBOARD (inline SVG charts)
+        exports.py         Markdown brief + findings CSV
         history.py         SQLite score history (--compare-previous)
         runner.py          shared hardened CLI for standalone skills
         logutil.py         logging setup
@@ -67,8 +74,10 @@ Each check is a pure `analyze(ctx) -> [Finding]`; the orchestrator owns only cra
 ```bash
 # full audit (JSON)
 python skills/audit-orchestrator/scripts/run_audit.py example.com
-# demo HTML
+# analytics dashboard (HTML) · Markdown brief · CSV sidecar
 python skills/audit-orchestrator/scripts/run_audit.py example.com --format html --out report.html
+python skills/audit-orchestrator/scripts/run_audit.py example.com --format md --out report.md
+python skills/audit-orchestrator/scripts/run_audit.py example.com --csv findings.csv
 # subset / profile / history
 python skills/audit-orchestrator/scripts/run_audit.py example.com --skills crawl-render,structured-data
 python skills/audit-orchestrator/scripts/run_audit.py example.com --profile strict --compare-previous
@@ -108,7 +117,10 @@ PY
 ## 8. Not done / possible next steps
 - [x] `git init` + first commit — done (branch `main`, commit bd8aa53).
 - [x] Published to GitHub (PUBLIC): https://github.com/rish240103034-commits/brand-ai-readiness-audit
-- [ ] Optional: a "60-second demo" section for judges in README.
+- [x] "60-second demo (for judges)" section in README — done (v1.2.0).
+- [x] Analyst-grade output: analytics layer + HTML dashboard + Markdown/CSV exports — done (v1.2.0).
+- [ ] NOT yet committed/pushed: the v1.2.0 changes are on disk only. `git add -A && git commit`
+      then push when ready (working tree was clean before this session's edits).
 - [ ] Optional new checks (drop-in, no core edits — see README "Add a new skill"):
       hreflang/i18n, canonical conflicts, FAQ/HowTo schema opportunities, sitemap freshness.
 - [ ] Optional: true JS-render confirmation via an *optional* headless renderer that

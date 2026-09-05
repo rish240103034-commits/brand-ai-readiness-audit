@@ -4,6 +4,38 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-09-05
+
+Analyst-grade reporting. The audit now ships a full data-analytics view on top of the same
+deterministic checks, with three new output formats — and no new dependencies (still stdlib-only).
+
+### Added
+- **Analytics layer** (`auditlib/analytics.py`) attached to every report as `analytics`:
+  - **Six pillar sub-scores** (crawl & render, structured data, extractability, freshness,
+    corroboration, engagement) with a health status each.
+  - **Impact × effort matrix** — every finding placed in a quadrant (**quick win** / major
+    project / fill-in / low priority) using a transparent, category-based effort model.
+  - **Score projection** — what the AI Visibility Score becomes if the quick wins (or all
+    findings) are fixed, plus distance to the next grade; every projection re-scores through the
+    one model in `scoring.py`, and each finding carries the score `points_at_stake`.
+  - **Page hotspots**, a **Now / Next / Later roadmap**, severity/confidence/category
+    distributions, a headline **KPI** set, and an auto-written **executive summary**.
+- **HTML dashboard rewrite** (`auditlib/render.py`): KPI row, executive summary, projection bars,
+  a pillar **radar**, a severity **donut** + confidence bar, an **impact × effort** scatter, the
+  roadmap, a hotspots table, and client-side **finding filters** — all inline SVG/CSS/JS, no
+  external assets, everything escaped.
+- **New output formats**: `--format md` (a portable Markdown brief) and `--csv FILE` (one row per
+  finding with impact, effort, quadrant, and points-at-stake) via `auditlib/exports.py`.
+- **19 new offline tests** for the analytics layer and exporters (72 total).
+- Example report regenerated in **all four formats** from one real audit
+  (`examples/sample-report.{json,html,md,csv}`).
+
+### Changed
+- `scoring.py` refactored to expose one reusable `compute_scores()` / `dimensions_present()` so
+  the headline score and every "what-if" projection share a single source of truth (headline
+  numbers are unchanged).
+- Version strings bumped to `1.2` (User-Agent, `auditor`).
+
 ## [1.1.0] — 2026-09-05
 
 Hardening and "demo-ready" upgrade. Same detection philosophy, much stronger engineering.

@@ -1,83 +1,143 @@
 {
-  "site": "python.org",
-  "audited_at": "2026-09-05T08:58:48Z",
-  "started_at": "2026-09-05T08:58:41Z",
-  "auditor": "brand-ai-readiness-audit/1.0",
-  "pages_crawled": 8,
+  "site": "smashingmagazine.com",
+  "audited_at": "2026-09-05T10:00:57Z",
+  "started_at": "2026-09-05T10:00:44Z",
+  "auditor": "brand-ai-readiness-audit/1.2",
+  "pages_crawled": 12,
   "summary": {
-    "total_findings": 3,
-    "low": 3,
+    "total_findings": 6,
+    "high": 2,
+    "medium": 3,
+    "low": 1,
     "by_dimension": {
-      "discoverability": 2,
-      "engagement": 1
+      "discoverability": 6,
+      "engagement": 0
     }
   },
   "findings": [
     {
       "id": "F-001",
-      "title": "Multiple H1 headings on a page",
-      "severity": "low",
+      "title": "No structured data anywhere in the sampled pages",
+      "severity": "high",
+      "dimension": "discoverability",
+      "category": "structured-data",
+      "confidence": "high",
+      "evidence": "0 of 12 sampled pages contain JSON-LD, microdata, or RDFa.",
+      "affected_pages": [],
+      "suggested_action": {
+        "summary": "Add schema.org JSON-LD to key templates: Organization + WebSite on the homepage, and the page-appropriate type (Product/Offer, Article, FAQPage, LocalBusiness, BreadcrumbList) elsewhere. This is the highest-leverage discoverability fix.",
+        "priority": "high"
+      },
+      "details": {},
+      "impact": 4,
+      "why": "Without machine-readable markup, assistants must guess facts from prose and often get them wrong.",
+      "priority": 1
+    },
+    {
+      "id": "F-002",
+      "title": "Product-like pages missing Product/Offer schema",
+      "severity": "high",
+      "dimension": "discoverability",
+      "category": "structured-data",
+      "confidence": "high",
+      "evidence": "7 page(s) look like product pages (cart/price cues) but have no Product JSON-LD, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/.",
+      "affected_pages": [
+        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+      ],
+      "suggested_action": {
+        "summary": "Add Product JSON-LD with name, image, description, brand, and an Offer (price, priceCurrency, availability) to every product page.",
+        "priority": "high"
+      },
+      "details": {},
+      "impact": 4,
+      "why": "Without machine-readable markup, assistants must guess facts from prose and often get them wrong.",
+      "priority": 2
+    },
+    {
+      "id": "F-003",
+      "title": "Article/blog pages missing Article schema",
+      "severity": "medium",
+      "dimension": "discoverability",
+      "category": "structured-data",
+      "confidence": "high",
+      "evidence": "1 article-like page(s) lack Article/BlogPosting JSON-LD, e.g. https://www.smashingmagazine.com/articles/.",
+      "affected_pages": [
+        "https://www.smashingmagazine.com/articles/"
+      ],
+      "suggested_action": {
+        "summary": "Add Article/BlogPosting JSON-LD with headline, author, datePublished, and dateModified so assistants can attribute and date the content.",
+        "priority": "medium"
+      },
+      "details": {},
+      "impact": 3,
+      "why": "Without machine-readable markup, assistants must guess facts from prose and often get them wrong.",
+      "priority": 3
+    },
+    {
+      "id": "F-004",
+      "title": "Homepage lacks Organization/WebSite structured data",
+      "severity": "medium",
+      "dimension": "discoverability",
+      "category": "entity-identity",
+      "confidence": "high",
+      "evidence": "Homepage (https://www.smashingmagazine.com/) has no Organization, LocalBusiness, or WebSite JSON-LD; its detected types: none.",
+      "affected_pages": [],
+      "suggested_action": {
+        "summary": "Add an Organization (or LocalBusiness) node with name, url, logo, and sameAs, plus a WebSite node with name and optional SearchAction. This gives assistants a stable, unambiguous identity for the brand.",
+        "priority": "high"
+      },
+      "details": {},
+      "impact": 3,
+      "why": "With no stable, disambiguated identity, assistants can't confidently attribute facts to the brand.",
+      "priority": 4
+    },
+    {
+      "id": "F-005",
+      "title": "Pages missing an H1 heading",
+      "severity": "medium",
       "dimension": "discoverability",
       "category": "extractability",
       "confidence": "high",
-      "evidence": "2 page(s) declare more than one H1, e.g. https://www.python.org/, diluting the topic signal.",
+      "evidence": "1 sampled page(s) have no H1, e.g. https://www.smashingmagazine.com/articles/. The H1 is the primary topic anchor.",
       "affected_pages": [
-        "https://www.python.org/",
-        "https://blog.python.org/2026/09/python-3150-rc2/"
+        "https://www.smashingmagazine.com/articles/"
       ],
       "suggested_action": {
-        "summary": "Use a single H1 for the main topic and H2/H3 for sub-sections to give a clean outline.",
+        "summary": "Add exactly one descriptive H1 per page stating what the page is about in plain words.",
+        "priority": "medium"
+      },
+      "details": {},
+      "impact": 3,
+      "why": "A fact locked in an image or missing its text anchor can't be extracted or quoted.",
+      "priority": 5
+    },
+    {
+      "id": "F-006",
+      "title": "Substantial content offloaded to PDF files",
+      "severity": "low",
+      "dimension": "discoverability",
+      "category": "extractability",
+      "confidence": "medium",
+      "evidence": "3 PDF link(s) found across sampled pages. Scanned or image-based PDFs are often unreadable to crawlers.",
+      "affected_pages": [],
+      "suggested_action": {
+        "summary": "Publish the key information as HTML pages (the PDF can remain as a download). Ensure any essential PDFs contain real, selectable text, not scans.",
         "priority": "low"
       },
       "details": {},
       "impact": 2,
       "why": "A fact locked in an image or missing its text anchor can't be extracted or quoted.",
-      "priority": 1
-    },
-    {
-      "id": "F-002",
-      "title": "No XML sitemap found",
-      "severity": "low",
-      "dimension": "discoverability",
-      "category": "crawlability",
-      "confidence": "high",
-      "evidence": "Neither /sitemap.xml nor a Sitemap: directive in robots.txt was found.",
-      "affected_pages": [],
-      "suggested_action": {
-        "summary": "Publish an XML sitemap and reference it from robots.txt so crawlers discover all key pages efficiently.",
-        "priority": "low"
-      },
-      "details": {},
-      "impact": 2,
-      "why": "If the crawler can't fetch the page, no AI assistant can ever cite it.",
-      "priority": 2
-    },
-    {
-      "id": "F-003",
-      "title": "Deep pages lack breadcrumbs / positional context",
-      "severity": "low",
-      "dimension": "engagement",
-      "category": "orientation",
-      "confidence": "high",
-      "evidence": "4 deep page(s) show no breadcrumb trail, so visitors landing mid-site can't tell where they are or move up a level.",
-      "affected_pages": [
-        "https://blog.python.org/2026/09/python-3150-rc2/",
-        "https://docs.python.org/3/faq/",
-        "https://docs.python.org/3/license.html",
-        "https://docs.python.org/3/tutorial/"
-      ],
-      "suggested_action": {
-        "summary": "Add a breadcrumb trail (and BreadcrumbList schema) on deep pages so visitors keep their bearings and explore laterally.",
-        "priority": "low"
-      },
-      "details": {},
-      "impact": 2,
-      "why": "Disoriented visitors who can't tell where they are or where to go bounce.",
-      "priority": 3
+      "priority": 6
     }
   ],
   "notes": [
-    "Crawled 8 page(s) in 7042 ms; 11 HTTP request(s). Static, read-only analysis."
+    "Crawled 12 page(s) in 12796 ms; 15 HTTP request(s). Static, read-only analysis."
   ],
   "profile": "balanced",
   "skills_run": [
@@ -88,10 +148,415 @@
     "engagement-audit"
   ],
   "score": {
-    "value": 95,
-    "grade": "A",
-    "discoverability": 94.0,
-    "engagement": 97.0,
-    "headline": "AI Visibility Score 95/100 (A)"
+    "value": 63,
+    "grade": "D",
+    "discoverability": 37.8,
+    "engagement": 100.0,
+    "headline": "AI Visibility Score 63/100 (D)"
+  },
+  "analytics": {
+    "generated_from": "scored report (deterministic, no extra data collected)",
+    "kpis": {
+      "ai_visibility_score": 63,
+      "grade": "D",
+      "discoverability": 37.8,
+      "engagement": 100.0,
+      "total_findings": 6,
+      "critical_high": 2,
+      "quick_wins": 2,
+      "projected_score": 72,
+      "projected_gain": 9,
+      "potential_score": 100,
+      "pages_analyzed": 12,
+      "weakest_pillar": "Structured Data",
+      "weakest_pillar_score": 48.0,
+      "strongest_pillar": "Crawl & Render",
+      "total_effort_points": 16,
+      "effort_band": "Substantial"
+    },
+    "pillars": [
+      {
+        "key": "crawl_render",
+        "label": "Crawl & Render",
+        "dimension": "discoverability",
+        "score": 100.0,
+        "status": "healthy",
+        "findings": 0
+      },
+      {
+        "key": "structured_data",
+        "label": "Structured Data",
+        "dimension": "discoverability",
+        "score": 48.0,
+        "status": "critical",
+        "findings": 4
+      },
+      {
+        "key": "extractability",
+        "label": "Extractability",
+        "dimension": "discoverability",
+        "score": 89.8,
+        "status": "warning",
+        "findings": 2
+      },
+      {
+        "key": "freshness",
+        "label": "Freshness",
+        "dimension": "discoverability",
+        "score": 100.0,
+        "status": "healthy",
+        "findings": 0
+      },
+      {
+        "key": "corroboration",
+        "label": "Corroboration",
+        "dimension": "discoverability",
+        "score": 100.0,
+        "status": "healthy",
+        "findings": 0
+      },
+      {
+        "key": "engagement",
+        "label": "Engagement",
+        "dimension": "engagement",
+        "score": 100.0,
+        "status": "healthy",
+        "findings": 0
+      }
+    ],
+    "distribution": {
+      "by_severity": [
+        {
+          "key": "high",
+          "count": 2,
+          "pct": 33
+        },
+        {
+          "key": "medium",
+          "count": 3,
+          "pct": 50
+        },
+        {
+          "key": "low",
+          "count": 1,
+          "pct": 17
+        }
+      ],
+      "by_confidence": [
+        {
+          "key": "high",
+          "count": 5,
+          "pct": 83
+        },
+        {
+          "key": "medium",
+          "count": 1,
+          "pct": 17
+        }
+      ],
+      "by_dimension": [
+        {
+          "key": "discoverability",
+          "count": 6,
+          "pct": 100
+        }
+      ],
+      "by_category": [
+        {
+          "key": "structured-data",
+          "count": 3,
+          "pct": 50
+        },
+        {
+          "key": "extractability",
+          "count": 2,
+          "pct": 33
+        },
+        {
+          "key": "entity-identity",
+          "count": 1,
+          "pct": 17
+        }
+      ]
+    },
+    "matrix": [
+      {
+        "id": "F-001",
+        "title": "No structured data anywhere in the sampled pages",
+        "severity": "high",
+        "dimension": "discoverability",
+        "category": "structured-data",
+        "confidence": "high",
+        "priority": 1,
+        "impact": 4,
+        "effort": 3,
+        "effort_label": "Medium",
+        "quadrant": "major_project",
+        "points_at_stake": 10,
+        "affected_pages": []
+      },
+      {
+        "id": "F-002",
+        "title": "Product-like pages missing Product/Offer schema",
+        "severity": "high",
+        "dimension": "discoverability",
+        "category": "structured-data",
+        "confidence": "high",
+        "priority": 2,
+        "impact": 4,
+        "effort": 4,
+        "effort_label": "High",
+        "quadrant": "major_project",
+        "points_at_stake": 10,
+        "affected_pages": [
+          "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+          "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+        ]
+      },
+      {
+        "id": "F-003",
+        "title": "Article/blog pages missing Article schema",
+        "severity": "medium",
+        "dimension": "discoverability",
+        "category": "structured-data",
+        "confidence": "high",
+        "priority": 3,
+        "impact": 3,
+        "effort": 3,
+        "effort_label": "Medium",
+        "quadrant": "major_project",
+        "points_at_stake": 4,
+        "affected_pages": [
+          "https://www.smashingmagazine.com/articles/"
+        ]
+      },
+      {
+        "id": "F-004",
+        "title": "Homepage lacks Organization/WebSite structured data",
+        "severity": "medium",
+        "dimension": "discoverability",
+        "category": "entity-identity",
+        "confidence": "high",
+        "priority": 4,
+        "impact": 3,
+        "effort": 2,
+        "effort_label": "Low",
+        "quadrant": "quick_win",
+        "points_at_stake": 4,
+        "affected_pages": []
+      },
+      {
+        "id": "F-005",
+        "title": "Pages missing an H1 heading",
+        "severity": "medium",
+        "dimension": "discoverability",
+        "category": "extractability",
+        "confidence": "high",
+        "priority": 5,
+        "impact": 3,
+        "effort": 2,
+        "effort_label": "Low",
+        "quadrant": "quick_win",
+        "points_at_stake": 4,
+        "affected_pages": [
+          "https://www.smashingmagazine.com/articles/"
+        ]
+      },
+      {
+        "id": "F-006",
+        "title": "Substantial content offloaded to PDF files",
+        "severity": "low",
+        "dimension": "discoverability",
+        "category": "extractability",
+        "confidence": "medium",
+        "priority": 6,
+        "impact": 2,
+        "effort": 2,
+        "effort_label": "Low",
+        "quadrant": "fill_in",
+        "points_at_stake": 1,
+        "affected_pages": []
+      }
+    ],
+    "quadrant_counts": {
+      "quick_win": 2,
+      "major_project": 3,
+      "fill_in": 1,
+      "low_priority": 0
+    },
+    "quick_wins": [
+      {
+        "id": "F-004",
+        "title": "Homepage lacks Organization/WebSite structured data",
+        "severity": "medium",
+        "dimension": "discoverability",
+        "category": "entity-identity",
+        "confidence": "high",
+        "priority": 4,
+        "impact": 3,
+        "effort": 2,
+        "effort_label": "Low",
+        "quadrant": "quick_win",
+        "points_at_stake": 4,
+        "affected_pages": []
+      },
+      {
+        "id": "F-005",
+        "title": "Pages missing an H1 heading",
+        "severity": "medium",
+        "dimension": "discoverability",
+        "category": "extractability",
+        "confidence": "high",
+        "priority": 5,
+        "impact": 3,
+        "effort": 2,
+        "effort_label": "Low",
+        "quadrant": "quick_win",
+        "points_at_stake": 4,
+        "affected_pages": [
+          "https://www.smashingmagazine.com/articles/"
+        ]
+      }
+    ],
+    "projection": {
+      "current": 63,
+      "current_grade": "D",
+      "after_quick_wins": 72,
+      "after_quick_wins_grade": "C",
+      "quick_win_gain": 9,
+      "after_all_fixed": 100,
+      "after_all_grade": "A",
+      "headroom": 37,
+      "to_next_grade": {
+        "grade": "C",
+        "points": 7,
+        "at_least": 70
+      },
+      "quick_wins_reach_next_grade": true
+    },
+    "hotspots": [
+      {
+        "url": "https://www.smashingmagazine.com/articles/",
+        "findings": 2,
+        "impact": 6,
+        "top_severity": "medium"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+        "findings": 1,
+        "impact": 4,
+        "top_severity": "high"
+      }
+    ],
+    "roadmap": {
+      "now": [
+        {
+          "id": "F-001",
+          "title": "No structured data anywhere in the sampled pages",
+          "severity": "high",
+          "impact": 4,
+          "effort_label": "Medium",
+          "quadrant": "major_project",
+          "points_at_stake": 10
+        },
+        {
+          "id": "F-002",
+          "title": "Product-like pages missing Product/Offer schema",
+          "severity": "high",
+          "impact": 4,
+          "effort_label": "High",
+          "quadrant": "major_project",
+          "points_at_stake": 10
+        },
+        {
+          "id": "F-004",
+          "title": "Homepage lacks Organization/WebSite structured data",
+          "severity": "medium",
+          "impact": 3,
+          "effort_label": "Low",
+          "quadrant": "quick_win",
+          "points_at_stake": 4
+        },
+        {
+          "id": "F-005",
+          "title": "Pages missing an H1 heading",
+          "severity": "medium",
+          "impact": 3,
+          "effort_label": "Low",
+          "quadrant": "quick_win",
+          "points_at_stake": 4
+        }
+      ],
+      "next": [
+        {
+          "id": "F-003",
+          "title": "Article/blog pages missing Article schema",
+          "severity": "medium",
+          "impact": 3,
+          "effort_label": "Medium",
+          "quadrant": "major_project",
+          "points_at_stake": 4
+        }
+      ],
+      "later": [
+        {
+          "id": "F-006",
+          "title": "Substantial content offloaded to PDF files",
+          "severity": "low",
+          "impact": 2,
+          "effort_label": "Low",
+          "quadrant": "fill_in",
+          "points_at_stake": 1
+        }
+      ]
+    },
+    "narrative": [
+      "smashingmagazine.com scores 63/100 (grade D — Weak). Several issues are actively limiting how the brand is found and read.",
+      "2 finding(s) are critical or high severity and should be addressed first; the weakest area is Structured Data (48/100).",
+      "2 quick win(s) (high impact, low effort) would lift the score by about 9 point(s) to ~72/100 — enough to move up a grade.",
+      "Fixing every finding would raise the score to about 100/100 (+37); estimated effort overall is substantial.",
+      "Discoverability (38) and engagement (100) diverge by 62 points; discoverability is the side pulling the score down."
+    ]
   }
 }

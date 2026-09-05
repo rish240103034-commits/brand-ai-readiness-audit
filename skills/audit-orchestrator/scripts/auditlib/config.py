@@ -13,7 +13,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Dict, Mapping
 
 # --- Network / crawl defaults -----------------------------------------------------
-DEFAULT_USER_AGENT = "brand-ai-readiness-audit/1.1 (+read-only audit bot; respects robots.txt)"
+DEFAULT_USER_AGENT = "brand-ai-readiness-audit/1.2 (+read-only audit bot; respects robots.txt)"
 DEFAULT_TIMEOUT = 15            # seconds per request
 DEFAULT_MAX_BYTES = 3_000_000   # 3 MB body cap
 DEFAULT_DELAY = 0.4             # polite seconds between requests to one host

@@ -63,16 +63,46 @@ def _why(finding: Dict[str, Any]) -> str:
                                WHY_BY_DIMENSION["discoverability"])
 
 
+def penalty_of(finding: Dict[str, Any]) -> float:
+    """Points a single finding removes from its dimension (severity × confidence)."""
+    sev = finding.get("severity", "medium")
+    conf = finding.get("confidence", "high")
+    return SEVERITY_PENALTY.get(sev, 8) * CONFIDENCE_FACTOR.get(conf, 1.0)
+
+
 def _dimension_score(findings: List[Dict[str, Any]], dimension: str) -> float:
     """Score one dimension: start at 100 and subtract weighted penalties."""
     score = 100.0
     for f in findings:
         if f.get("dimension") != dimension:
             continue
-        sev = f.get("severity", "medium")
-        conf = f.get("confidence", "high")
-        score -= SEVERITY_PENALTY.get(sev, 8) * CONFIDENCE_FACTOR.get(conf, 1.0)
+        score -= penalty_of(f)
     return max(0.0, min(100.0, round(score, 1)))
+
+
+def dimensions_present(report: Dict[str, Any]) -> set:
+    """Which dimensions were actually assessed — from findings and from skills that ran.
+
+    Kept stable for a report so "what-if" projections re-weight against the same basis the
+    headline score used, even after some findings are hypothetically fixed away.
+    """
+    return {f.get("dimension") for f in report.get("findings", [])} | _dims_from_skills(report)
+
+
+def compute_scores(findings: List[Dict[str, Any]], dims_present: set) -> Dict[str, Any]:
+    """Compute {value, grade, discoverability, engagement} for an arbitrary finding list.
+
+    The single source of truth for the score model, used both for the headline score and for
+    every projection ("if these findings were fixed…"). *dims_present* fixes the dimension
+    weighting so projections stay comparable to the headline number.
+    """
+    disc = _dimension_score(findings, "discoverability")
+    eng = _dimension_score(findings, "engagement")
+    weights = {d: w for d, w in DIMENSION_WEIGHT.items() if d in dims_present} or DIMENSION_WEIGHT
+    total_w = sum(weights.values())
+    parts = {"discoverability": disc, "engagement": eng}
+    overall = round(sum(parts[d] * w for d, w in weights.items()) / total_w)
+    return {"value": overall, "grade": _grade(overall), "discoverability": disc, "engagement": eng}
 
 
 def score_report(report: Dict[str, Any]) -> Dict[str, Any]:
@@ -103,21 +133,9 @@ def score_report(report: Dict[str, Any]) -> Dict[str, Any]:
         f.pop("_priority_score", None)
 
     # Dimension + overall scores. Only weight dimensions that were actually assessed.
-    dims_present = {f.get("dimension") for f in findings} | _dims_from_skills(report)
-    disc = _dimension_score(findings, "discoverability")
-    eng = _dimension_score(findings, "engagement")
-    weights = {d: w for d, w in DIMENSION_WEIGHT.items() if d in dims_present} or DIMENSION_WEIGHT
-    total_w = sum(weights.values())
-    parts = {"discoverability": disc, "engagement": eng}
-    overall = round(sum(parts[d] * w for d, w in weights.items()) / total_w)
-
-    report["score"] = {
-        "value": overall,
-        "grade": _grade(overall),
-        "discoverability": disc,
-        "engagement": eng,
-        "headline": f"AI Visibility Score {overall}/100 ({_grade(overall)})",
-    }
+    scores = compute_scores(findings, dimensions_present(report))
+    scores["headline"] = f"AI Visibility Score {scores['value']}/100 ({scores['grade']})"
+    report["score"] = scores
     return report
 
 
