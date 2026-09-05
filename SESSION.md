@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 1.2.0_
+_Last updated: 2026-09-05 · version 1.3.0_
 
 ---
 
@@ -23,7 +23,12 @@ The brief PDF is at:
 - **v1.2 adds an analyst layer**: every report now carries an `analytics` block (pillars,
   impact×effort matrix, score projection, hotspots, roadmap, KPIs, auto-written summary),
   a rewritten **HTML dashboard**, and two new outputs: `--format md` and `--csv`.
-- **72 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+- **v1.3 is a fairness pass**: removed site-type bias — language-neutral CTA + CJK-aware word
+  counts, host-scoped crawl by default (`--crawl-scope host|domain`; no longer scores a brand on
+  third-party help-desk subdomains), and dropped the brand-name-length penalty. By-design biases
+  (fetch-only SPA assumption, type-scaled schema demands) are kept but documented in README's
+  "Fairness, bias & limitations".
+- **84 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
 - Canonical sample regenerated in all 4 formats from ONE real audit of smashingmagazine.com

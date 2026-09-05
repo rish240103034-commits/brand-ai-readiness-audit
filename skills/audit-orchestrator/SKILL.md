@@ -27,9 +27,9 @@ running every other skill's checks over a shared crawl and merging their finding
 - **`url`** (required): the website or domain to audit, e.g. `https://example.com` (a bare
   domain is fine; https is assumed).
 - Optional: `--max-pages N` (default 12), `--profile strict|balanced|lenient`,
-  `--skills a,b` (subset), `--format json|html|md`, `--out FILE`, `--csv FILE`,
-  `--no-external`, `--compare-previous` (+ `--history-db PATH`), `--dry-run`,
-  `--verbose`/`--quiet`.
+  `--crawl-scope host|domain` (default host), `--skills a,b` (subset),
+  `--format json|html|md`, `--out FILE`, `--csv FILE`, `--no-external`,
+  `--compare-previous` (+ `--history-db PATH`), `--dry-run`, `--verbose`/`--quiet`.
 
 ## Procedure (deterministic)
 1. **Normalize** the URL (add scheme if missing) and derive the start host.

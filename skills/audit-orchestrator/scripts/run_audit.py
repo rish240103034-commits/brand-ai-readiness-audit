@@ -7,8 +7,9 @@ schema, and prints it as JSON (or HTML).
 
 Usage:
     python run_audit.py https://example.com [--max-pages 12] [--no-external]
-        [--profile strict|balanced|lenient] [--skills crawl-render,structured-data]
-        [--format json|html|md] [--out FILE] [--csv FILE] [--dry-run] [--verbose|--quiet]
+        [--profile strict|balanced|lenient] [--crawl-scope host|domain]
+        [--skills crawl-render,structured-data] [--format json|html|md] [--out FILE]
+        [--csv FILE] [--dry-run] [--verbose|--quiet]
 
 Read-only and recommend-only. Exit codes: 0 completed, 1 partial (a check errored),
 2 bad input / unauditable.
@@ -139,6 +140,8 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--no-external", action="store_true", help="Disable off-site corroboration lookups")
     ap.add_argument("--timeout", type=int, default=None, help="Per-request timeout seconds")
     ap.add_argument("--profile", choices=VALID_PROFILES, default="balanced", help="Scoring/threshold profile")
+    ap.add_argument("--crawl-scope", choices=["host", "domain"], default=None,
+                    help="'host' (default) audits only the given host; 'domain' spans all subdomains")
     ap.add_argument("--skills", default=None, help="Comma-separated skill ids to run (default: all)")
     ap.add_argument("--format", choices=["json", "html", "md"], default="json",
                     help="Output format: json (canonical), html (dashboard), md (Markdown brief)")
@@ -160,7 +163,8 @@ def main(argv=None) -> int:
     configure_logging(verbose=args.verbose, quiet=args.quiet)
 
     cfg = make_config(args.profile).derive(
-        max_pages=args.max_pages, timeout=args.timeout, allow_private_hosts=args.allow_private or None)
+        max_pages=args.max_pages, timeout=args.timeout, allow_private_hosts=args.allow_private or None,
+        crawl_scope=args.crawl_scope)
 
     valid, target, reason = http.validate_target(args.url, cfg)
     if not valid:
@@ -217,6 +221,7 @@ def _print_dry_run(target, cfg, only, external) -> None:
     print(f"  target    : {target}")
     print(f"  host      : {http.host_of(target)}")
     print(f"  profile   : {cfg.profile}")
+    print(f"  scope     : {cfg.crawl_scope} ({'this host only' if cfg.crawl_scope == 'host' else 'whole domain'})")
     print(f"  max_pages : {cfg.max_pages}")
     print(f"  timeout   : {cfg.timeout}s (retries {cfg.max_retries}, backoff {cfg.backoff_base}s)")
     print(f"  user_agent: {cfg.user_agent}")

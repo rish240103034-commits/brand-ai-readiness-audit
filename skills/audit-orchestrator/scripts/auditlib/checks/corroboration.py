@@ -31,12 +31,11 @@ def analyze(ctx: AuditContext) -> List[Finding]:
     # separate properties, so name/identity checks use only pages on the start host.
     import urllib.parse
     start_host = urllib.parse.urlsplit(ctx.start_url).netloc.lower()
-    same_host = [p for p in pages if urllib.parse.urlsplit(p.url).netloc.lower() == start_host] or pages
+    host_pages = [p for p in pages if urllib.parse.urlsplit(p.url).netloc.lower() == start_host] or pages
 
     findings += _sameas(pages)
     findings += _external_presence(pages)
-    findings += _entity_disambiguation(same_host, ctx)
-    findings += _name_consistency(same_host)
+    findings += _name_consistency(host_pages)
     return findings
 
 
@@ -99,36 +98,6 @@ def _external_presence(pages: List[Page]) -> List[Finding]:
     return []
 
 
-def _entity_disambiguation(pages: List[Page], ctx: AuditContext) -> List[Finding]:
-    """Short/generic brand name with no disambiguating attributes invites mistaken identity."""
-    home = pages[0]
-    brand = _brand_name(home)
-    if not brand:
-        return []
-    generic = len(brand.split()) == 1 and len(brand) <= ctx.cfg.t("brand_generic_len")
-    disambiguators = 0
-    for p in pages:
-        for obj in p.jsonld:
-            for key in ("foundingDate", "founder", "address", "sameAs", "legalName", "vatID", "duns"):
-                if key in obj:
-                    disambiguators += 1
-    if generic and disambiguators == 0:
-        return [Finding(
-            title="Brand name is ambiguous with no disambiguating signals",
-            severity="medium",
-            dimension="discoverability",
-            category="entity-identity",
-            evidence=f"Brand name \"{brand}\" is short/generic and the site provides no distinguishing attributes (address, foundingDate, founder, legalName, sameAs).",
-            suggested_action_summary=(
-                "Add distinguishing facts in Organization schema (legalName, foundingDate, founder, address, "
-                "sameAs to Wikidata) and in prose, so assistants don't confuse the brand with others that "
-                "share the name."),
-            suggested_action_priority="medium",
-            confidence="medium",
-        )]
-    return []
-
-
 def _name_consistency(pages: List[Page]) -> List[Finding]:
     # Only compare like-language pages (localized og:site_name is not an inconsistency),
     # and only among primarily-ASCII names so translations don't create false positives.
@@ -165,28 +134,6 @@ def _share_token(names) -> bool:
         return False
     common = set.intersection(*token_sets) if len(token_sets) > 1 else token_sets[0]
     return bool(common)
-
-
-def _brand_name(home: Page) -> str:
-    name = home.meta.get("og:site_name", "").strip()
-    if name:
-        return name
-    for obj in home.jsonld:
-        if {"organization", "website", "localbusiness"} & {str(t).lower() for t in _types(obj)}:
-            if obj.get("name"):
-                return str(obj["name"]).strip()
-    if home.title:
-        # take the segment after the last separator, commonly the brand
-        parts = re.split(r"[|\-–—:]", home.title)
-        return parts[-1].strip() if len(parts) > 1 else home.title.strip()
-    return ""
-
-
-def _types(obj: dict):
-    t = obj.get("@type")
-    if isinstance(t, list):
-        return t
-    return [t] if t else []
 
 
 def _same_host(a: str, b: str) -> bool:

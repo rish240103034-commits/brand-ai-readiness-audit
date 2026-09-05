@@ -338,6 +338,22 @@ def same_registrable_domain(a: str, b: str) -> bool:
     return _reg(ha) == _reg(hb)
 
 
+def _bare_host(url: str) -> str:
+    """Hostname without port or a leading ``www.`` (so www and apex compare equal)."""
+    net = urllib.parse.urlsplit(url).netloc.lower().split(":")[0]
+    return net[4:] if net.startswith("www.") else net
+
+
+def same_host(a: str, b: str) -> bool:
+    """Exact-host comparison (apex == www), so subdomains are distinct properties."""
+    return _bare_host(a) == _bare_host(b)
+
+
+def scope_predicate(scope: str):
+    """Return the in-scope test for a crawl scope: 'host' (default) or 'domain'."""
+    return same_registrable_domain if scope == "domain" else same_host
+
+
 def _reg(host: str) -> str:
     """Best-effort registrable domain (eTLD+1) for a hostname."""
     host = host[4:] if host.startswith("www.") else host
@@ -387,8 +403,10 @@ def normalize(url: str, base: Optional[str] = None) -> Optional[str]:
 
 
 # --- discovery / sampling ---------------------------------------------------------
-def discover_sitemap_urls(start_url: str, fetcher: Fetcher, limit: int = 50) -> List[str]:
+def discover_sitemap_urls(start_url: str, fetcher: Fetcher, limit: int = 50,
+                          in_scope=None) -> List[str]:
     """Read sitemap locations from robots.txt and /sitemap.xml; return a sample of page URLs."""
+    in_scope = in_scope or same_registrable_domain
     origin = fetcher._origin(start_url)
     candidates: List[str] = []
     try:
@@ -413,7 +431,7 @@ def discover_sitemap_urls(start_url: str, fetcher: Fetcher, limit: int = 50) -> 
                 candidates.append(loc)  # nested sitemap index
             else:
                 n = normalize(loc)
-                if n and same_registrable_domain(n, start_url):
+                if n and in_scope(n, start_url):
                     urls.append(n)
         if len(urls) >= limit:
             break
@@ -432,14 +450,17 @@ def sample_pages(start_url: str, fetcher: Fetcher, max_pages: Optional[int] = No
     robots-respected and de-duplicated.
     """
     max_pages = max_pages or fetcher.cfg.max_pages
+    in_scope = scope_predicate(getattr(fetcher.cfg, "crawl_scope", "host"))
     start = normalize(start_url) or start_url
     home = fetcher.fetch(start)
     results: List[Response] = []
     if home.ok and _is_html(home):
         results.append(home)
 
-    from_home = _internal_links(home, start) if home.ok else []
-    from_map = discover_sitemap_urls(start, fetcher, limit=max_pages * 2)
+    # Anchor scope to the host we actually landed on (after any redirect).
+    scope_base = home.final_url or start
+    from_home = _internal_links(home, scope_base, in_scope) if home.ok else []
+    from_map = discover_sitemap_urls(scope_base, fetcher, limit=max_pages * 2, in_scope=in_scope)
 
     queue: List[str] = []
     seen = {home.final_url, start}
@@ -463,13 +484,14 @@ def _is_html(resp: Response) -> bool:
     return "html" in ct or (ct == "" and "<html" in resp.body[:2000].lower())
 
 
-def _internal_links(resp: Response, base: str) -> List[str]:
-    """Extract sorted, de-duplicated internal (same-domain) page links from a response."""
+def _internal_links(resp: Response, base: str, in_scope=None) -> List[str]:
+    """Extract sorted, de-duplicated in-scope page links from a response."""
+    in_scope = in_scope or same_registrable_domain
     links = re.findall(r'href\s*=\s*["\']([^"\'#]+)["\']', resp.body or "", re.I)
     out, seen = [], set()
     for href in links:
         n = normalize(href, base=resp.final_url or base)
-        if not n or not same_registrable_domain(n, base):
+        if not n or not in_scope(n, base):
             continue
         if re.search(r"\.(png|jpe?g|gif|svg|webp|css|js|ico|pdf|zip|mp4|woff2?)(\?|$)", n, re.I):
             continue

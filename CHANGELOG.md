@@ -4,6 +4,35 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-09-05
+
+Fairness pass — remove site-type bias so the score reflects AI-readiness, not a site's
+language, front-end architecture, host layout, or brand-name length.
+
+### Fixed (bias removal)
+- **Language bias.** CTA detection is now language-neutral — it recognizes conversion-path links
+  (`/cart`, `/contact`, `/signup`, `tel:`, `mailto:`…) and `cta`/`button` markup, not only English
+  verbs — so non-English homepages with a real CTA are no longer flagged. Word counting now credits
+  CJK / Thai / Korean characters (which carry meaning without word spaces) instead of splitting on
+  whitespace alone, so content-rich non-Latin pages are no longer mis-flagged as "thin",
+  "requires JavaScript", or "content in images". English counts are unchanged.
+- **Third-party subdomain bias.** The crawl is now **host-scoped by default** (`--crawl-scope
+  host`): a brand is no longer scored on help-desk / status subdomains it doesn't build (e.g.
+  `support.brand.com`). `--crawl-scope domain` restores whole-domain crawling.
+- **Brand-name-length bias.** Removed the check that penalized short/generic brand names; entity
+  identity is judged only by name-neutral markup (Organization/WebSite schema + `sameAs`).
+
+### Added
+- `--crawl-scope host|domain` flag and `crawl_scope` config (default `host`); `same_host` /
+  `scope_predicate` helpers in `http.py`; `count_words` (language-aware) in `htmlparse.py`.
+- 12 fairness regression tests (`tests/test_bias.py`) — 84 total, all offline.
+- README "Fairness, bias & limitations" section + severity-model "Fairness across site types",
+  documenting the by-design biases that are deliberately kept (fetch-only assumption; type-scaled
+  structured-data expectations).
+
+### Changed
+- Version strings bumped to `1.3`. Removed the now-unused `brand_generic_len` threshold.
+
 ## [1.2.0] — 2026-09-05
 
 Analyst-grade reporting. The audit now ships a full data-analytics view on top of the same

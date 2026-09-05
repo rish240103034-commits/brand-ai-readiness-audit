@@ -13,7 +13,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Dict, Mapping
 
 # --- Network / crawl defaults -----------------------------------------------------
-DEFAULT_USER_AGENT = "brand-ai-readiness-audit/1.2 (+read-only audit bot; respects robots.txt)"
+DEFAULT_USER_AGENT = "brand-ai-readiness-audit/1.3 (+read-only audit bot; respects robots.txt)"
 DEFAULT_TIMEOUT = 15            # seconds per request
 DEFAULT_MAX_BYTES = 3_000_000   # 3 MB body cap
 DEFAULT_DELAY = 0.4             # polite seconds between requests to one host
@@ -40,8 +40,6 @@ BASE_THRESHOLDS: Dict[str, float] = {
     # freshness
     "stale_days": 730,
     "recent_signal_days": 400,
-    # corroboration
-    "brand_generic_len": 6,
     # engagement
     "page_weight_bytes": 1_500_000,
     "page_weight_scripts": 40,
@@ -94,6 +92,11 @@ class Config:
     backoff_base: float = DEFAULT_BACKOFF_BASE
     analysis_timeout: int = 240    # global guard (s) for the analysis phase; well under 5 min
     max_workers: int = 6           # thread pool size for concurrent skill execution
+    # Crawl scope: "host" audits only the exact host given (treating support./blog./shop.
+    # subdomains as separate properties — fair attribution); "domain" spans the whole
+    # registrable domain. Host-scoped by default so a brand isn't scored on third-party
+    # subdomains (help desks, status pages) it doesn't hand-build.
+    crawl_scope: str = "host"
     respect_robots: bool = True
     allow_private_hosts: bool = False  # SSRF guard; True only for local testing
     profile: str = "balanced"

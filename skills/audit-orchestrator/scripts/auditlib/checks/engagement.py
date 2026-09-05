@@ -17,6 +17,14 @@ from ..htmlparse import Page
 CTA_RE = re.compile(
     r"\b(buy|shop|get started|sign up|sign-up|subscribe|contact|book|"
     r"request|demo|start free|add to cart|learn more|download|try)\b", re.I)
+# Language-neutral CTA signals so non-English sites aren't falsely flagged for lacking
+# English CTA words: links to conversion paths, and elements explicitly marked as CTAs.
+CTA_HREF_RE = re.compile(
+    r"(?:^|/)(cart|checkout|contact|sign[-_]?up|signup|log[-_]?in|register|buy|order|"
+    r"subscribe|book|booking|demo|pricing|price|get[-_]?started|quote|apply|appointment|"
+    r"donate|shop|store|enquir|inquir|reserve|join)(?:/|$|\?)|^(?:tel:|mailto:|https?://wa\.me/)",
+    re.I)
+CTA_CLASS_RE = re.compile(r'\bclass\s*=\s*["\'][^"\']*\b(cta|btn|button|add-to-cart|buy-now)\b', re.I)
 NAV_RE = re.compile(r"<nav[\s>]|role=[\"']navigation[\"']", re.I)
 BREADCRUMB_RE = re.compile(r"breadcrumb|BreadcrumbList", re.I)
 POPUP_RE = re.compile(r"(newsletter|subscribe|cookie).{0,40}(modal|popup|overlay|interstitial)|"
@@ -60,14 +68,20 @@ def _viewport(pages: List[Page], cfg) -> List[Finding]:
 def _primary_cta(ctx: AuditContext) -> List[Finding]:
     home = ctx.pages[0]
     link_text = " ".join(a.get("text", "") for a in home.links)
-    has_cta = bool(CTA_RE.search(link_text) or CTA_RE.search(_button_text(home)))
+    link_hrefs = " ".join(a.get("href", "") for a in home.links)
+    # A CTA counts if it matches English keywords OR any language-neutral structural signal
+    # (a link to a conversion path, or an element explicitly marked as a button/CTA).
+    has_cta = bool(
+        CTA_RE.search(link_text) or CTA_RE.search(_button_text(home))
+        or CTA_HREF_RE.search(link_hrefs)
+        or CTA_CLASS_RE.search(home.raw_html))
     if not has_cta:
         return [Finding(
             title="Homepage has no clear call-to-action",
             severity="medium",
             dimension="engagement",
             category="conversion",
-            evidence=f"No action-oriented link or button (buy/contact/sign up/book/demo…) was found among the homepage's {len(home.links)} links.",
+            evidence=f"No action-oriented link, button, or conversion-path link (cart/contact/sign-up/book/demo…) was found among the homepage's {len(home.links)} links.",
             suggested_action_summary="Add one prominent, unambiguous primary CTA above the fold that tells the visitor the single most valuable next step.",
             suggested_action_priority="medium",
             confidence="medium",

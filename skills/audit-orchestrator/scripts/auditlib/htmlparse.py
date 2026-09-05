@@ -15,6 +15,29 @@ from typing import Dict, List, Optional, Tuple
 # Tags whose text content is not human-visible copy.
 _NON_CONTENT = {"script", "style", "noscript", "template", "svg", "head"}
 
+# Scripts that do NOT separate words with spaces (CJK ideographs + kana, Hangul, Thai).
+# Splitting these on whitespace under-counts real content and would falsely flag rich
+# non-Latin pages as "thin" / "requires JavaScript" / "content in images", so we count
+# their characters directly. Space-delimited scripts are unaffected (fully back-compatible).
+_NO_SPACE_SCRIPT_RE = re.compile(
+    "[぀-ヿ"      # Hiragana + Katakana
+    "㐀-䶿"       # CJK Extension A
+    "一-鿿"       # CJK Unified Ideographs
+    "豈-﫿"       # CJK Compatibility Ideographs
+    "가-힣"       # Hangul syllables
+    "฀-๿]"      # Thai
+)
+
+
+def count_words(text: str) -> int:
+    """Language-aware word count: whitespace tokens for space-delimited scripts, plus one
+    unit per CJK/Thai character (which carry meaning without word spaces)."""
+    if not text:
+        return 0
+    no_space_chars = len(_NO_SPACE_SCRIPT_RE.findall(text))
+    latin = _NO_SPACE_SCRIPT_RE.sub(" ", text)  # remove them so they don't count as tokens
+    return len(latin.split()) + no_space_chars
+
 
 @dataclass
 class Element:
@@ -49,7 +72,7 @@ class Page:
 
     @property
     def word_count(self) -> int:
-        return len(self.visible_text.split())
+        return count_words(self.visible_text)
 
 
 class _Collector(HTMLParser):

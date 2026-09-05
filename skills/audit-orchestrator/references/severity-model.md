@@ -42,3 +42,19 @@ a finding is site-wide) and crosses it with impact to place every finding in a q
 AI Visibility Score would recover if that one finding were fixed. The **projection** removes the
 quick wins (then everything) and re-scores with the same model, so "fix these two → +9 → a C" is
 a real recomputation, not a guess. The effort numbers are heuristics and are labelled as such.
+
+## Fairness across site types
+The model aims to be neutral about *what kind* of site it audits. Concretely:
+- **Language.** CTA detection is language-neutral (conversion-path links + `cta`/`button` markup,
+  not only English verbs) and word counts credit CJK/Thai/Korean characters, so non-English pages
+  aren't mis-flagged as thin or action-less.
+- **Scope.** The crawl is host-scoped by default, so a brand isn't penalized for third-party
+  subdomains (help desks, status pages) it doesn't build (`--crawl-scope domain` to opt out).
+- **Name-neutral identity.** Identity is judged by markup completeness, never by brand-name length.
+- **Type-scaled checks are gated, not blanket.** Product/Article schema checks fire only on
+  commerce/article-shaped pages, so a brochure site is never docked for lacking them.
+
+Two biases are **kept by design** and disclosed: JS-render-gap findings assume fetch-only
+retrieval (disadvantaging SPAs; `medium` confidence tempers this), and richer site types face more
+structured-data expectations. Both reflect genuine AI-readiness, not an artifact of the scoring.
+See the README's "Fairness, bias & limitations" for the full accounting.

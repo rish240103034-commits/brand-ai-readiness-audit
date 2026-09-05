@@ -87,7 +87,7 @@ def build_report(
         "site": site,
         "audited_at": _now_iso(),
         "started_at": started_at or _now_iso(),
-        "auditor": "brand-ai-readiness-audit/1.2",
+        "auditor": "brand-ai-readiness-audit/1.3",
         "pages_crawled": pages_crawled,
         "summary": summary,
         "findings": [f.to_dict() for f in ordered],

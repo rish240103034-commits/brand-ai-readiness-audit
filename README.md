@@ -71,7 +71,7 @@ Prints the canonical JSON (score + `analytics` + prioritized findings) and write
 ```bash
 python -m unittest discover -t . -s tests
 ```
-72 tests, zero network.
+84 tests, zero network.
 
 **No time to run anything?** Open the prebuilt
 [`examples/sample-report.html`](examples/sample-report.html) (a real audit of
@@ -153,6 +153,7 @@ Full flow: [orchestration.md](skills/audit-orchestrator/references/orchestration
 |---|---|
 | `--max-pages N` | Pages to sample (default 12). |
 | `--profile strict\|balanced\|lenient` | Threshold/scoring profile for the site type. |
+| `--crawl-scope host\|domain` | `host` (default) audits only the given host; `domain` spans all subdomains. |
 | `--skills a,b` | Run a subset (e.g. `crawl-render,structured-data`). |
 | `--format json\|html\|md` | Output format: JSON (canonical), HTML (dashboard), Markdown (brief). |
 | `--out FILE` | Write to a file instead of stdout. |
@@ -175,6 +176,38 @@ Contract: [report-schema.md](skills/audit-orchestrator/references/report-schema.
 examples: [`sample-report.json`](examples/sample-report.json) ·
 [`.html`](examples/sample-report.html) · [`.md`](examples/sample-report.md) ·
 [`.csv`](examples/sample-report.csv).
+
+## Fairness, bias & limitations
+The audit tries to be neutral about site *type*; where it cannot be, it says so. This is what
+was actively de-biased and what remains a disclosed design choice.
+
+**Actively removed (v1.3.0):**
+- **Language.** CTA detection is language-neutral (it recognizes conversion-path links and
+  `cta`/`button` markup, not only English verbs), and word counts credit CJK / Thai / Korean
+  characters instead of whitespace tokens alone — so a content-rich non-English page is no longer
+  mis-flagged as "thin", "requires JavaScript", or "no CTA".
+- **Third-party subdomains.** The crawl is scoped to the exact host you give by default
+  (`--crawl-scope host`), so a brand isn't scored on help-desk / status subdomains it doesn't
+  build (e.g. a Zendesk `support.brand.com`). Use `--crawl-scope domain` to span all subdomains.
+- **Brand-name length.** The check that penalized short/generic names was removed; entity identity
+  is now judged only by name-neutral markup (Organization/WebSite schema and `sameAs`).
+
+**Disclosed by-design biases** (inherent to what "AI readiness" means — kept, but honest):
+- **Fetch-only assumption.** JS-render-gap findings assume retrievers that don't execute
+  JavaScript, which disadvantages client-rendered SPAs vs. SSR/static sites. This is the audit's
+  core thesis; such findings are `medium` confidence (so they dock less) and name the assumption.
+  Server-render / pre-render is the fix.
+- **Structured-data expectations scale with type.** Commerce and publishing sites face more (and
+  higher-severity) schema checks (Product/Offer, Article) than a brochure site — they genuinely
+  need more markup to be answer-ready.
+- **Composite weighting.** The headline score weights discoverability 0.6 / engagement 0.4 for
+  every site; both sub-scores are always reported separately so each can be judged on its own.
+- **Deduction model.** Score = 100 − penalties per *distinct problem type*, so a larger, more
+  heterogeneous site has more surface area to accumulate finding types. Evidence always states
+  prevalence ("4 of 12 pages"), and confidence-weighting damps the most heuristic checks.
+
+**Known limits:** static analysis (no JS execution), a bounded page sample (default 12, not the
+whole catalog), and English-oriented heuristics for a few low-severity signals (article/date hints).
 
 ## Add a new skill (no core edits)
 1. Create `skills/<your-skill>/SKILL.md` with valid frontmatter and a
