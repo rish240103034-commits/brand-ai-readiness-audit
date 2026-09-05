@@ -99,6 +99,21 @@ top of it (in JSON as `analytics`, and rendered in the HTML dashboard, Markdown 
 Findings are still listed **most-actionable-first** — each with evidence, the *why it hurts*, an
 impact rating, an effort estimate, and a concrete one-line fix.
 
+**Honest coverage — 0 findings ≠ healthy.** Every report includes a **coverage matrix** (per area:
+checks, pages assessed, findings, status, confidence). An area is marked **not assessed** when its
+skill didn't run or there wasn't enough signal to judge (e.g. Freshness on a page with no dates),
+and Corroboration is at most **partial** (on-page signals only — no independent external
+verification is claimed). This is the difference between *verified healthy* and *unknown*.
+
+**Rich, per-finding evidence.** Each finding carries a **specific** `why` (set by the check that
+raised it, so it always matches the defect), a `how_to_fix`, a `scope` (`8 of 12 pages (67%)`),
+structured `measurements`, and `expected_impact` — plus a **traceable score explanation** (the
+formula and each finding's exact point cost).
+
+**Proactive opportunities.** A separate section of context-justified recommendations (author
+markup, product ratings, FAQPage/BreadcrumbList, logo, key-facts summary) that raise AI-readiness
+beyond fixing defects. They never affect the score and only appear when the crawl justifies them.
+
 ```
 AI Visibility Score  63 / 100  (D — Weak)     → 72 (C) after 2 quick wins  → 100 if all fixed
   Discoverability ▓▓▓▓░░░░░░  38      Engagement ▓▓▓▓▓▓▓▓▓▓ 100
@@ -135,13 +150,14 @@ run_audit.py (ENTRYPOINT)
    │     ├─ freshness/corroboration.analyze(ctx)
    │     └─ engagement.analyze(ctx)
    │
-   ├─ report.build_report() → scoring.score_report() → analytics.attach() → report.validate()
+   ├─ report.build_report() → scoring.score_report() → proactive.build()
+   │        → coverage.build() → analytics.attach() → report.validate()
    └─ output: json | html dashboard | md brief | csv   ·  history.record_and_compare() [optional]
 
 auditlib/  (shared engine, stdlib only)
    config.py  logutil.py  http.py  htmlparse.py  frontmatter.py
-   registry.py  context.py  report.py  scoring.py  analytics.py  render.py  exports.py
-   history.py  runner.py
+   registry.py  context.py  report.py  scoring.py  coverage.py  proactive.py
+   analytics.py  render.py  exports.py  history.py  runner.py
    checks/  crawl_render · structured_data · extractability · freshness · corroboration · engagement
 ```
 Each skill exposes one pure `analyze(ctx) -> [Finding]`; the orchestrator owns only the

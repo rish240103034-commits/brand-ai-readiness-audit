@@ -32,19 +32,27 @@ class Finding:
     affected_pages: List[str] = field(default_factory=list)
     details: Dict[str, Any] = field(default_factory=dict)
     id: str = ""                        # assigned by the report builder
+    # --- richer evidence model (all optional; empty falls back gracefully) ---------
+    why: str = ""                       # SPECIFIC reason this finding hurts (per-check)
+    how_to_fix: str = ""               # concrete, mechanism-sound remediation steps
+    scope: str = ""                    # e.g. "8 of 12 pages (67%)"
+    measurements: Dict[str, Any] = field(default_factory=dict)  # observed numbers
+    expected_impact: str = ""          # what fixing it is expected to improve
+    kind: str = "defect"               # defect | opportunity (proactive)
 
     def normalized_severity(self) -> str:
         s = (self.severity or "").lower()
         return s if s in _SEV_RANK else "medium"
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        d = {
             "id": self.id,
             "title": self.title,
             "severity": self.normalized_severity(),
             "dimension": self.dimension,
             "category": self.category,
             "confidence": self.confidence,
+            "kind": self.kind,
             "evidence": self.evidence,
             "affected_pages": self.affected_pages[:10],
             "suggested_action": {
@@ -53,6 +61,18 @@ class Finding:
             },
             "details": self.details,
         }
+        # Emit the richer fields only when populated, so the schema floor stays clean.
+        if self.why:
+            d["why"] = self.why
+        if self.how_to_fix:
+            d["how_to_fix"] = self.how_to_fix
+        if self.scope:
+            d["scope"] = self.scope
+        if self.measurements:
+            d["measurements"] = self.measurements
+        if self.expected_impact:
+            d["expected_impact"] = self.expected_impact
+        return d
 
 
 def build_report(
@@ -87,12 +107,20 @@ def build_report(
         "site": site,
         "audited_at": _now_iso(),
         "started_at": started_at or _now_iso(),
-        "auditor": "brand-ai-readiness-audit/1.3",
+        "auditor": "brand-ai-readiness-audit/2.0",
         "pages_crawled": pages_crawled,
         "summary": summary,
         "findings": [f.to_dict() for f in ordered],
         "notes": notes or [],
     }
+
+
+def scope_str(n: int, total: int) -> str:
+    """A consistent 'N of M pages (P%)' scope string for finding evidence."""
+    total = total or 0
+    if total <= 0:
+        return f"{n} page(s)"
+    return f"{n} of {total} page(s) ({round(100 * n / total)}%)"
 
 
 def merge(*groups: List[Finding]) -> List[Finding]:

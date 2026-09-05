@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 1.3.0_
+_Last updated: 2026-09-05 · version 2.0.0_
 
 ---
 
@@ -24,11 +24,16 @@ The brief PDF is at:
   impact×effort matrix, score projection, hotspots, roadmap, KPIs, auto-written summary),
   a rewritten **HTML dashboard**, and two new outputs: `--format md` and `--csv`.
 - **v1.3 is a fairness pass**: removed site-type bias — language-neutral CTA + CJK-aware word
-  counts, host-scoped crawl by default (`--crawl-scope host|domain`; no longer scores a brand on
-  third-party help-desk subdomains), and dropped the brand-name-length penalty. By-design biases
-  (fetch-only SPA assumption, type-scaled schema demands) are kept but documented in README's
-  "Fairness, bias & limitations".
-- **84 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+  counts, host-scoped crawl by default (`--crawl-scope host|domain`), dropped brand-name-length penalty.
+- **v2.0 is a Round-3 depth pass** (in-place, same architecture): a **coverage matrix**
+  (`coverage.py`; 0 findings ≠ healthy — not_assessed/partial statuses), a **richer evidence model**
+  (per-finding specific why/how_to_fix/scope/measurements/expected_impact), **proactive
+  opportunities** (`proactive.py`; never affect score), a **traceable score explanation**, many new
+  detections (canonical, broken links, nofollow, render-blocking, login walls, link-text, empty/
+  conflicting schema, heading hierarchy, title/meta quality, retrieval-vs-training robots), and a
+  report UI with coverage/opportunities/limitations + **dynamic filters**.
+- **104 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+  Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
 - Canonical sample regenerated in all 4 formats from ONE real audit of smashingmagazine.com
@@ -55,9 +60,11 @@ skills/
         registry.py        skill auto-discovery + validation + check binding
         context.py         AuditContext (shared crawl passed to checks)
         report.py          Finding model, build_report, validate
-        scoring.py         AI Visibility Score, grade, why/impact/priority (+ reusable compute_scores)
-        analytics.py       ANALYST LAYER: pillars, impact×effort matrix, projection, hotspots, roadmap, KPIs, narrative
-        render.py          self-contained HTML analytics DASHBOARD (inline SVG charts)
+        scoring.py         AI Visibility Score, grade, why(fallback)/impact/priority (+ reusable compute_scores)
+        coverage.py        COVERAGE MATRIX: per-area status (healthy/issues/partial/not_assessed)
+        proactive.py       PROACTIVE OPPORTUNITIES: context-justified, non-defect recommendations
+        analytics.py       ANALYST LAYER: pillars (coverage-aware status), matrix, projection, hotspots, roadmap, KPIs, narrative
+        render.py          self-contained HTML DASHBOARD (coverage, opportunities, limitations, score explanation, dynamic filters)
         exports.py         Markdown brief + findings CSV
         history.py         SQLite score history (--compare-previous)
         runner.py          shared hardened CLI for standalone skills

@@ -122,7 +122,9 @@ def score_report(report: Dict[str, Any]) -> Dict[str, Any]:
         if conf == "low" and impact > 1:
             impact -= 1  # temper low-confidence heuristics
         f["impact"] = impact
-        f["why"] = _why(f)
+        # Prefer the check's own specific reason; fall back to a category-level default only
+        # when a finding didn't supply one (so explanations always match the actual defect).
+        f["why"] = f.get("why") or _why(f)
         f["_priority_score"] = SEVERITY_PENALTY.get(sev, 8) * CONFIDENCE_FACTOR.get(conf, 1.0)
 
     # Re-order most-actionable first and renumber ids, keeping them stable/deterministic.

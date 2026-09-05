@@ -11,7 +11,7 @@ import re
 from typing import List
 
 from ..context import AuditContext
-from ..report import Finding
+from ..report import Finding, scope_str
 from ..htmlparse import Page
 
 COPYRIGHT_SPAN_RE = re.compile(r"(?:©|&copy;|copyright)[^\n<]{0,40}", re.I)
@@ -55,7 +55,12 @@ def _copyright_year(pages: List[Page], now, cfg) -> List[Finding]:
             severity="medium",
             dimension="discoverability",
             category="freshness",
-            evidence=f"{len(stale)} page(s) show a copyright year of {oldest[1]} (current year is {now.year}), e.g. {oldest[0]}.",
+            evidence=f"{scope_str(len(stale), len(pages))} show a copyright year of {oldest[1]} (current year is {now.year}) with no other recent-date signal, e.g. {oldest[0]}.",
+            why="A years-old copyright with no other recency signal reads as an abandoned site, which assistants "
+                "trust and surface less than content that looks maintained.",
+            how_to_fix="Auto-generate the footer year from the server clock and add a visible 'last updated' date where content genuinely changes.",
+            scope=scope_str(len(stale), len(pages)),
+            measurements={"stale_copyright_pages": len(stale), "oldest_year": oldest[1], "current_year": now.year},
             suggested_action_summary="Auto-generate the footer year from the server clock and refresh visible 'last updated' stamps; a years-old date signals an abandoned site.",
             suggested_action_priority="medium",
             affected_pages=[u for u, _ in stale],
@@ -81,7 +86,12 @@ def _stale_modified(pages: List[Page], now, cfg) -> List[Finding]:
             severity="low",
             dimension="discoverability",
             category="freshness",
-            evidence=f"{len(stale)} page(s) expose only old dates (newest {oldest[1]}, ~{oldest[2]//365}y ago), e.g. {oldest[0]}.",
+            evidence=f"{scope_str(len(stale), len(pages))} expose only old dates (newest {oldest[1]}, ~{oldest[2]//365}y ago), e.g. {oldest[0]}.",
+            why="Content whose only dates are years old is discounted as possibly outdated, so it is surfaced and "
+                "cited less — even when the information is still correct.",
+            how_to_fix="Review the page; if still accurate, restate it and set an honest dateModified. If outdated, update the facts.",
+            scope=scope_str(len(stale), len(pages)),
+            measurements={"stale_pages": len(stale), "stale_days": int(stale_days)},
             suggested_action_summary="Review and refresh evergreen pages, then update dateModified. If content is still accurate, restate it so the recency signal is honest.",
             suggested_action_priority="low",
             confidence="medium",
@@ -104,11 +114,31 @@ def _undated_articles(pages: List[Page]) -> List[Finding]:
             dimension="discoverability",
             category="freshness",
             evidence=f"{len(undated)} article-like page(s) expose no publication or modified date, e.g. {undated[0]}.",
+            why="An undated article can't be placed in time, so assistants can't judge whether it is current and "
+                "tend to discount it for time-sensitive questions.",
+            how_to_fix="Show a clear published/updated date on every article and mirror it in datePublished/dateModified.",
+            measurements={"undated_articles": len(undated)},
             suggested_action_summary="Show a clear published/updated date on every article and mirror it in datePublished/dateModified; undated content is discounted as unverifiable.",
             suggested_action_priority="low",
             affected_pages=undated,
         )]
     return []
+
+
+def has_date_signal(p: Page) -> bool:
+    """True if a page exposes any date/copyright signal freshness could reason about."""
+    if _all_dates(p):
+        return True
+    tail = p.visible_text[-800:]
+    if any(YEAR_IN_SPAN_RE.findall(span) for span in COPYRIGHT_SPAN_RE.findall(tail)):
+        return True
+    return bool(UPDATED_RE.search(p.visible_text) or "datepublished" in
+                " ".join(str(o) for o in p.jsonld).lower())
+
+
+def count_date_signal_pages(pages: List[Page]) -> int:
+    """How many sampled pages carry a date signal (used by the coverage matrix)."""
+    return sum(1 for p in pages if has_date_signal(p))
 
 
 def _has_recent_signal(p: Page, now, cfg) -> bool:

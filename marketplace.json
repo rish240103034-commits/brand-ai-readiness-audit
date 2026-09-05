@@ -1,6 +1,6 @@
 {
   "name": "brand-ai-readiness-audit",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Audit any website for the problems that hurt its AI discoverability (getting found and cited by AI assistants) and its on-site engagement (keeping visitors once they arrive), and emit a single prioritized report of findings plus suggested actions.",
   "entrypoint": "audit-orchestrator",
   "runtime": {

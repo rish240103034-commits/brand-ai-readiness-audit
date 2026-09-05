@@ -13,7 +13,9 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `pages_crawled` | int | — | Size of the analyzed sample. |
 | `summary` | object | ✅ | Counts (see below). |
 | `score` | object | — | AI Visibility Score (see below). |
+| `coverage` | object | — | Per-area assessment matrix (see below) — distinguishes not-assessed from healthy. |
 | `analytics` | object | — | Analyst layer derived from the scored report (see below). |
+| `opportunities` | array | — | Proactive, context-justified recommendations (non-defect; see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
 | `profile` | string | — | Scoring profile used (`strict`/`balanced`/`lenient`). |
 | `skills_run` | array<string> | — | Ids of the skills that executed. |
@@ -70,12 +72,35 @@ projection reuses the one score model in `scoring.py`, so the numbers are consis
 | `category` | string | — | e.g. `crawlability`, `structured-data`, `performance`. |
 | `confidence` | enum | — | `high` \| `medium` \| `low` — how sure the static check is. |
 | `evidence` | string | ✅ | Concrete, countable proof (e.g. "0/12 pages have JSON-LD"). |
-| `why` | string | — | Plain-English reason it hurts AI discoverability/engagement. |
+| `why` | string | — | **Specific** reason this finding hurts (set per-check; a category default only fills in when a check omits it). |
+| `how_to_fix` | string | — | Concrete, mechanism-sound remediation steps. |
+| `scope` | string | — | Prevalence, e.g. `8 of 12 page(s) (67%)`. |
+| `measurements` | object | — | Observed numbers behind the finding (e.g. `{"pages_without_h1": 4}`). |
+| `expected_impact` | string | — | What fixing it is expected to improve. |
+| `kind` | enum | — | `defect` (default) — opportunities live in the top-level `opportunities` array. |
 | `impact` | int | — | 1–5 estimated impact (used for prioritization). |
 | `priority` | int | — | Rank across all findings; `1` = act first. |
 | `affected_pages` | array<string> | — | Up to 10 example URLs. |
 | `suggested_action` | object | ✅ | `{ "summary": string, "priority": enum }`. |
 | `details` | object | — | Optional structured extras per check. |
+
+## `coverage`
+Explicit per-area assessment so **0 findings ≠ healthy**. Built by `auditlib/coverage.py`.
+
+`coverage.areas[]` — one row per area (`Crawlability`, `Rendering`, `Structured Data`,
+`Extractability`, `Entity Identity`, `Freshness`, `Corroboration`, `Engagement`, `Proactive
+Opportunities`): `{ key, label, status, status_label, checks, pages_assessed, findings,
+confidence, note }`. `status` ∈ `healthy` (verified) · `issues` · `partial` · `not_assessed` ·
+`opportunities`. A skill that didn't run, or an area without enough signal (e.g. Freshness with no
+dates), is `not_assessed` — never silently scored as healthy. Corroboration is at most `partial`
+(on-page signals only; no independent external verification). `coverage.summary` gives
+`{ areas_total, areas_assessed, areas_not_assessed, pages_crawled }`.
+
+## `opportunities`
+Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They
+**never affect the score** and are only surfaced when the crawl justifies them (e.g. author markup
+only when the site has articles). Each: `{ id (OP-001…), title, category, dimension, kind:
+"opportunity", rationale, suggested_action, expected_impact, effort, confidence, evidence }`.
 
 Findings are ordered most-actionable-first (by impact × confidence) and `id`s are assigned in
 that order, so `F-001` is always the top-priority fix.

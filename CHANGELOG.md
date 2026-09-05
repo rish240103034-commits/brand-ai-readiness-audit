@@ -4,6 +4,47 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] — 2026-09-05
+
+Round-3 depth pass. Substantially more detection, an honest coverage model, a richer evidence
+model, proactive opportunities, and a fully traceable score — all in-place on the existing
+architecture (one entrypoint, stdlib-only, read-only, robots-respecting).
+
+### Added
+- **Coverage matrix** (`auditlib/coverage.py`, `report.coverage`): a per-area status for the 9
+  areas (Crawlability, Rendering, Structured Data, Extractability, Entity Identity, Freshness,
+  Corroboration, Engagement, Proactive Opportunities). **0 findings ≠ healthy** — an area is
+  `not_assessed` when its skill didn't run or there wasn't enough signal (e.g. Freshness with no
+  dates), and Corroboration is at most `partial` (on-page signals only, no external verification).
+- **Richer evidence model** on every finding: specific `why`, `how_to_fix`, `scope`
+  (`8 of 12 pages (67%)`), structured `measurements`, and `expected_impact`. Explanations are now
+  set per-check, so they always match the defect (fixes the mis-attributed Multiple-H1 reason).
+- **Proactive opportunities** (`auditlib/proactive.py`, `report.opportunities`): context-justified
+  recommendations (author markup, product ratings, FAQPage, BreadcrumbList, SearchAction, logo,
+  key-facts summary) that never affect the score and only appear when the crawl justifies them.
+- **Score explanation** in the report: the exact formula plus each finding's traceable point cost.
+- **New detections** — crawl/render: retrieval-vs-training bot distinction in robots (nuanced,
+  not "allow everything"), cross-domain canonical conflicts, nofollow'd internal links, bounded
+  broken-internal-link probing. Structured data: incomplete/empty property values, conflicting
+  Organization identities. Extractability: title/meta length quality, heading-hierarchy skips.
+  Entity identity: name-neutral cross-signal consistency (og:site_name vs schema name).
+  Engagement: render-blocking head resources, login/paywall walls, non-descriptive link text.
+- **Report UI**: coverage matrix, proactive-opportunities and limitations sections, a score
+  explanation, per-finding evidence (scope/measurements/expected impact), and **dynamic filters**
+  that only show severities/dimensions that actually occur (no empty "Critical"/dimension chips).
+
+### Changed
+- `scoring.py`: a check's own `why` is kept; the category default is a fallback only.
+- Robots handling recommends allowing **retrieval** crawlers (critical if blocked) while treating
+  a **training**-crawler block as a low-severity, explicit policy choice — not a blanket "allow all".
+- Version strings bumped to `2.0`.
+
+### Fixed
+- Multiple-H1 (and other extractability) findings no longer reuse an unrelated "locked in an image"
+  explanation — each carries its own accurate `why`.
+- Removed a brand-identity false positive from title-segment guessing (identity consistency now
+  compares only the explicit og:site_name and schema name).
+
 ## [1.3.0] — 2026-09-05
 
 Fairness pass — remove site-type bias so the score reflects AI-readiness, not a site's

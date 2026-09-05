@@ -32,8 +32,11 @@ from auditlib.logutil import configure_logging, get_logger  # noqa: E402
 from auditlib.registry import discover_skills, select_skills  # noqa: E402
 from auditlib.scoring import score_report                   # noqa: E402
 from auditlib import analytics as analytics_mod             # noqa: E402
+from auditlib import coverage as coverage_mod               # noqa: E402
+from auditlib import proactive as proactive_mod             # noqa: E402
 from auditlib import exports as exports_mod                 # noqa: E402
 from auditlib import render as render_mod                   # noqa: E402
+from auditlib.checks import freshness as _freshness         # noqa: E402
 
 LOG = get_logger("orchestrator")
 
@@ -73,6 +76,11 @@ def run(url: str, cfg, external: bool = True, only_skills=None):
     rpt["profile"] = cfg.profile
     rpt["skills_run"] = [s.id for s in skills]
     score_report(rpt)          # attach AI Visibility Score + grade
+    rpt["opportunities"] = proactive_mod.build(ctx)  # context-justified, non-defect recommendations
+    # Coverage matrix: what each area actually assessed (healthy vs not-assessed vs partial).
+    signals = {"date_signal_pages": _freshness.count_date_signal_pages(ctx.pages),
+               "external_lookups": external}
+    rpt["coverage"] = coverage_mod.build(rpt, signals)
     analytics_mod.attach(rpt)  # attach the analyst layer (pillars, matrix, projection, …)
 
     errs = report_mod.validate(rpt)

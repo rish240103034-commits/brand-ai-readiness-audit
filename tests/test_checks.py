@@ -15,13 +15,24 @@ def categories(findings):
 
 
 class CrawlRenderTests(unittest.TestCase):
-    def test_ai_bots_blocked_is_critical(self):
+    def test_retrieval_bot_blocked_is_critical(self):
+        # Blocking a retrieval/citation crawler is critical (removes the brand from live answers).
+        robots = "User-agent: PerplexityBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n"
+        ctx = make_ctx([("https://x.example/", GOOD_HOME)], robots=robots, sitemap="<urlset></urlset>")
+        f = crawl_render.analyze(ctx)
+        self.assertIn("AI answer-engine retrieval crawlers are blocked in robots.txt", titles(f))
+        crit = [x for x in f if "retrieval crawlers" in x.title][0]
+        self.assertEqual(crit.severity, "critical")
+
+    def test_training_bot_block_is_low_not_critical(self):
+        # Blocking only training crawlers is a legitimate policy choice — flagged low, never critical.
         robots = "User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n"
         ctx = make_ctx([("https://x.example/", GOOD_HOME)], robots=robots, sitemap="<urlset></urlset>")
         f = crawl_render.analyze(ctx)
-        self.assertIn("AI-assistant crawlers are blocked in robots.txt", titles(f))
-        crit = [x for x in f if x.title.startswith("AI-assistant")][0]
-        self.assertEqual(crit.severity, "critical")
+        self.assertIn("AI training crawlers are blocked in robots.txt", titles(f))
+        train = [x for x in f if "training crawlers" in x.title][0]
+        self.assertEqual(train.severity, "low")
+        self.assertFalse(any(x.severity == "critical" for x in f))
 
     def test_spa_shell_flagged_as_render_gap(self):
         ctx = make_ctx([("https://x.example/", BARE_SPA)], robots="", sitemap="<urlset></urlset>")

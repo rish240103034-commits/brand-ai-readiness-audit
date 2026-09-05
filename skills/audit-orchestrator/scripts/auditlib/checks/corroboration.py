@@ -11,7 +11,7 @@ import re
 from typing import List
 
 from ..context import AuditContext
-from ..report import Finding
+from ..report import Finding, scope_str
 from ..htmlparse import Page, jsonld_types
 
 SOCIAL_RE = re.compile(
@@ -36,6 +36,7 @@ def analyze(ctx: AuditContext) -> List[Finding]:
     findings += _sameas(pages)
     findings += _external_presence(pages)
     findings += _name_consistency(host_pages)
+    findings += _identity_consistency(host_pages)
     return findings
 
 
@@ -61,6 +62,11 @@ def _sameas(pages: List[Page]) -> List[Finding]:
             dimension="discoverability",
             category="corroboration",
             evidence="An Organization/LocalBusiness node exists but declares no sameAs links to external profiles.",
+            why="sameAs links are how a machine ties this site to independent profiles (Wikidata, LinkedIn, "
+                "Crunchbase); without them the brand's identity is asserted only by itself and is harder to trust.",
+            how_to_fix="Add a sameAs array to the Organization node listing the brand's Wikipedia/Wikidata, LinkedIn, "
+                       "Crunchbase, and primary social URLs.",
+            measurements={"sameas_links": 0},
             suggested_action_summary=(
                 "Add sameAs URLs pointing to the brand's Wikipedia/Wikidata, LinkedIn, Crunchbase, and "
                 "primary social profiles. These let assistants tie your site to corroborating, independent "
@@ -89,6 +95,10 @@ def _external_presence(pages: List[Page]) -> List[Finding]:
             dimension="discoverability",
             category="corroboration",
             evidence="Sampled pages link to no recognized external profiles (social, Wikipedia/Wikidata, Crunchbase, maps/reviews).",
+            why="A site that links to no independent profiles is an 'island' — assistants have nothing to cross-check it "
+                "against, so its claims are harder to corroborate and trust.",
+            how_to_fix="Claim and link the brand's profiles on independent platforms (LinkedIn, Wikidata, industry directories, review sites) from the site footer/about page.",
+            measurements={"external_profiles_found": 0},
             suggested_action_summary=(
                 "Claim and link the brand's profiles on independent platforms (LinkedIn, Wikidata, industry "
                 "directories, review sites) and reference them from the site. Consistent presence across "
@@ -117,11 +127,58 @@ def _name_consistency(pages: List[Page]) -> List[Finding]:
             severity="low",
             dimension="discoverability",
             category="entity-identity",
-            evidence=f"og:site_name differs across same-language pages: {sorted(names)}. Inconsistent naming weakens entity resolution.",
+            evidence=f"og:site_name differs across same-language pages: {sorted(names)}.",
+            why="When the brand name varies across pages, a machine can't be sure they belong to the same entity, "
+                "so it may split or mis-attribute the brand's presence.",
+            how_to_fix="Use one canonical brand name consistently in og:site_name, Organization.name, and visible branding.",
+            measurements={"distinct_site_names": sorted(names)},
             suggested_action_summary="Use one canonical brand name consistently in og:site_name, Organization.name, and visible branding.",
             suggested_action_priority="low",
         )]
     return []
+
+
+def _identity_consistency(pages: List[Page]) -> List[Finding]:
+    """Cross-check the brand name across the three homepage identity signals (name-neutral).
+
+    Compares the two EXPLICIT brand-name fields — og:site_name and the Organization/WebSite
+    schema name. (The <title> brand segment is deliberately excluded: sites use both
+    "Brand — tagline" and "Page | Brand", so a title-derived name is too ambiguous to trust and
+    caused false positives.) Flags only when both are present AND share no significant token —
+    a real contradiction. Replaces the old name-length heuristic with name-neutral reasoning.
+    """
+    home = pages[0]
+    signals = {}
+    site_name = home.meta.get("og:site_name", "").strip()
+    if site_name:
+        signals["og:site_name"] = site_name
+    for obj in home.jsonld:
+        types = {str(t).lower() for t in _types(obj)}
+        if {"organization", "website", "localbusiness"} & types and obj.get("name"):
+            signals["schema.name"] = str(obj["name"]).strip()
+            break
+    present = {k: v for k, v in signals.items() if v}
+    if len(present) >= 2 and not _share_token(set(v.lower() for v in present.values())):
+        return [Finding(
+            title="Brand identity signals disagree on the homepage",
+            severity="medium", dimension="discoverability", category="entity-identity",
+            evidence="Homepage identity signals name different entities: "
+                     + "; ".join(f"{k}=\"{v}\"" for k, v in present.items()) + ".",
+            why="og:site_name, the Organization schema name, and the page title should agree on who the brand is; "
+                "when they disagree an assistant cannot confidently resolve what single entity the site represents.",
+            how_to_fix="Use one canonical brand name across og:site_name, Organization.name/WebSite.name, and the title's brand segment.",
+            measurements={"identity_signals": present},
+            suggested_action_summary="Align og:site_name, Organization/WebSite schema name, and the title's brand segment to one canonical brand name.",
+            suggested_action_priority="medium", confidence="medium",
+        )]
+    return []
+
+
+def _types(obj: dict):
+    t = obj.get("@type")
+    if isinstance(t, list):
+        return t
+    return [t] if t else []
 
 
 def _share_token(names) -> bool:

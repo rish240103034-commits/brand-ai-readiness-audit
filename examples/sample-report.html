@@ -110,57 +110,99 @@ footer h2 { font-size:16px; } .method { color:#4a5563; font-size:13px; }
 .notes { color:var(--muted); font-size:12px; padding-left:18px; } .notes li { margin:3px 0; }
 .fine { color:#aab2bd; font-size:12px; margin-top:12px; }
 code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
+/* coverage matrix */
+.coverage { width:100%; border-collapse:collapse; font-size:13px; }
+.coverage th, .coverage td { text-align:left; padding:8px 10px; border-bottom:1px solid #f2f4f7; vertical-align:top; }
+.coverage th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+.coverage .area { font-weight:600; color:#33404f; white-space:nowrap; }
+.coverage .checks { color:var(--muted); font-size:12px; }
+.coverage .num, .coverage .conf { text-align:center; }
+.coverage td.num { width:64px; } .coverage .conf { color:var(--muted); }
+/* score explanation */
+.pe-list { list-style:none; margin:8px 0 0; padding:0; }
+.pe-list li { display:flex; align-items:center; gap:10px; font-size:13px; padding:5px 0; border-bottom:1px solid #f2f4f7; }
+.pe-id { font-family:ui-monospace,Consolas,monospace; font-size:11px; color:var(--muted); width:52px; }
+.pe-t { flex:1; color:#33404f; } .pe-p { color:#c0182f; width:44px; text-align:right; }
+/* opportunities */
+.opp { border:1px solid var(--line); border-left:3px solid #7a4fd0; border-radius:8px; padding:12px 14px; margin:10px 0; background:#faf8fe; }
+.opp-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.opp-title { font-weight:600; } .opp-meta { color:var(--muted); font-size:11px; margin-left:auto; }
+.opp p { margin:8px 0 0; font-size:13px; color:#44506a; }
+.opp-do { background:#fff; border-radius:4px; padding:6px 10px; }
+/* limitations + evidence extras */
+.limits { color:#4a5563; font-size:13px; padding-left:18px; } .limits li { margin:6px 0; }
+.scope { color:#556; font-size:13px; } .xi { color:#2e7d32; font-size:13px; }
+.measures { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+.mchip { background:#f2f4f7; color:#4a5563; font-size:11px; border-radius:5px; padding:2px 8px; font-family:ui-monospace,Consolas,monospace; }
 @media (max-width:760px) {
   .charts, .pillars-grid, .roadmap { grid-template-columns:1fr; }
   .card, main, footer, .kpis, .charts { margin-left:12px; margin-right:12px; }
+  .coverage .checks { display:none; }
 }
 </style></head>
 <body>
 <header class="hero">
-  <div class="gauge"><svg viewBox="0 0 130 130" width="132" height="132" role="img" aria-label="Score 63 of 100">
+  <div class="gauge"><svg viewBox="0 0 130 130" width="132" height="132" role="img" aria-label="Score 59 of 100">
   <circle cx="65" cy="65" r="52" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="12"/>
-  <circle cx="65" cy="65" r="52" fill="none" stroke="#ef6c00" stroke-width="12"
-    stroke-linecap="round" stroke-dasharray="205.8 326.7"
+  <circle cx="65" cy="65" r="52" fill="none" stroke="#c0182f" stroke-width="12"
+    stroke-linecap="round" stroke-dasharray="192.8 326.7"
     transform="rotate(-90 65 65)"/>
-  <text x="65" y="60" text-anchor="middle" font-size="32" font-weight="700" fill="#fff">63</text>
-  <text x="65" y="84" text-anchor="middle" font-size="14" fill="rgba(255,255,255,.7)">grade D</text>
+  <text x="65" y="60" text-anchor="middle" font-size="32" font-weight="700" fill="#fff">59</text>
+  <text x="65" y="84" text-anchor="middle" font-size="14" fill="rgba(255,255,255,.7)">grade F</text>
 </svg></div>
   <div class="hero-meta">
     <div class="eyebrow">AI Visibility Score</div>
     <h1>smashingmagazine.com</h1>
     <div class="subscores">
       <div class="subscore"><span>Discoverability</span>
-      <div class="bar"><i style="width:37.8%"></i></div><b>37.8</b></div>
+      <div class="bar"><i style="width:31.0%"></i></div><b>31.0</b></div>
       <div class="subscore"><span>Engagement</span>
       <div class="bar"><i style="width:100%"></i></div><b>100.0</b></div>
     </div>
-    <div class="meta-line">Audited 2026-09-05T10:58:37Z ·
+    <div class="meta-line">Audited 2026-09-05T11:46:49Z ·
       profile: balanced ·
       12 page(s) crawled</div>
     
   </div>
 </header>
-<section class="kpis"><div class="kpi big"><div class="kpi-n">63</div><div class="kpi-l">Score · grade D</div></div><div class="kpi "><div class="kpi-n">6</div><div class="kpi-l">Findings</div></div><div class="kpi warn"><div class="kpi-n">2</div><div class="kpi-l">Critical + high</div></div><div class="kpi good"><div class="kpi-n">2</div><div class="kpi-l">Quick wins</div></div><div class="kpi good"><div class="kpi-n">72</div><div class="kpi-l">After quick wins (+9)</div></div><div class="kpi "><div class="kpi-n">100</div><div class="kpi-l">Full potential</div></div><div class="kpi "><div class="kpi-n">12</div><div class="kpi-l">Pages analyzed</div></div><div class="kpi "><div class="kpi-n">Substantial</div><div class="kpi-l">Est. effort</div></div></section>
+<section class="kpis"><div class="kpi big"><div class="kpi-n">59</div><div class="kpi-l">Score · grade F</div></div><div class="kpi "><div class="kpi-n">9</div><div class="kpi-l">Findings</div></div><div class="kpi warn"><div class="kpi-n">2</div><div class="kpi-l">Critical + high</div></div><div class="kpi good"><div class="kpi-n">2</div><div class="kpi-l">Quick wins</div></div><div class="kpi good"><div class="kpi-n">68</div><div class="kpi-l">After quick wins (+9)</div></div><div class="kpi "><div class="kpi-n">2</div><div class="kpi-l">Opportunities</div></div><div class="kpi "><div class="kpi-n">12</div><div class="kpi-l">Pages analyzed</div></div><div class="kpi "><div class="kpi-n">8/8</div><div class="kpi-l">Areas assessed</div></div></section>
 <section class="card summary">
   <h2>Executive summary</h2>
-  <div class="summary-body"><p>smashingmagazine.com scores 63/100 (grade D — Weak). Several issues are actively limiting how the brand is found and read.</p><p>2 finding(s) are critical or high severity and should be addressed first; the weakest area is Structured Data (48/100).</p><p>2 quick win(s) (high impact, low effort) would lift the score by about 9 point(s) to ~72/100 — enough to move up a grade.</p><p>Fixing every finding would raise the score to about 100/100 (+37); estimated effort overall is substantial.</p><p>Discoverability (38) and engagement (100) diverge by 62 points; discoverability is the side pulling the score down.</p></div>
+  <div class="summary-body"><p>smashingmagazine.com scores 59/100 (grade F — At risk). Core problems make the brand hard for AI assistants to find or trust.</p><p>2 finding(s) are critical or high severity and should be addressed first; the weakest area is Structured Data (48/100).</p><p>2 quick win(s) (high impact, low effort) would lift the score by about 9 point(s) to ~68/100 — enough to move up a grade.</p><p>Fixing every finding would raise the score to about 100/100 (+41); estimated effort overall is substantial.</p><p>Discoverability (31) and engagement (100) diverge by 69 points; discoverability is the side pulling the score down.</p><p>Assessed 8 of 8 areas. 2 proactive opportunity(ies) identified.</p></div>
+</section>
+<section class="card">
+  <h2>Coverage <span class="hint">8 of 8 areas assessed — 0 findings ≠ healthy</span></h2>
+  <table class="coverage">
+    <thead><tr><th>Area</th><th>Checks</th><th>Pages</th><th>Findings</th><th>Status</th><th>Confidence</th></tr></thead>
+    <tbody><tr><td class="area">Crawlability</td><td class="checks">crawlability, indexability, reachability</td><td class="num">12</td><td class="num">0</td><td><span class="chip mini" style="background:#2e7d32">verified healthy</span></td><td class="conf">high</td></tr><tr><td class="area">Rendering</td><td class="checks">js-render-gap</td><td class="num">12</td><td class="num">0</td><td><span class="chip mini" style="background:#2e7d32">verified healthy</span></td><td class="conf">medium</td></tr><tr><td class="area">Structured Data</td><td class="checks">structured-data</td><td class="num">12</td><td class="num">3</td><td><span class="chip mini" style="background:#e05a1e">issues detected</span></td><td class="conf">high</td></tr><tr><td class="area">Extractability</td><td class="checks">extractability</td><td class="num">12</td><td class="num">5</td><td><span class="chip mini" style="background:#e05a1e">issues detected</span></td><td class="conf">medium</td></tr><tr><td class="area">Entity Identity</td><td class="checks">entity-identity</td><td class="num">12</td><td class="num">1</td><td><span class="chip mini" style="background:#e05a1e">issues detected</span></td><td class="conf">high</td></tr><tr><td class="area">Freshness</td><td class="checks">freshness</td><td class="num">5</td><td class="num">0</td><td><span class="chip mini" style="background:#2e7d32">verified healthy</span></td><td class="conf">high</td></tr><tr><td class="area">Corroboration</td><td class="checks">corroboration</td><td class="num">12</td><td class="num">0</td><td><span class="chip mini" style="background:#2f6fb0">partial</span></td><td class="conf">medium</td></tr><tr><td class="area">Engagement</td><td class="checks">accessibility, conversion, mobile, orientation, performance, readability</td><td class="num">12</td><td class="num">0</td><td><span class="chip mini" style="background:#2e7d32">verified healthy</span></td><td class="conf">high</td></tr><tr><td class="area">Proactive Opportunities</td><td class="checks">context-driven</td><td class="num">12</td><td class="num">2</td><td><span class="chip mini" style="background:#7a4fd0">opportunities available</span></td><td class="conf">medium</td></tr></tbody>
+  </table>
 </section>
 <section class="card">
   <h2>Score projection <span class="hint">what fixing issues would do</span></h2>
   <div class="pbars"><div class="pbar">
           <span class="pbar-l">Current</span>
-          <div class="pbar-track"><i style="width:63%;background:#6b7a8d"></i></div>
-          <b class="pbar-v">63 <em>(D)</em></b>
+          <div class="pbar-track"><i style="width:59%;background:#6b7a8d"></i></div>
+          <b class="pbar-v">59 <em>(F)</em></b>
         </div><div class="pbar">
           <span class="pbar-l">After quick wins</span>
-          <div class="pbar-track"><i style="width:72%;background:#3f9d63"></i></div>
-          <b class="pbar-v">72 <em>(C)</em></b>
+          <div class="pbar-track"><i style="width:68%;background:#3f9d63"></i></div>
+          <b class="pbar-v">68 <em>(D)</em></b>
         </div><div class="pbar">
           <span class="pbar-l">If all fixed</span>
           <div class="pbar-track"><i style="width:100%;background:#2e7d32"></i></div>
           <b class="pbar-v">100 <em>(A)</em></b>
         </div></div>
-  <p class="proj-note">Next grade <b>C</b> — reachable with quick wins.</p>
+  <p class="proj-note">Next grade <b>D</b> — reachable with quick wins.</p>
+</section>
+<section class="card">
+  <h2>How this score is calculated <span class="hint">deterministic &amp; traceable</span></h2>
+  <p class="method">Overall = round(discoverability×0.6 + engagement×0.4). Each dimension starts
+    at 100 and loses <code>severity&nbsp;×&nbsp;confidence</code> points per finding
+    (critical 35 · high 18 · medium 8 · low 3 · info 1; ×1.0/0.75/0.5 for high/medium/low
+    confidence). Current: discoverability <b>31.0</b>,
+    engagement <b>100.0</b> → <b>59</b>.</p>
+  <p class="method">Biggest point recoveries if fixed (each re-scored against the same model):</p>
+  <ul class="pe-list"><li><span class="pe-id">F-001</span><span class="pe-t">No structured data anywhere in the sampled pages</span><b class="pe-p">−10</b></li><li><span class="pe-id">F-002</span><span class="pe-t">Product-like pages missing Product/Offer schema</span><b class="pe-p">−10</b></li><li><span class="pe-id">F-003</span><span class="pe-t">Article/blog pages missing Article schema</span><b class="pe-p">−4</b></li><li><span class="pe-id">F-004</span><span class="pe-t">Homepage lacks Organization/WebSite structured data</span><b class="pe-p">−4</b></li><li><span class="pe-id">F-005</span><span class="pe-t">Pages missing an H1 heading</span><b class="pe-p">−4</b></li><li><span class="pe-id">F-006</span><span class="pe-t">Heading hierarchy skips levels</span><b class="pe-p">−1</b></li></ul>
 </section>
 <section class="card">
   <h2>Pillar health <span class="hint">six areas of AI readiness</span></h2>
@@ -168,69 +210,27 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <div class="radar"><svg viewBox="0 0 380 300" width="100%" height="auto" role="img" aria-label="Pillar radar chart">
   <circle cx="190" cy="150" r="26.0" fill="none" stroke="#e6e8ec" stroke-width="1"/><circle cx="190" cy="150" r="52.0" fill="none" stroke="#e6e8ec" stroke-width="1"/><circle cx="190" cy="150" r="78.0" fill="none" stroke="#e6e8ec" stroke-width="1"/><circle cx="190" cy="150" r="104.0" fill="none" stroke="#e6e8ec" stroke-width="1"/>
   <line x1="190" y1="150" x2="190.0" y2="46.0" stroke="#e6e8ec" stroke-width="1"/><line x1="190" y1="150" x2="280.1" y2="98.0" stroke="#e6e8ec" stroke-width="1"/><line x1="190" y1="150" x2="280.1" y2="202.0" stroke="#e6e8ec" stroke-width="1"/><line x1="190" y1="150" x2="190.0" y2="254.0" stroke="#e6e8ec" stroke-width="1"/><line x1="190" y1="150" x2="99.9" y2="202.0" stroke="#e6e8ec" stroke-width="1"/><line x1="190" y1="150" x2="99.9" y2="98.0" stroke="#e6e8ec" stroke-width="1"/>
-  <polygon points="190.0,46.0 233.2,125.0 270.9,196.7 190.0,254.0 99.9,202.0 99.9,98.0" fill="rgba(47,111,176,.20)" stroke="#2f6fb0" stroke-width="2"/>
-  <circle cx="190.0" cy="46.0" r="3" fill="#2f6fb0"/><circle cx="233.2" cy="125.0" r="3" fill="#2f6fb0"/><circle cx="270.9" cy="196.7" r="3" fill="#2f6fb0"/><circle cx="190.0" cy="254.0" r="3" fill="#2f6fb0"/><circle cx="99.9" cy="202.0" r="3" fill="#2f6fb0"/><circle cx="99.9" cy="98.0" r="3" fill="#2f6fb0"/>
+  <polygon points="190.0,46.0 233.2,125.0 264.8,193.2 190.0,254.0 99.9,202.0 99.9,98.0" fill="rgba(47,111,176,.20)" stroke="#2f6fb0" stroke-width="2"/>
+  <circle cx="190.0" cy="46.0" r="3" fill="#2f6fb0"/><circle cx="233.2" cy="125.0" r="3" fill="#2f6fb0"/><circle cx="264.8" cy="193.2" r="3" fill="#2f6fb0"/><circle cx="190.0" cy="254.0" r="3" fill="#2f6fb0"/><circle cx="99.9" cy="202.0" r="3" fill="#2f6fb0"/><circle cx="99.9" cy="98.0" r="3" fill="#2f6fb0"/>
   <text x="190.0" y="36.0" text-anchor="middle" font-size="11" fill="#5a6472">Crawl</text><text x="292.2" y="95.0" text-anchor="start" font-size="11" fill="#5a6472">Structured</text><text x="292.2" y="213.0" text-anchor="start" font-size="11" fill="#5a6472">Extract</text><text x="190.0" y="272.0" text-anchor="middle" font-size="11" fill="#5a6472">Fresh</text><text x="87.8" y="213.0" text-anchor="end" font-size="11" fill="#5a6472">Corrob</text><text x="87.8" y="95.0" text-anchor="end" font-size="11" fill="#5a6472">Engage</text>
 </svg></div>
-    <ul class="pillar-list"><li>
-          <span class="dot" style="background:#2e7d32"></span>
-          <span class="pill-l">Crawl &amp; Render</span>
-          <span class="pill-track"><i style="width:100%;
-            background:#2e7d32"></i></span>
-          <b>100</b>
-          <span class="pill-n">0 issue(s)</span>
-        </li><li>
-          <span class="dot" style="background:#c0182f"></span>
-          <span class="pill-l">Structured Data</span>
-          <span class="pill-track"><i style="width:48.0%;
-            background:#c0182f"></i></span>
-          <b>48</b>
-          <span class="pill-n">4 issue(s)</span>
-        </li><li>
-          <span class="dot" style="background:#e0a500"></span>
-          <span class="pill-l">Extractability</span>
-          <span class="pill-track"><i style="width:89.8%;
-            background:#e0a500"></i></span>
-          <b>90</b>
-          <span class="pill-n">2 issue(s)</span>
-        </li><li>
-          <span class="dot" style="background:#2e7d32"></span>
-          <span class="pill-l">Freshness</span>
-          <span class="pill-track"><i style="width:100%;
-            background:#2e7d32"></i></span>
-          <b>100</b>
-          <span class="pill-n">0 issue(s)</span>
-        </li><li>
-          <span class="dot" style="background:#2e7d32"></span>
-          <span class="pill-l">Corroboration</span>
-          <span class="pill-track"><i style="width:100%;
-            background:#2e7d32"></i></span>
-          <b>100</b>
-          <span class="pill-n">0 issue(s)</span>
-        </li><li>
-          <span class="dot" style="background:#2e7d32"></span>
-          <span class="pill-l">Engagement</span>
-          <span class="pill-track"><i style="width:100%;
-            background:#2e7d32"></i></span>
-          <b>100</b>
-          <span class="pill-n">0 issue(s)</span>
-        </li></ul>
+    <ul class="pillar-list"><li><span class="dot" style="background:#2e7d32"></span><span class="pill-l">Crawl &amp; Render</span><span class="pill-track"><i style="width:100%;background:#2e7d32"></i></span><b>100</b><span class="pill-n">0 issue(s)</span></li><li><span class="dot" style="background:#c0182f"></span><span class="pill-l">Structured Data</span><span class="pill-track"><i style="width:48.0%;background:#c0182f"></i></span><b>48</b><span class="pill-n">4 issue(s)</span></li><li><span class="dot" style="background:#e0a500"></span><span class="pill-l">Extractability</span><span class="pill-track"><i style="width:83.0%;background:#e0a500"></i></span><b>83</b><span class="pill-n">5 issue(s)</span></li><li><span class="dot" style="background:#2e7d32"></span><span class="pill-l">Freshness</span><span class="pill-track"><i style="width:100%;background:#2e7d32"></i></span><b>100</b><span class="pill-n">0 issue(s)</span></li><li><span class="dot" style="background:#2f6fb0"></span><span class="pill-l">Corroboration</span><span class="pill-track"><i style="width:100%;background:#2f6fb0"></i></span><b>100</b><span class="pill-n">partial</span></li><li><span class="dot" style="background:#2e7d32"></span><span class="pill-l">Engagement</span><span class="pill-track"><i style="width:100%;background:#2e7d32"></i></span><b>100</b><span class="pill-n">0 issue(s)</span></li></ul>
   </div>
 </section>
 <section class="charts"><div class="chart-card">
       <h3>Findings by severity</h3>
       <div class="donut-wrap">
       <svg viewBox="0 0 180 180" width="160" height="160" role="img" aria-label="Severity distribution">
-        <circle cx="90" cy="90" r="62" fill="none" stroke="#e05a1e" stroke-width="26" stroke-dasharray="129.9 259.7" stroke-dashoffset="-0.0" transform="rotate(-90 90 90)"/><circle cx="90" cy="90" r="62" fill="none" stroke="#e0a500" stroke-width="26" stroke-dasharray="194.8 194.8" stroke-dashoffset="-129.9" transform="rotate(-90 90 90)"/><circle cx="90" cy="90" r="62" fill="none" stroke="#3f9d63" stroke-width="26" stroke-dasharray="64.9 324.6" stroke-dashoffset="-324.6" transform="rotate(-90 90 90)"/>
-        <text x="90" y="86" text-anchor="middle" font-size="30" font-weight="700" fill="#1c2430">6</text>
+        <circle cx="90" cy="90" r="62" fill="none" stroke="#e05a1e" stroke-width="26" stroke-dasharray="86.6 303.0" stroke-dashoffset="-0.0" transform="rotate(-90 90 90)"/><circle cx="90" cy="90" r="62" fill="none" stroke="#e0a500" stroke-width="26" stroke-dasharray="129.9 259.7" stroke-dashoffset="-86.6" transform="rotate(-90 90 90)"/><circle cx="90" cy="90" r="62" fill="none" stroke="#3f9d63" stroke-width="26" stroke-dasharray="173.1 216.4" stroke-dashoffset="-216.4" transform="rotate(-90 90 90)"/>
+        <text x="90" y="86" text-anchor="middle" font-size="30" font-weight="700" fill="#1c2430">9</text>
         <text x="90" y="106" text-anchor="middle" font-size="12" fill="#7a8595">findings</text>
       </svg>
-      <ul class="legend"><li><span class="dot" style="background:#e05a1e"></span>High <b>2</b> <em>33%</em></li><li><span class="dot" style="background:#e0a500"></span>Medium <b>3</b> <em>50%</em></li><li><span class="dot" style="background:#3f9d63"></span>Low <b>1</b> <em>17%</em></li></ul>
+      <ul class="legend"><li><span class="dot" style="background:#e05a1e"></span>High <b>2</b> <em>22%</em></li><li><span class="dot" style="background:#e0a500"></span>Medium <b>3</b> <em>33%</em></li><li><span class="dot" style="background:#3f9d63"></span>Low <b>4</b> <em>44%</em></li></ul>
     </div>
       <div class="conf">
       <div class="conf-l">Confidence</div>
-      <div class="conf-bar"><span style="width:83%;background:#3f9d63" title="high 5 (83%)"></span><span style="width:17%;background:#e0a500" title="medium 1 (17%)"></span></div>
-      <div class="conf-legend">high 83% · medium 17%</div>
+      <div class="conf-bar"><span style="width:56%;background:#3f9d63" title="high 5 (56%)"></span><span style="width:44%;background:#e0a500" title="medium 4 (44%)"></span></div>
+      <div class="conf-legend">high 56% · medium 44%</div>
     </div>
     </div><div class="chart-card">
       <h3>Impact × effort <span class="hint">top-left = do first</span></h3>
@@ -247,26 +247,20 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
   <text x="12" y="120" text-anchor="middle" font-size="10" fill="#5a6472"
     transform="rotate(-90 12 120)">Impact →</text>
   <text x="173" y="252" text-anchor="middle" font-size="10" fill="#5a6472">Effort →</text>
-  <circle cx="166.0" cy="70.6" r="9" fill="#e05a1e" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>No structured data anywhere in the sampled pages — impact 4, effort 3, +10 pts</title></circle><circle cx="219.2" cy="70.6" r="9" fill="#e05a1e" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Product-like pages missing Product/Offer schema — impact 4, effort 4, +10 pts</title></circle><circle cx="166.0" cy="113.0" r="9" fill="#e0a500" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Article/blog pages missing Article schema — impact 3, effort 3, +4 pts</title></circle><circle cx="112.8" cy="113.0" r="9" fill="#e0a500" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Homepage lacks Organization/WebSite structured data — impact 3, effort 2, +4 pts</title></circle><circle cx="119.8" cy="113.0" r="9" fill="#e0a500" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Pages missing an H1 heading — impact 3, effort 2, +4 pts</title></circle><circle cx="112.8" cy="155.4" r="6" fill="#3f9d63" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Substantial content offloaded to PDF files — impact 2, effort 2, +1 pts</title></circle>
+  <circle cx="166.0" cy="70.6" r="9" fill="#e05a1e" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>No structured data anywhere in the sampled pages — impact 4, effort 3, +10 pts</title></circle><circle cx="219.2" cy="70.6" r="9" fill="#e05a1e" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Product-like pages missing Product/Offer schema — impact 4, effort 4, +10 pts</title></circle><circle cx="166.0" cy="113.0" r="9" fill="#e0a500" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Article/blog pages missing Article schema — impact 3, effort 3, +4 pts</title></circle><circle cx="112.8" cy="113.0" r="9" fill="#e0a500" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Homepage lacks Organization/WebSite structured data — impact 3, effort 2, +4 pts</title></circle><circle cx="119.8" cy="113.0" r="9" fill="#e0a500" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Pages missing an H1 heading — impact 3, effort 2, +4 pts</title></circle><circle cx="166.0" cy="155.4" r="6" fill="#3f9d63" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Heading hierarchy skips levels — impact 2, effort 3, +1 pts</title></circle><circle cx="173.0" cy="155.4" r="6" fill="#3f9d63" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Meta descriptions likely to be truncated — impact 2, effort 3, +1 pts</title></circle><circle cx="112.8" cy="155.4" r="6" fill="#3f9d63" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Substantial content offloaded to PDF files — impact 2, effort 2, +1 pts</title></circle><circle cx="180.0" cy="155.4" r="6" fill="#3f9d63" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>Title tags outside the useful length range — impact 2, effort 3, +1 pts</title></circle>
 </svg>
     </div></section>
-<section class="card"><h2>Action roadmap</h2><div class="roadmap"><div class="road-col"><h3>Now <span>4</span></h3><p class="road-sub">critical, high & quick wins</p><ul><li><span class="chip mini" style="background:#e05a1e">HIGH</span> No structured data anywhere in the sampled pages <em>(medium effort)</em></li><li><span class="chip mini" style="background:#e05a1e">HIGH</span> Product-like pages missing Product/Offer schema <em>(high effort)</em></li><li><span class="chip mini" style="background:#e0a500">MEDI</span> Homepage lacks Organization/WebSite structured data <em>(low effort)</em></li><li><span class="chip mini" style="background:#e0a500">MEDI</span> Pages missing an H1 heading <em>(low effort)</em></li></ul></div><div class="road-col"><h3>Next <span>1</span></h3><p class="road-sub">medium-severity fixes</p><ul><li><span class="chip mini" style="background:#e0a500">MEDI</span> Article/blog pages missing Article schema <em>(medium effort)</em></li></ul></div><div class="road-col"><h3>Later <span>1</span></h3><p class="road-sub">low-severity refinements</p><ul><li><span class="chip mini" style="background:#3f9d63">LOW</span> Substantial content offloaded to PDF files <em>(low effort)</em></li></ul></div></div></section>
+<section class="card"><h2>Action roadmap</h2><div class="roadmap"><div class="road-col"><h3>Now <span>4</span></h3><p class="road-sub">critical, high & quick wins</p><ul><li><span class="chip mini" style="background:#e05a1e">HIGH</span> No structured data anywhere in the sampled pages <em>(medium effort)</em></li><li><span class="chip mini" style="background:#e05a1e">HIGH</span> Product-like pages missing Product/Offer schema <em>(high effort)</em></li><li><span class="chip mini" style="background:#e0a500">MEDI</span> Homepage lacks Organization/WebSite structured data <em>(low effort)</em></li><li><span class="chip mini" style="background:#e0a500">MEDI</span> Pages missing an H1 heading <em>(low effort)</em></li></ul></div><div class="road-col"><h3>Next <span>1</span></h3><p class="road-sub">medium-severity fixes</p><ul><li><span class="chip mini" style="background:#e0a500">MEDI</span> Article/blog pages missing Article schema <em>(medium effort)</em></li></ul></div><div class="road-col"><h3>Later <span>4</span></h3><p class="road-sub">low-severity refinements</p><ul><li><span class="chip mini" style="background:#3f9d63">LOW</span> Heading hierarchy skips levels <em>(medium effort)</em></li><li><span class="chip mini" style="background:#3f9d63">LOW</span> Meta descriptions likely to be truncated <em>(medium effort)</em></li><li><span class="chip mini" style="background:#3f9d63">LOW</span> Substantial content offloaded to PDF files <em>(low effort)</em></li><li><span class="chip mini" style="background:#3f9d63">LOW</span> Title tags outside the useful length range <em>(medium effort)</em></li></ul></div></div></section>
 <section class="card">
   <h2>Page hotspots <span class="hint">pages carrying the most weighted issues</span></h2>
   <table class="hotspots">
     <thead><tr><th>Page</th><th>Findings</th><th>Impact</th><th>Top severity</th></tr></thead>
-    <tbody><tr><td class="url">https://www.smashingmagazine.com/articles/</td><td>2</td><td>6</td><td><span class="chip mini" style="background:#e0a500">MEDIUM</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/smashing-library/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/</td><td>1</td><td>4</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr></tbody>
+    <tbody><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/smashing-library/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/</td><td>4</td><td>10</td><td><span class="chip mini" style="background:#e05a1e">HIGH</span></td></tr><tr><td class="url">https://www.smashingmagazine.com/articles/</td><td>3</td><td>8</td><td><span class="chip mini" style="background:#e0a500">MEDIUM</span></td></tr></tbody>
   </table>
 </section>
 <main class="card">
   <h2>Findings <span class="hint">(most actionable first)</span></h2>
-  <div class="filters" role="group" aria-label="Filter findings">
-      <button class="fbtn active" data-filter="all">All</button>
-      <button class="fbtn" data-filter="discoverability">Discoverability</button>
-      <button class="fbtn" data-filter="engagement">Engagement</button>
-      <button class="fbtn" data-filter="critical">Critical</button>
-      <button class="fbtn" data-filter="high">High</button>
-    </div>
+  <div class="filters" role="group" aria-label="Filter findings"><button class="fbtn active" data-filter="all">All</button><button class="fbtn" data-filter="high">High</button><button class="fbtn" data-filter="medium">Medium</button><button class="fbtn" data-filter="low">Low</button></div>
   <div id="findings"><details class="finding" data-severity="high"
     data-dimension="discoverability">
   <summary>
@@ -276,13 +270,17 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <span class="impact" title="impact 1–5">impact 4</span>
   </summary>
   <div class="body">
-    <p class="why"><b>Why it hurts:</b> Without machine-readable markup, assistants must guess facts from prose and often get them wrong.</p>
+    <p class="why"><b>Why it hurts:</b> With no machine-readable markup, an assistant must infer every fact (who the brand is, what it sells, prices, dates) from prose — error-prone and rarely quoted with confidence.</p>
     <p class="evidence"><b>Evidence:</b> 0 of 12 sampled pages contain JSON-LD, microdata, or RDFa.</p>
-    <p class="fix"><b>Fix (high):</b>
-       Add schema.org JSON-LD to key templates: Organization + WebSite on the homepage, and the page-appropriate type (Product/Offer, Article, FAQPage, LocalBusiness, BreadcrumbList) elsewhere. This is the highest-leverage discoverability fix.</p>
+    <p class="scope"><b>Scope:</b> 0 of 12 pages</p>
+    <p class="fix"><b>How to fix (high):</b>
+       Add schema.org JSON-LD to key templates: Organization + WebSite on the homepage, and the page-appropriate type (Product/Offer, Article, FAQPage, Course, BreadcrumbList) elsewhere.</p>
+    <p class="xi"><b>Expected impact:</b> Makes core facts directly quotable; typically the highest-leverage discoverability fix.</p>
+    <div class="measures"><span class="mchip">pages_with_structured_data: 0</span><span class="mchip">pages: 12</span></div>
     
     <p class="cat">category: structured-data ·
-       confidence: high · id: F-001</p>
+       confidence: high ·
+       impact: 4/5 · id: F-001</p>
   </div>
 </details>
 <details class="finding" data-severity="high"
@@ -294,13 +292,17 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <span class="impact" title="impact 1–5">impact 4</span>
   </summary>
   <div class="body">
-    <p class="why"><b>Why it hurts:</b> Without machine-readable markup, assistants must guess facts from prose and often get them wrong.</p>
-    <p class="evidence"><b>Evidence:</b> 7 page(s) look like product pages (cart/price cues) but have no Product JSON-LD, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/.</p>
-    <p class="fix"><b>Fix (high):</b>
-       Add Product JSON-LD with name, image, description, brand, and an Offer (price, priceCurrency, availability) to every product page.</p>
+    <p class="why"><b>Why it hurts:</b> Without Product/Offer markup an assistant cannot reliably read price, availability, or rating, so the brand is left out of shopping-style answers where those facts are required.</p>
+    <p class="evidence"><b>Evidence:</b> 7 of 12 page(s) (58%) look like product pages (cart/price cues) but have no Product JSON-LD, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/.</p>
+    <p class="scope"><b>Scope:</b> 7 of 12 page(s) (58%)</p>
+    <p class="fix"><b>How to fix (high):</b>
+       Add Product JSON-LD (name, image, description, brand) with an Offer (price, priceCurrency, availability) to each product template.</p>
+    <p class="xi"><b>Expected impact:</b> Enables price/availability to be cited in answer-engine shopping results.</p>
+    <div class="measures"><span class="mchip">product_like_without_schema: 7</span><span class="mchip">pages: 12</span></div>
     <div class="pages"><span>Affected pages</span><ul><li>https://www.smashingmagazine.com/ebook-bundles/smashing-library/</li><li>https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/</li></ul></div>
     <p class="cat">category: structured-data ·
-       confidence: high · id: F-002</p>
+       confidence: high ·
+       impact: 4/5 · id: F-002</p>
   </div>
 </details>
 <details class="finding" data-severity="medium"
@@ -312,13 +314,17 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <span class="impact" title="impact 1–5">impact 3</span>
   </summary>
   <div class="body">
-    <p class="why"><b>Why it hurts:</b> Without machine-readable markup, assistants must guess facts from prose and often get them wrong.</p>
-    <p class="evidence"><b>Evidence:</b> 1 article-like page(s) lack Article/BlogPosting JSON-LD, e.g. https://www.smashingmagazine.com/articles/.</p>
-    <p class="fix"><b>Fix (medium):</b>
-       Add Article/BlogPosting JSON-LD with headline, author, datePublished, and dateModified so assistants can attribute and date the content.</p>
+    <p class="why"><b>Why it hurts:</b> Without Article markup an assistant cannot reliably attribute the piece to an author or date it, so it is trusted and cited less for topical questions.</p>
+    <p class="evidence"><b>Evidence:</b> 1 of 12 page(s) (8%) look like articles but lack Article/BlogPosting JSON-LD, e.g. https://www.smashingmagazine.com/articles/.</p>
+    <p class="scope"><b>Scope:</b> 1 of 12 page(s) (8%)</p>
+    <p class="fix"><b>How to fix (medium):</b>
+       Add Article/BlogPosting JSON-LD with headline, author, datePublished, and dateModified to the article template.</p>
+    
+    <div class="measures"><span class="mchip">article_like_without_schema: 1</span><span class="mchip">pages: 12</span></div>
     <div class="pages"><span>Affected pages</span><ul><li>https://www.smashingmagazine.com/articles/</li></ul></div>
     <p class="cat">category: structured-data ·
-       confidence: high · id: F-003</p>
+       confidence: high ·
+       impact: 3/5 · id: F-003</p>
   </div>
 </details>
 <details class="finding" data-severity="medium"
@@ -330,13 +336,17 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <span class="impact" title="impact 1–5">impact 3</span>
   </summary>
   <div class="body">
-    <p class="why"><b>Why it hurts:</b> With no stable, disambiguated identity, assistants can&#x27;t confidently attribute facts to the brand.</p>
-    <p class="evidence"><b>Evidence:</b> Homepage (https://www.smashingmagazine.com/) has no Organization, LocalBusiness, or WebSite JSON-LD; its detected types: none.</p>
-    <p class="fix"><b>Fix (high):</b>
-       Add an Organization (or LocalBusiness) node with name, url, logo, and sameAs, plus a WebSite node with name and optional SearchAction. This gives assistants a stable, unambiguous identity for the brand.</p>
+    <p class="why"><b>Why it hurts:</b> Without an Organization/WebSite node, an assistant has no stable, machine-readable identity for the brand and cannot confidently attribute facts or citations to it.</p>
+    <p class="evidence"><b>Evidence:</b> Homepage (https://www.smashingmagazine.com/) has no Organization, LocalBusiness, or WebSite JSON-LD; detected types: none.</p>
+    
+    <p class="fix"><b>How to fix (high):</b>
+       Add an Organization (or LocalBusiness) node with name, url, logo, and sameAs, plus a WebSite node with name and optional SearchAction, on the homepage template.</p>
+    
+    <div class="measures"><span class="mchip">homepage_identity_types: []</span></div>
     
     <p class="cat">category: entity-identity ·
-       confidence: high · id: F-004</p>
+       confidence: high ·
+       impact: 3/5 · id: F-004</p>
   </div>
 </details>
 <details class="finding" data-severity="medium"
@@ -348,13 +358,61 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <span class="impact" title="impact 1–5">impact 3</span>
   </summary>
   <div class="body">
-    <p class="why"><b>Why it hurts:</b> A fact locked in an image or missing its text anchor can&#x27;t be extracted or quoted.</p>
-    <p class="evidence"><b>Evidence:</b> 1 sampled page(s) have no H1, e.g. https://www.smashingmagazine.com/articles/. The H1 is the primary topic anchor.</p>
-    <p class="fix"><b>Fix (medium):</b>
-       Add exactly one descriptive H1 per page stating what the page is about in plain words.</p>
+    <p class="why"><b>Why it hurts:</b> The H1 is the primary topic anchor a machine uses to decide what a page is about; without it the page&#x27;s subject must be guessed from weaker signals.</p>
+    <p class="evidence"><b>Evidence:</b> 1 of 12 page(s) (8%) have no H1, e.g. https://www.smashingmagazine.com/articles/.</p>
+    <p class="scope"><b>Scope:</b> 1 of 12 page(s) (8%)</p>
+    <p class="fix"><b>How to fix (medium):</b>
+       Add exactly one descriptive H1 per page that states the page&#x27;s topic in plain words.</p>
+    
+    <div class="measures"><span class="mchip">pages_without_h1: 1</span><span class="mchip">pages: 12</span></div>
     <div class="pages"><span>Affected pages</span><ul><li>https://www.smashingmagazine.com/articles/</li></ul></div>
     <p class="cat">category: extractability ·
-       confidence: high · id: F-005</p>
+       confidence: high ·
+       impact: 3/5 · id: F-005</p>
+  </div>
+</details>
+<details class="finding" data-severity="low"
+    data-dimension="discoverability">
+  <summary>
+    <span class="chip" style="background:#3f9d63">LOW</span>
+    <span class="dim">discoverability</span>
+    <span class="ftitle">Heading hierarchy skips levels</span>
+    <span class="impact" title="impact 1–5">impact 2</span>
+  </summary>
+  <div class="body">
+    <p class="why"><b>Why it hurts:</b> A machine reconstructs a page&#x27;s outline from heading levels; skipped levels break that nesting, so the relationship between sections is ambiguous.</p>
+    <p class="evidence"><b>Evidence:</b> 12 of 12 page(s) (100%) jump heading levels (e.g. H1→H3 with no H2), e.g. https://www.smashingmagazine.com/.</p>
+    <p class="scope"><b>Scope:</b> 12 of 12 page(s) (100%)</p>
+    <p class="fix"><b>How to fix (low):</b>
+       Use headings in order (H1→H2→H3) without skipping a level; style, don&#x27;t skip, to change size.</p>
+    
+    <div class="measures"><span class="mchip">pages_with_skipped_levels: 12</span></div>
+    <div class="pages"><span>Affected pages</span><ul><li>https://www.smashingmagazine.com/</li><li>https://www.smashingmagazine.com/ebook-bundles/smashing-library/</li><li>https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/</li><li>https://www.smashingmagazine.com/articles/</li><li>https://www.smashingmagazine.com/author/cosima-mielke/</li></ul></div>
+    <p class="cat">category: extractability ·
+       confidence: medium ·
+       impact: 2/5 · id: F-006</p>
+  </div>
+</details>
+<details class="finding" data-severity="low"
+    data-dimension="discoverability">
+  <summary>
+    <span class="chip" style="background:#3f9d63">LOW</span>
+    <span class="dim">discoverability</span>
+    <span class="ftitle">Meta descriptions likely to be truncated</span>
+    <span class="impact" title="impact 1–5">impact 2</span>
+  </summary>
+  <div class="body">
+    <p class="why"><b>Why it hurts:</b> Over-long descriptions are cut off, so the most important summary sentence may never be shown or quoted.</p>
+    <p class="evidence"><b>Evidence:</b> 8 of 12 page(s) (67%) have a meta description longer than 160 characters, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/ (434 chars).</p>
+    <p class="scope"><b>Scope:</b> 8 of 12 page(s) (67%)</p>
+    <p class="fix"><b>How to fix (low):</b>
+       Trim descriptions to ≈50–160 characters, leading with the key fact.</p>
+    
+    <div class="measures"><span class="mchip">pages_with_long_description: 8</span><span class="mchip">max: 160</span></div>
+    <div class="pages"><span>Affected pages</span><ul><li>https://www.smashingmagazine.com/ebook-bundles/smashing-library/</li><li>https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/</li><li>https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/</li></ul></div>
+    <p class="cat">category: extractability ·
+       confidence: medium ·
+       impact: 2/5 · id: F-007</p>
   </div>
 </details>
 <details class="finding" data-severity="low"
@@ -366,16 +424,64 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     <span class="impact" title="impact 1–5">impact 2</span>
   </summary>
   <div class="body">
-    <p class="why"><b>Why it hurts:</b> A fact locked in an image or missing its text anchor can&#x27;t be extracted or quoted.</p>
-    <p class="evidence"><b>Evidence:</b> 3 PDF link(s) found across sampled pages. Scanned or image-based PDFs are often unreadable to crawlers.</p>
-    <p class="fix"><b>Fix (low):</b>
-       Publish the key information as HTML pages (the PDF can remain as a download). Ensure any essential PDFs contain real, selectable text, not scans.</p>
+    <p class="why"><b>Why it hurts:</b> Scanned or image-only PDFs are frequently unreadable to crawlers, so any key information that lives only inside them cannot be extracted or cited.</p>
+    <p class="evidence"><b>Evidence:</b> 3 PDF link(s) found across sampled pages.</p>
+    
+    <p class="fix"><b>How to fix (low):</b>
+       Publish the key information as HTML (keep the PDF as an optional download) and ensure essential PDFs contain real, selectable text, not scans.</p>
+    
+    <div class="measures"><span class="mchip">pdf_links: 3</span></div>
     
     <p class="cat">category: extractability ·
-       confidence: medium · id: F-006</p>
+       confidence: medium ·
+       impact: 2/5 · id: F-008</p>
+  </div>
+</details>
+<details class="finding" data-severity="low"
+    data-dimension="discoverability">
+  <summary>
+    <span class="chip" style="background:#3f9d63">LOW</span>
+    <span class="dim">discoverability</span>
+    <span class="ftitle">Title tags outside the useful length range</span>
+    <span class="impact" title="impact 1–5">impact 2</span>
+  </summary>
+  <div class="body">
+    <p class="why"><b>Why it hurts:</b> Very short titles under-describe the page while very long ones get truncated in results and answers, so the specific topic is lost either way.</p>
+    <p class="evidence"><b>Evidence:</b> 9 of 12 page(s) (75%) have a &lt;title&gt; shorter than 15 or longer than 65 characters, e.g. https://www.smashingmagazine.com/ (75 chars).</p>
+    <p class="scope"><b>Scope:</b> 9 of 12 page(s) (75%)</p>
+    <p class="fix"><b>How to fix (low):</b>
+       Rewrite titles to ≈15–65 characters: lead with the unique topic, then the brand.</p>
+    
+    <div class="measures"><span class="mchip">pages_with_offlength_title: 9</span><span class="mchip">min: 15</span><span class="mchip">max: 65</span></div>
+    <div class="pages"><span>Affected pages</span><ul><li>https://www.smashingmagazine.com/</li><li>https://www.smashingmagazine.com/ebook-bundles/smashing-library/</li><li>https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/</li><li>https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/</li><li>https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/</li></ul></div>
+    <p class="cat">category: extractability ·
+       confidence: medium ·
+       impact: 2/5 · id: F-009</p>
   </div>
 </details></div>
 </main>
+<section class="card">
+  <h2>Proactive opportunities <span class="hint">context-justified — not defects, no score impact</span></h2>
+  <div class="opp">
+      <div class="opp-head"><span class="chip mini" style="background:#7a4fd0">corroboration</span>
+        <span class="opp-title">Add author (Person) markup to articles</span>
+        <span class="opp-meta">Low effort · medium confidence</span></div>
+      <p class="opp-why">The site publishes articles but exposes no author/Person markup; explicit authorship is a trust and attribution signal assistants use.</p>
+      <p class="opp-do"><b>Do:</b> Add an author (Person, with name and optionally sameAs) to Article/BlogPosting JSON-LD and a visible byline.</p>
+      <p class="opp-impact"><b>Expected impact:</b> Better attribution and topical authority for cited content.</p>
+    </div><div class="opp">
+      <div class="opp-head"><span class="chip mini" style="background:#7a4fd0">structured-data</span>
+        <span class="opp-title">Add BreadcrumbList schema on deep pages</span>
+        <span class="opp-meta">Low effort · medium confidence</span></div>
+      <p class="opp-why">The site has deep pages but no BreadcrumbList markup; breadcrumbs give machines the page&#x27;s place in the site hierarchy.</p>
+      <p class="opp-do"><b>Do:</b> Add BreadcrumbList JSON-LD (and a visible trail) on section/detail pages.</p>
+      <p class="opp-impact"><b>Expected impact:</b> Clearer site structure for machines and better orientation for visitors.</p>
+    </div>
+</section>
+<section class="card">
+  <h2>Limitations <span class="hint">what this audit does and doesn't claim</span></h2>
+  <ul class="limits"><li>Static, read-only analysis: JavaScript is not executed, so client-rendered content is inferred (medium confidence), not confirmed against a rendered DOM.</li><li>A bounded sample of 12 page(s) was analyzed — findings describe patterns across the sample, not every URL on the site.</li><li>Corroboration checks on-page signals only; it does not independently verify claims against external sources.</li><li>Partially assessed: Corroboration.</li></ul>
+</section>
 <footer>
   <h2>Methodology &amp; coverage</h2>
   <p class="method">Static, read-only, robots-respecting analysis. Profile
@@ -383,7 +489,7 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
     12 page(s) sampled · checks run: crawl-render-audit, structured-data-audit, content-extractability-audit, freshness-corroboration, engagement-audit.
     The AI Visibility Score and every projection use one transparent, deterministic model
     (see <code>auditlib/scoring.py</code>); effort estimates are category-based heuristics.</p>
-  <ul class="notes"><li>Crawled 12 page(s) in 24321 ms; 15 HTTP request(s). Static, read-only analysis.</li></ul>
+  <ul class="notes"><li>Crawled 12 page(s) in 18132 ms; 25 HTTP request(s). Static, read-only analysis.</li></ul>
   <p class="fine">Generated by brand-ai-readiness-audit · recommend-only. JSON remains the
     canonical machine-readable output.</p>
 </footer>

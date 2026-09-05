@@ -40,6 +40,17 @@ PILLARS = [
 ]
 _CATEGORY_TO_PILLAR = {cat: key for key, _, _, cats in PILLARS for cat in cats}
 
+# Which coverage areas back each pillar (a pillar inherits their assessment status so a clean
+# pillar reads as "not assessed"/"partial" rather than a misleading "healthy 100").
+PILLAR_COVERAGE = {
+    "crawl_render": ["crawlability", "rendering"],
+    "structured_data": ["structured_data", "entity_identity"],
+    "extractability": ["extractability"],
+    "freshness": ["freshness"],
+    "corroboration": ["corroboration"],
+    "engagement": ["engagement"],
+}
+
 # Pillar health bands (score cutoff → status).
 PILLAR_BANDS = [(90, "healthy"), (70, "warning"), (0, "critical")]
 
@@ -95,14 +106,16 @@ def attach(report: Dict[str, Any]) -> Dict[str, Any]:
     # Enrich each finding with effort + quadrant + the score points it is costing.
     enriched = [_enrich(f, findings, dims, current) for f in findings]
 
+    coverage = report.get("coverage") or {}
+    cov_by_area = {a["key"]: a for a in coverage.get("areas", [])}
     matrix = _matrix(enriched)
     projection = _projection(report, findings, dims, current, matrix["quick_win_ids"])
-    pillars = _pillars(findings)
+    pillars = _pillars(findings, cov_by_area)
     distribution = _distribution(findings)
     hotspots = _hotspots(enriched)
     roadmap = _roadmap(enriched, matrix["quick_win_ids"])
-    kpis = _kpis(report, enriched, pillars, matrix, projection)
-    narrative = _narrative(report, kpis, pillars, matrix, projection)
+    kpis = _kpis(report, enriched, pillars, matrix, projection, coverage)
+    narrative = _narrative(report, kpis, pillars, matrix, projection, coverage)
 
     report["analytics"] = {
         "generated_from": "scored report (deterministic, no extra data collected)",
@@ -225,7 +238,7 @@ def _pillar_status(score: float) -> str:
     return "critical"
 
 
-def _pillars(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _pillars(findings: List[Dict[str, Any]], cov_by_area: Dict[str, Any]) -> List[Dict[str, Any]]:
     out = []
     for key, label, dimension, cats in PILLARS:
         members = [f for f in findings if f.get("category") in cats]
@@ -233,15 +246,31 @@ def _pillars(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         for f in members:
             score -= scoring.penalty_of(f)
         score = max(0.0, min(100.0, round(score, 1)))
+        status = _pillar_status_combined(key, bool(members), score, cov_by_area)
         out.append({
             "key": key,
             "label": label,
             "dimension": dimension,
             "score": score,
-            "status": _pillar_status(score),
+            "status": status,
+            "assessed": status != "not_assessed",
             "findings": len(members),
         })
     return out
+
+
+def _pillar_status_combined(key, has_findings, score, cov_by_area) -> str:
+    """Prefer coverage truth (not_assessed/partial) over a misleading score-band 'healthy'."""
+    areas = [cov_by_area[a] for a in PILLAR_COVERAGE.get(key, []) if a in cov_by_area]
+    statuses = [a["status"] for a in areas]
+    if has_findings:
+        return _pillar_status(score)  # healthy/warning/critical by severity of deductions
+    if statuses:
+        if all(s == "not_assessed" for s in statuses):
+            return "not_assessed"
+        if any(s in ("partial", "not_assessed") for s in statuses):
+            return "partial"
+    return "healthy"
 
 
 # --- distribution -----------------------------------------------------------------
@@ -306,13 +335,15 @@ def _roadmap(enriched: List[Dict[str, Any]], quick_win_ids: Set[str]) -> Dict[st
 # --- KPIs + narrative -------------------------------------------------------------
 
 def _kpis(report: Dict[str, Any], enriched: List[Dict[str, Any]], pillars, matrix,
-          projection) -> Dict[str, Any]:
+          projection, coverage) -> Dict[str, Any]:
     score = report.get("score", {})
-    scored_pillars = [p for p in pillars if p["findings"] > 0] or pillars
-    weakest = min(pillars, key=lambda p: p["score"])
-    strongest = max(pillars, key=lambda p: p["score"])
+    # Weakest/strongest chosen among ASSESSED pillars, so a not-assessed 100 isn't "strongest".
+    assessed = [p for p in pillars if p.get("assessed", True)] or pillars
+    weakest = min(assessed, key=lambda p: p["score"])
+    strongest = max(assessed, key=lambda p: p["score"])
     total_effort = sum(e["effort"] for e in enriched)
     crit_high = sum(1 for e in enriched if e["severity"] in ("critical", "high"))
+    cov_sum = coverage.get("summary", {})
     return {
         "ai_visibility_score": score.get("value", 0),
         "grade": score.get("grade", "F"),
@@ -330,6 +361,10 @@ def _kpis(report: Dict[str, Any], enriched: List[Dict[str, Any]], pillars, matri
         "strongest_pillar": strongest["label"],
         "total_effort_points": total_effort,
         "effort_band": _effort_band(total_effort),
+        "opportunities": len(report.get("opportunities", [])),
+        "areas_assessed": cov_sum.get("areas_assessed"),
+        "areas_total": cov_sum.get("areas_total"),
+        "areas_not_assessed": cov_sum.get("areas_not_assessed"),
     }
 
 
@@ -348,7 +383,7 @@ def _verdict(score: int):
     return VERDICT_BANDS[-1][1], VERDICT_BANDS[-1][2]
 
 
-def _narrative(report, kpis, pillars, matrix, projection) -> List[str]:
+def _narrative(report, kpis, pillars, matrix, projection, coverage=None) -> List[str]:
     """A short, data-grounded executive summary — the paragraph an analyst would open with."""
     site = report.get("site", "the site")
     score = kpis["ai_visibility_score"]
@@ -389,4 +424,17 @@ def _narrative(report, kpis, pillars, matrix, projection) -> List[str]:
         weaker = "discoverability" if disc < eng else "engagement"
         lines.append(f"Discoverability ({disc:.0f}) and engagement ({eng:.0f}) diverge by "
                      f"{gap:.0f} points; {weaker} is the side pulling the score down.")
+
+    # Coverage honesty: say what was and wasn't assessed, so a clean area isn't read as verified.
+    cov = (coverage or {}).get("summary", {})
+    if cov.get("areas_total"):
+        na = cov.get("areas_not_assessed", 0)
+        msg = f"Assessed {cov.get('areas_assessed')} of {cov['areas_total']} areas"
+        if na:
+            not_names = [a["label"] for a in coverage.get("areas", [])
+                         if a.get("status") == "not_assessed"]
+            msg += f"; {na} not assessed ({', '.join(not_names)}) — those are not claimed as healthy"
+        if kpis.get("opportunities"):
+            msg += f". {kpis['opportunities']} proactive opportunity(ies) identified"
+        lines.append(msg + ".")
     return lines

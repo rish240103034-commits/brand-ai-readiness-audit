@@ -18,7 +18,9 @@ _SEV_COLOR = {
     "low": "#3f9d63", "info": "#6b7a8d",
 }
 _GRADE_COLOR = {"A": "#2e7d32", "B": "#66a838", "C": "#e0a500", "D": "#ef6c00", "F": "#c0182f"}
-_STATUS_COLOR = {"healthy": "#2e7d32", "warning": "#e0a500", "critical": "#c0182f"}
+_STATUS_COLOR = {"healthy": "#2e7d32", "warning": "#e0a500", "critical": "#c0182f",
+                 "partial": "#2f6fb0", "not_assessed": "#8a8f98", "issues": "#e05a1e",
+                 "opportunities": "#7a4fd0"}
 _QUADRANT_COLOR = {
     "quick_win": "#2e7d32", "major_project": "#2f6fb0",
     "fill_in": "#8a8f98", "low_priority": "#b9bec6",
@@ -43,12 +45,16 @@ def render_html(report: Dict[str, Any]) -> str:
         _hero(report, site, score, value, grade),
         _kpi_row(an, summary),
         _exec_summary(an),
+        _coverage_section(report),
         _projection_section(an),
+        _score_explanation(report, an),
         _pillars_section(an),
         _charts_section(an),
         _roadmap_section(an),
         _hotspots_section(an),
         _findings_section(findings),
+        _opportunities_section(report),
+        _limitations_section(report),
         _methodology(report),
     ]
     body = "\n".join(s for s in sections if s)
@@ -134,10 +140,13 @@ def _kpi_row(an, summary) -> str:
         _kpi(str(kpis["critical_high"]), "Critical + high", "warn" if kpis["critical_high"] else ""),
         _kpi(str(kpis["quick_wins"]), "Quick wins", "good" if kpis["quick_wins"] else ""),
         _kpi(f"{kpis['projected_score']}", f"After quick wins (+{kpis['projected_gain']})", "good"),
-        _kpi(f"{kpis['potential_score']}", "Full potential"),
+        _kpi(str(kpis.get("opportunities", 0)), "Opportunities"),
         _kpi(str(kpis["pages_analyzed"]), "Pages analyzed"),
-        _kpi(kpis["effort_band"], "Est. effort"),
     ]
+    if kpis.get("areas_total"):
+        cards.append(_kpi(f"{kpis.get('areas_assessed')}/{kpis['areas_total']}", "Areas assessed"))
+    else:
+        cards.append(_kpi(kpis["effort_band"], "Est. effort"))
     return f'<section class="kpis">{"".join(cards)}</section>'
 
 
@@ -171,6 +180,109 @@ def _exec_summary(an) -> str:
     return f"""<section class="card summary">
   <h2>Executive summary</h2>
   <div class="summary-body">{items}</div>
+</section>"""
+
+
+# --- coverage matrix --------------------------------------------------------------
+
+def _coverage_section(report) -> str:
+    cov = report.get("coverage") or {}
+    areas = cov.get("areas")
+    if not areas:
+        return ""
+    rows = ""
+    for a in areas:
+        color = _STATUS_COLOR.get(a["status"], "#889")
+        rows += (
+            f'<tr><td class="area">{html.escape(a["label"])}</td>'
+            f'<td class="checks">{html.escape(a.get("checks", ""))}</td>'
+            f'<td class="num">{a.get("pages_assessed", 0)}</td>'
+            f'<td class="num">{a.get("findings", 0)}</td>'
+            f'<td><span class="chip mini" style="background:{color}">{html.escape(a.get("status_label", a["status"]))}</span></td>'
+            f'<td class="conf">{html.escape(a.get("confidence", ""))}</td></tr>')
+    s = cov.get("summary", {})
+    note = (f'{s.get("areas_assessed")} of {s.get("areas_total")} areas assessed'
+            + (f' · {s.get("areas_not_assessed")} not assessed' if s.get("areas_not_assessed") else ""))
+    return f"""<section class="card">
+  <h2>Coverage <span class="hint">{html.escape(note)} — 0 findings ≠ healthy</span></h2>
+  <table class="coverage">
+    <thead><tr><th>Area</th><th>Checks</th><th>Pages</th><th>Findings</th><th>Status</th><th>Confidence</th></tr></thead>
+    <tbody>{rows}</tbody>
+  </table>
+</section>"""
+
+
+# --- score explanation ------------------------------------------------------------
+
+def _score_explanation(report, an) -> str:
+    score = report.get("score", {})
+    if not score:
+        return ""
+    matrix = an.get("matrix", []) if an else []
+    contrib = sorted([m for m in matrix if m.get("points_at_stake", 0) > 0],
+                     key=lambda m: -m["points_at_stake"])[:6]
+    rows = "".join(
+        f'<li><span class="pe-id">{html.escape(m["id"])}</span>'
+        f'<span class="pe-t">{html.escape(m["title"])}</span>'
+        f'<b class="pe-p">−{m["points_at_stake"]}</b></li>' for m in contrib)
+    contrib_html = f'<ul class="pe-list">{rows}</ul>' if rows else \
+        '<p class="hint">No findings are currently reducing the score.</p>'
+    return f"""<section class="card">
+  <h2>How this score is calculated <span class="hint">deterministic &amp; traceable</span></h2>
+  <p class="method">Overall = round(discoverability×0.6 + engagement×0.4). Each dimension starts
+    at 100 and loses <code>severity&nbsp;×&nbsp;confidence</code> points per finding
+    (critical 35 · high 18 · medium 8 · low 3 · info 1; ×1.0/0.75/0.5 for high/medium/low
+    confidence). Current: discoverability <b>{score.get('discoverability',0)}</b>,
+    engagement <b>{score.get('engagement',0)}</b> → <b>{score.get('value',0)}</b>.</p>
+  <p class="method">Biggest point recoveries if fixed (each re-scored against the same model):</p>
+  {contrib_html}
+</section>"""
+
+
+# --- proactive opportunities ------------------------------------------------------
+
+def _opportunities_section(report) -> str:
+    opps = report.get("opportunities") or []
+    if not opps:
+        return ""
+    cards = ""
+    for o in opps:
+        cards += f"""<div class="opp">
+      <div class="opp-head"><span class="chip mini" style="background:#7a4fd0">{html.escape(o.get('category',''))}</span>
+        <span class="opp-title">{html.escape(o.get('title',''))}</span>
+        <span class="opp-meta">{html.escape(str(o.get('effort','')))} effort · {html.escape(str(o.get('confidence','')))} confidence</span></div>
+      <p class="opp-why">{html.escape(o.get('rationale',''))}</p>
+      <p class="opp-do"><b>Do:</b> {html.escape(o.get('suggested_action',''))}</p>
+      <p class="opp-impact"><b>Expected impact:</b> {html.escape(o.get('expected_impact',''))}</p>
+    </div>"""
+    return f"""<section class="card">
+  <h2>Proactive opportunities <span class="hint">context-justified — not defects, no score impact</span></h2>
+  {cards}
+</section>"""
+
+
+# --- limitations ------------------------------------------------------------------
+
+def _limitations_section(report) -> str:
+    cov = report.get("coverage") or {}
+    not_assessed = [a["label"] for a in cov.get("areas", []) if a.get("status") == "not_assessed"]
+    partial = [a["label"] for a in cov.get("areas", []) if a.get("status") == "partial"]
+    items = [
+        "Static, read-only analysis: JavaScript is not executed, so client-rendered content is "
+        "inferred (medium confidence), not confirmed against a rendered DOM.",
+        f"A bounded sample of {report.get('pages_crawled', 0)} page(s) was analyzed — findings describe "
+        "patterns across the sample, not every URL on the site.",
+        "Corroboration checks on-page signals only; it does not independently verify claims against "
+        "external sources.",
+    ]
+    if not_assessed:
+        items.append("Not assessed (insufficient signal or skill not run): " + ", ".join(not_assessed) + ".")
+    if partial:
+        items.append("Partially assessed: " + ", ".join(partial) + ".")
+    lis = "".join(f"<li>{html.escape(x)}</li>" for x in items)
+    return f"""<section class="card">
+  <h2>Limitations <span class="hint">what this audit does and doesn't claim</span></h2>
+  <ul class="limits">{lis}</ul>
 </section>"""
 
 
@@ -210,15 +322,7 @@ def _pillars_section(an) -> str:
     pillars = an.get("pillars")
     if not pillars:
         return ""
-    rows = "".join(
-        f"""<li>
-          <span class="dot" style="background:{_STATUS_COLOR.get(p['status'], '#889')}"></span>
-          <span class="pill-l">{html.escape(p['label'])}</span>
-          <span class="pill-track"><i style="width:{max(2,min(100,p['score']))}%;
-            background:{_STATUS_COLOR.get(p['status'], '#889')}"></i></span>
-          <b>{p['score']:.0f}</b>
-          <span class="pill-n">{p['findings']} issue(s)</span>
-        </li>""" for p in pillars)
+    rows = "".join(_pillar_row(p) for p in pillars)
     return f"""<section class="card">
   <h2>Pillar health <span class="hint">six areas of AI readiness</span></h2>
   <div class="pillars-grid">
@@ -233,6 +337,26 @@ _PILLAR_SHORT = {
     "crawl_render": "Crawl", "structured_data": "Structured", "extractability": "Extract",
     "freshness": "Fresh", "corroboration": "Corrob", "engagement": "Engage",
 }
+
+
+_PILLAR_STATUS_LABEL = {"healthy": "healthy", "warning": "needs work", "critical": "critical",
+                        "partial": "partial", "not_assessed": "not assessed"}
+
+
+def _pillar_row(p: Dict[str, Any]) -> str:
+    color = _STATUS_COLOR.get(p["status"], "#889")
+    na = p["status"] == "not_assessed"
+    score_cell = "—" if na else f"{p['score']:.0f}"
+    if na or p["status"] == "partial":
+        right = _PILLAR_STATUS_LABEL.get(p["status"], p["status"])
+    else:
+        right = f"{p['findings']} issue(s)"
+    width = 0 if na else max(2, min(100, p["score"]))
+    return (f'<li><span class="dot" style="background:{color}"></span>'
+            f'<span class="pill-l">{html.escape(p["label"])}</span>'
+            f'<span class="pill-track"><i style="width:{width}%;background:{color}"></i></span>'
+            f'<b>{score_cell}</b>'
+            f'<span class="pill-n">{html.escape(str(right))}</span></li>')
 
 
 def _radar_svg(pillars: List[Dict[str, Any]]) -> str:
@@ -426,20 +550,32 @@ def _hotspots_section(an) -> str:
 
 def _findings_section(findings: List[Dict[str, Any]]) -> str:
     inner = _findings_html(findings)
-    controls = ""
-    if findings:
-        controls = """<div class="filters" role="group" aria-label="Filter findings">
-      <button class="fbtn active" data-filter="all">All</button>
-      <button class="fbtn" data-filter="discoverability">Discoverability</button>
-      <button class="fbtn" data-filter="engagement">Engagement</button>
-      <button class="fbtn" data-filter="critical">Critical</button>
-      <button class="fbtn" data-filter="high">High</button>
-    </div>"""
+    controls = _filter_controls(findings)
     return f"""<main class="card">
   <h2>Findings <span class="hint">(most actionable first)</span></h2>
   {controls}
   <div id="findings">{inner}</div>
 </main>"""
+
+
+def _filter_controls(findings: List[Dict[str, Any]]) -> str:
+    """Build filter buttons ONLY for dimensions/severities that actually occur."""
+    if len(findings) < 2:
+        return ""
+    dims = [d for d in ("discoverability", "engagement")
+            if any(f.get("dimension") == d for f in findings)]
+    sevs = [s for s in ("critical", "high", "medium", "low", "info")
+            if any(f.get("severity") == s for f in findings)]
+    buttons = ['<button class="fbtn active" data-filter="all">All</button>']
+    if len(dims) > 1:
+        for d in dims:
+            buttons.append(f'<button class="fbtn" data-filter="{d}">{d.title()}</button>')
+    if len(sevs) > 1:
+        for s in sevs:
+            buttons.append(f'<button class="fbtn" data-filter="{s}">{s.title()}</button>')
+    if len(buttons) == 1:  # nothing meaningful to filter by
+        return ""
+    return f'<div class="filters" role="group" aria-label="Filter findings">{"".join(buttons)}</div>'
 
 
 def _findings_html(findings: List[Dict[str, Any]]) -> str:
@@ -467,14 +603,36 @@ def _findings_html(findings: List[Dict[str, Any]]) -> str:
   <div class="body">
     <p class="why"><b>Why it hurts:</b> {html.escape(str(f.get('why','')))}</p>
     <p class="evidence"><b>Evidence:</b> {html.escape(str(f.get('evidence','')))}</p>
-    <p class="fix"><b>Fix ({html.escape(str(action.get('priority','')))}):</b>
-       {html.escape(str(action.get('summary','')))}</p>
+    {_scope_line(f)}
+    <p class="fix"><b>How to fix ({html.escape(str(action.get('priority','')))}):</b>
+       {html.escape(str(f.get('how_to_fix') or action.get('summary','')))}</p>
+    {_impact_line(f)}
+    {_measurements_html(f)}
     {pages_html}
     <p class="cat">category: {html.escape(str(f.get('category','')))} ·
-       confidence: {html.escape(str(f.get('confidence','')))} · id: {html.escape(str(f.get('id','')))}</p>
+       confidence: {html.escape(str(f.get('confidence','')))} ·
+       impact: {html.escape(str(f.get('impact','')))}/5 · id: {html.escape(str(f.get('id','')))}</p>
   </div>
 </details>""")
     return "\n".join(out)
+
+
+def _scope_line(f: Dict[str, Any]) -> str:
+    return f'<p class="scope"><b>Scope:</b> {html.escape(str(f["scope"]))}</p>' if f.get("scope") else ""
+
+
+def _impact_line(f: Dict[str, Any]) -> str:
+    return (f'<p class="xi"><b>Expected impact:</b> {html.escape(str(f["expected_impact"]))}</p>'
+            if f.get("expected_impact") else "")
+
+
+def _measurements_html(f: Dict[str, Any]) -> str:
+    m = f.get("measurements") or {}
+    if not m:
+        return ""
+    chips = "".join(f'<span class="mchip">{html.escape(str(k))}: {html.escape(str(v))}</span>'
+                    for k, v in list(m.items())[:8])
+    return f'<div class="measures">{chips}</div>'
 
 
 # --- methodology / footer ---------------------------------------------------------
@@ -605,9 +763,34 @@ footer h2 { font-size:16px; } .method { color:#4a5563; font-size:13px; }
 .notes { color:var(--muted); font-size:12px; padding-left:18px; } .notes li { margin:3px 0; }
 .fine { color:#aab2bd; font-size:12px; margin-top:12px; }
 code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
+/* coverage matrix */
+.coverage { width:100%; border-collapse:collapse; font-size:13px; }
+.coverage th, .coverage td { text-align:left; padding:8px 10px; border-bottom:1px solid #f2f4f7; vertical-align:top; }
+.coverage th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+.coverage .area { font-weight:600; color:#33404f; white-space:nowrap; }
+.coverage .checks { color:var(--muted); font-size:12px; }
+.coverage .num, .coverage .conf { text-align:center; }
+.coverage td.num { width:64px; } .coverage .conf { color:var(--muted); }
+/* score explanation */
+.pe-list { list-style:none; margin:8px 0 0; padding:0; }
+.pe-list li { display:flex; align-items:center; gap:10px; font-size:13px; padding:5px 0; border-bottom:1px solid #f2f4f7; }
+.pe-id { font-family:ui-monospace,Consolas,monospace; font-size:11px; color:var(--muted); width:52px; }
+.pe-t { flex:1; color:#33404f; } .pe-p { color:#c0182f; width:44px; text-align:right; }
+/* opportunities */
+.opp { border:1px solid var(--line); border-left:3px solid #7a4fd0; border-radius:8px; padding:12px 14px; margin:10px 0; background:#faf8fe; }
+.opp-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.opp-title { font-weight:600; } .opp-meta { color:var(--muted); font-size:11px; margin-left:auto; }
+.opp p { margin:8px 0 0; font-size:13px; color:#44506a; }
+.opp-do { background:#fff; border-radius:4px; padding:6px 10px; }
+/* limitations + evidence extras */
+.limits { color:#4a5563; font-size:13px; padding-left:18px; } .limits li { margin:6px 0; }
+.scope { color:#556; font-size:13px; } .xi { color:#2e7d32; font-size:13px; }
+.measures { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+.mchip { background:#f2f4f7; color:#4a5563; font-size:11px; border-radius:5px; padding:2px 8px; font-family:ui-monospace,Consolas,monospace; }
 @media (max-width:760px) {
   .charts, .pillars-grid, .roadmap { grid-template-columns:1fr; }
   .card, main, footer, .kpis, .charts { margin-left:12px; margin-right:12px; }
+  .coverage .checks { display:none; }
 }
 """
 
