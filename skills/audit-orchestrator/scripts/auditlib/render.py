@@ -12,6 +12,7 @@ from __future__ import annotations
 import html
 import json
 import math
+import re
 from typing import Any, Dict, List
 
 _SEV_COLOR = {
@@ -48,6 +49,8 @@ def render_html(report: Dict[str, Any]) -> str:
         _toolbar(),
         _kpi_row(an, summary),
         _exec_summary(an),
+        _benchmark_section(report),
+        _funnel_section(report),
         _coverage_section(report),
         _answer_readiness_section(report),
         _prompt_pack_section(report),
@@ -62,6 +65,7 @@ def render_html(report: Dict[str, Any]) -> str:
         _hotspots_section(an),
         _sections_section(report),
         _findings_section(findings),
+        _fix_plan_section(report),
         _page_explorer_section(report),
         _opportunities_section(report),
         _llmstxt_section(report),
@@ -538,6 +542,98 @@ def _limitations_section(report) -> str:
 </section>"""
 
 
+# --- competitor benchmark ---------------------------------------------------------
+
+def _benchmark_section(report) -> str:
+    b = report.get("benchmark")
+    if not b or not b.get("competitors"):
+        return ""
+    you = b["you"]
+    cols = [you] + b["competitors"]
+    head = "".join(f'<th>{html.escape(str(c["site"]))}{" (you)" if i == 0 else ""}</th>'
+                   for i, c in enumerate(cols))
+    def row(label, key, fmt=lambda v: v):
+        cells = "".join(f'<td class="num">{fmt(c.get(key))}</td>' for c in cols)
+        return f'<tr><td class="bm-l">{html.escape(label)}</td>{cells}</tr>'
+    pill_rows = ""
+    for pkey, plabel in [("crawl_render", "Crawl & Render"), ("structured_data", "Structured Data"),
+                         ("extractability", "Extractability"), ("freshness", "Freshness"),
+                         ("corroboration", "Corroboration"), ("engagement", "Engagement")]:
+        cells = "".join(f'<td class="num">{c["pillars"].get(pkey, "—") if isinstance(c["pillars"].get(pkey), (int, float)) else "—"}</td>' for c in cols)
+        pill_rows += f'<tr><td class="bm-l">{plabel}</td>{cells}</tr>'
+    gaps = b.get("gaps", [])
+    gap_html = ""
+    if gaps:
+        items = "".join(f'<li><b>{html.escape(g["pillar"])}</b>: you {g["you"]:.0f} vs '
+                        f'{html.escape(str(g["leader"]))} {g["best"]:.0f} — a {g["best"]-g["you"]:.0f}-point gap</li>'
+                        for g in gaps)
+        gap_html = f'<div class="bm-gaps"><span>Citation gaps (competitors lead)</span><ul>{items}</ul></div>'
+    else:
+        gap_html = f'<p class="hall-ok">✓ {html.escape(b.get("note",""))}</p>'
+    return f"""<section class="card">
+  <h2>Competitor benchmark <span class="hint">where you stand vs peers</span></h2>
+  <table class="benchmark">
+    <thead><tr><th></th>{head}</tr></thead>
+    <tbody>
+      {row("AI Visibility Score", "score")}
+      {row("Grade", "grade")}
+      {pill_rows}
+      {row("Answer-readiness", "answer_ready", lambda v: v if v is not None else "—")}
+    </tbody>
+  </table>
+  {gap_html}
+</section>"""
+
+
+# --- visibility funnel ------------------------------------------------------------
+
+def _funnel_section(report) -> str:
+    fn = report.get("funnel")
+    if not fn or not fn.get("gates"):
+        return ""
+    rows = ""
+    for g in fn["gates"]:
+        color = _STATUS_COLOR.get(g["status"], "#889")
+        weak = " weak" if g["key"] == fn.get("weakest") else ""
+        rows += f"""<div class="fn-row{weak}">
+          <span class="fn-l">{html.escape(g["label"])}</span>
+          <span class="fn-track"><i style="width:{max(2,min(100,g['score']))}%;background:{color}"></i></span>
+          <b class="fn-s">{g['score']:.0f}</b>
+          <span class="fn-m">{html.escape(g["mechanism"])}</span>
+        </div>"""
+    # the note uses **markdown bold**; escape first, then turn the markers into <b>.
+    note = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(fn.get("note", "")))
+    return f"""<section class="card">
+  <h2>Visibility funnel <span class="hint">reach → read → quote → trust · an early gate caps the rest</span></h2>
+  <div class="fn-list">{rows}</div>
+  <p class="proj-note">{note}</p>
+</section>"""
+
+
+# --- machine-executable fix plan --------------------------------------------------
+
+def _fix_plan_section(report) -> str:
+    plan = report.get("fix_plan")
+    if not plan:
+        return ""
+    rows = ""
+    for s in plan[:20]:
+        snip = "✓" if s.get("has_snippet") else "—"
+        rows += (f'<tr><td class="num">{s["step"]}</td>'
+                 f'<td>{html.escape(s.get("title",""))}</td>'
+                 f'<td><code>{html.escape(s.get("action",""))}</code></td>'
+                 f'<td class="num">{html.escape(str(s.get("effort","")))}</td>'
+                 f'<td class="num">+{s.get("expected_gain_points",0)}</td>'
+                 f'<td class="num">{snip}</td></tr>')
+    return f"""<section class="card">
+  <h2>Machine-executable fix plan <span class="hint">ordered remediation an agent could run — also in the JSON</span></h2>
+  <table class="fixplan">
+    <thead><tr><th>#</th><th>Fix</th><th>Action</th><th>Effort</th><th>+pts</th><th>Code</th></tr></thead>
+    <tbody>{rows}</tbody>
+  </table>
+</section>"""
+
+
 # --- projection -------------------------------------------------------------------
 
 def _projection_section(an) -> str:
@@ -944,6 +1040,7 @@ def _findings_html(findings: List[Dict[str, Any]]) -> str:
     {_scope_line(f)}
     <p class="fix"><b>How to fix ({html.escape(str(action.get('priority','')))}):</b>
        {html.escape(str(f.get('how_to_fix') or action.get('summary','')))}</p>
+    {_snippet_html(f)}
     {_impact_line(f)}
     {_measurements_html(f)}
     {pages_html}
@@ -953,6 +1050,14 @@ def _findings_html(findings: List[Dict[str, Any]]) -> str:
   </div>
 </details>""")
     return "\n".join(out)
+
+
+def _snippet_html(f: Dict[str, Any]) -> str:
+    snip = f.get("fix_snippet")
+    if not snip:
+        return ""
+    return ('<details class="snip"><summary>Copy-paste fix</summary>'
+            f'<pre class="snip-pre">{html.escape(snip)}</pre></details>')
 
 
 def _scope_line(f: Dict[str, Any]) -> str:
@@ -1226,6 +1331,31 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
   border-radius:6px; padding:2px 8px; font-size:11px; cursor:pointer; font-family:ui-monospace,Consolas,monospace; }
 .pages a { color:var(--accent); text-decoration:none; word-break:break-all; }
 .pages li { margin:3px 0; }
+/* competitor benchmark */
+.benchmark { width:100%; border-collapse:collapse; font-size:13px; }
+.benchmark th, .benchmark td { padding:7px 10px; border-bottom:1px solid #f2f4f7; text-align:center; }
+.benchmark th:first-child, .benchmark .bm-l { text-align:left; color:#33404f; font-weight:600; }
+.benchmark th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+.bm-gaps span { font-size:12px; color:var(--muted); } .bm-gaps ul { margin:6px 0; padding-left:18px; }
+.bm-gaps li { font-size:13px; color:#33404f; margin:3px 0; }
+/* visibility funnel */
+.fn-list { display:flex; flex-direction:column; gap:6px; }
+.fn-row { display:flex; align-items:center; gap:12px; padding:5px 0; }
+.fn-row.weak { background:#fdf6f6; border-radius:8px; padding:6px 8px; }
+.fn-l { width:64px; font-weight:600; color:#33404f; }
+.fn-track { width:160px; height:12px; background:#eef1f5; border-radius:6px; overflow:hidden; flex:none; }
+.fn-track i { display:block; height:100%; border-radius:6px; }
+.fn-s { width:30px; text-align:right; } .fn-m { color:var(--muted); font-size:12px; }
+/* fix plan */
+.fixplan { width:100%; border-collapse:collapse; font-size:13px; }
+.fixplan th, .fixplan td { padding:6px 8px; border-bottom:1px solid #f2f4f7; text-align:left; }
+.fixplan th { color:var(--muted); font-size:11px; text-transform:uppercase; }
+.fixplan td.num, .fixplan th:first-child { text-align:center; width:44px; }
+.fixplan code { font-size:11px; }
+/* copy-paste snippet */
+.snip { margin:8px 0; } .snip > summary { cursor:pointer; font-size:12px; color:var(--accent); }
+.snip-pre { background:#1c2430; color:#e6e8ec; border-radius:8px; padding:12px 14px; margin:8px 0 0;
+  font-family:ui-monospace,Consolas,monospace; font-size:12px; overflow-x:auto; white-space:pre; }
 /* prompt-pack */
 .pp-list { list-style:none; margin:0; padding:0; }
 .pp-list li { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f2f4f7; font-size:13px; flex-wrap:wrap; }

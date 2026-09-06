@@ -67,11 +67,16 @@ python skills/audit-orchestrator/scripts/run_audit.py smashingmagazine.com --csv
 Prints the canonical JSON (score + `analytics` + prioritized findings) and writes `findings.csv`
 — one row per finding with impact, effort, quadrant, and points-at-stake — ready for a pivot table.
 
-**3 · Prove it's real: run the offline test suite**
+**3 · Prove it generalizes: run the eval harness**
+```bash
+python skills/audit-orchestrator/scripts/eval.py
+```
+Audits a labeled corpus of synthetic sites (one per failure mode + a clean site + a non-English
+site) and prints a scorecard — **recall 1.00** on the failure modes, **0 findings on the clean
+site** (zero false positives). Plus the full offline test suite:
 ```bash
 python -m unittest discover -t . -s tests
 ```
-84 tests, zero network.
 
 **No time to run anything?** Open the prebuilt
 [`examples/sample-report.html`](examples/sample-report.html) (a real audit of
@@ -154,6 +159,16 @@ suggested one** from the brand, description, and key pages — copy-paste ready.
 (missing `x-default`, invalid language codes, non-reciprocal hreflang) — and stays silent on
 single-language sites (no false positives).
 
+### Proof, position, mechanism & action
+- **Eval harness** — a labeled synthetic-site corpus + scorecard proving recall on failure modes
+  and zero false positives on a clean site (evidence of generalization).
+- **Competitor benchmarking** (`--compare-with`) — side-by-side scores + the citation gaps where a
+  competitor leads.
+- **Visibility funnel** — discoverability scored as **reach → read → quote → trust**, naming the
+  bottleneck gate (an early failure caps the rest) — reasoned from how AI systems actually work.
+- **Agent-native remediation** — a copy-paste fix snippet per finding and a machine-executable
+  `fix_plan` another agent could run.
+
 ### AI-era differentiators
 - **Hallucination-risk scan** — audits the site *against itself* and flags facts that should be
   singular but disagree across pages (founding year, phone, social handles). Those internal
@@ -209,7 +224,9 @@ auditlib/  (shared engine, stdlib only)
    config.py  logutil.py  http.py  htmlparse.py  frontmatter.py
    registry.py  context.py  report.py  scoring.py  coverage.py  pages.py  proactive.py
    analytics.py  answer_readiness.py  llmstxt.py  external.py  consistency.py
-   knowledge_graph.py  prompts.py  render.py  exports.py  history.py  runner.py
+   knowledge_graph.py  prompts.py  funnel.py  benchmark.py  snippets.py
+   render.py  exports.py  history.py  runner.py
+   (scripts/ also ships eval.py — the offline generalization/false-positive harness)
    checks/  crawl_render · structured_data · extractability · freshness · corroboration · engagement
 ```
 Each skill exposes one pure `analyze(ctx) -> [Finding]`; the orchestrator owns only the
@@ -229,6 +246,7 @@ Full flow: [orchestration.md](skills/audit-orchestrator/references/orchestration
 | `--compare-previous` / `--history-db PATH` | Store the score and show the delta vs last run. |
 | `--no-external` | Skip off-site corroboration lookups. |
 | `--verify-external` | Opt-in: corroborate the brand against Wikidata + its own declared profile links (bounded, read-only requests to public sources; off by default). |
+| `--compare-with a.com,b.com` | Opt-in: benchmark against up to 3 competitor domains (side-by-side scores + citation gaps). |
 | `--dry-run` | Validate inputs and print the plan; no network calls. |
 | `--verbose` / `--quiet` | Logging level. |
 | `--allow-private` | Permit localhost/private targets (testing only). |

@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.5.1_
+_Last updated: 2026-09-05 · version 2.6.0_
 
 ---
 
@@ -58,9 +58,15 @@ The brief PDF is at:
   global crawl wall-clock budget (`crawl_budget`, 120s), dropped phone from the hallucination scan
   (multiple numbers are legit), slow-response finding is low-confidence/network-dependent, and every
   sub-skill SKILL.md refreshed to match the code.
-- **133 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
-  All UI verified in-browser (hallucination cards, KG SVG, prompt-pack, machine view, what-if,
-  0 console errors). `--verify-external` verified live on python.org (Wikidata Q28865, links_back).
+- **v2.6 adds winning-tier features**: an offline **eval harness** (`scripts/eval.py` +
+  `test_eval.py`; recall 1.00 on failure-mode fixtures, 0 findings on a clean site), **competitor
+  benchmarking** (`--compare-with`, `benchmark.py`), a **visibility funnel** (`funnel.py`;
+  reach→read→quote→trust bottleneck), and **agent-native remediation** (`snippets.py`; copy-paste
+  fix code + machine-executable `fix_plan`). Also fixed a latent render crash (added `import re`)
+  and a render-smoke test.
+- **145 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`;
+  ~5s — the eval spins 8 mock audits). All UI verified in-browser (funnel, benchmark, fix-plan,
+  snippets, what-if, hallucination, KG; 0 console errors).
   Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
   blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
@@ -98,6 +104,10 @@ skills/
         consistency.py     HALLUCINATION-RISK scan: site audited against itself for contradictory facts
         knowledge_graph.py KNOWLEDGE-GRAPH preview: entity graph from JSON-LD + missing edges
         prompts.py         PROMPT-PACK readiness: real AI queries graded ready/partial/weak
+        funnel.py          VISIBILITY FUNNEL: reach->read->quote->trust gates + bottleneck
+        benchmark.py       COMPETITOR benchmarking (--compare-with): side-by-side + citation gaps
+        snippets.py        AGENT-NATIVE remediation: copy-paste fix code + machine-executable fix_plan
+      scripts/eval.py      GENERALIZATION/FALSE-POSITIVE eval harness (offline labeled corpus)
         analytics.py       ANALYST LAYER: pillars (coverage-aware status), matrix, projection, hotspots, roadmap, KPIs, narrative
         render.py          self-contained HTML DASHBOARD (coverage, opportunities, limitations, score explanation, dynamic filters)
         exports.py         Markdown brief + findings CSV

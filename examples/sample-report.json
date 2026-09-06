@@ -1,9 +1,9 @@
 {
   "site": "smashingmagazine.com",
-  "audited_at": "2026-09-06T10:18:40Z",
-  "started_at": "2026-09-06T10:15:07Z",
-  "auditor": "brand-ai-readiness-audit/2.5",
-  "pages_crawled": 10,
+  "audited_at": "2026-09-06T11:06:03Z",
+  "started_at": "2026-09-06T11:03:05Z",
+  "auditor": "brand-ai-readiness-audit/2.6",
+  "pages_crawled": 12,
   "summary": {
     "total_findings": 10,
     "critical": 0,
@@ -24,7 +24,7 @@
       "category": "structured-data",
       "confidence": "high",
       "kind": "defect",
-      "evidence": "0 of 10 sampled pages contain JSON-LD, microdata, or RDFa.",
+      "evidence": "0 of 12 sampled pages contain JSON-LD, microdata, or RDFa.",
       "affected_pages": [],
       "suggested_action": {
         "summary": "Add schema.org JSON-LD to key templates: Organization + WebSite on the homepage, and the page-appropriate type (Product/Offer, Article, FAQPage, LocalBusiness, BreadcrumbList) elsewhere. This is the highest-leverage discoverability fix.",
@@ -33,14 +33,15 @@
       "details": {},
       "why": "With no machine-readable markup, an assistant must infer every fact (who the brand is, what it sells, prices, dates) from prose — error-prone and rarely quoted with confidence.",
       "how_to_fix": "Add schema.org JSON-LD to key templates: Organization + WebSite on the homepage, and the page-appropriate type (Product/Offer, Article, FAQPage, Course, BreadcrumbList) elsewhere.",
-      "scope": "0 of 10 pages",
+      "scope": "0 of 12 pages",
       "measurements": {
         "pages_with_structured_data": 0,
-        "pages": 10
+        "pages": 12
       },
       "expected_impact": "Makes core facts directly quotable; typically the highest-leverage discoverability fix.",
       "impact": 4,
-      "priority": 1
+      "priority": 1,
+      "fix_snippet": "<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\n  \"name\":\"Smashing Magazine\",\"url\":\"https://smashingmagazine.com/\",\"logo\":\"https://smashingmagazine.com/logo.png\",\n  \"sameAs\":[\"https://www.linkedin.com/company/…\",\"https://www.wikidata.org/wiki/…\"]}\n</script>\n<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"WebSite\",\"name\":\"Smashing Magazine\",\"url\":\"https://smashingmagazine.com/\"}\n</script>"
     },
     {
       "id": "F-002",
@@ -50,7 +51,7 @@
       "category": "structured-data",
       "confidence": "high",
       "kind": "defect",
-      "evidence": "7 of 10 page(s) (70%) look like product pages (cart/price cues) but have no Product JSON-LD, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/.",
+      "evidence": "7 of 12 page(s) (58%) look like product pages (cart/price cues) but have no Product JSON-LD, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/.",
       "affected_pages": [
         "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
         "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
@@ -67,14 +68,15 @@
       "details": {},
       "why": "Without Product/Offer markup an assistant cannot reliably read price, availability, or rating, so the brand is left out of shopping-style answers where those facts are required.",
       "how_to_fix": "Add Product JSON-LD (name, image, description, brand) with an Offer (price, priceCurrency, availability) to each product template.",
-      "scope": "7 of 10 page(s) (70%)",
+      "scope": "7 of 12 page(s) (58%)",
       "measurements": {
         "product_like_without_schema": 7,
-        "pages": 10
+        "pages": 12
       },
       "expected_impact": "Enables price/availability to be cited in answer-engine shopping results.",
       "impact": 4,
-      "priority": 2
+      "priority": 2,
+      "fix_snippet": "<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"Product\",\"name\":\"<product name>\",\n  \"image\":\"<image url>\",\"description\":\"<desc>\",\"brand\":{\"@type\":\"Brand\",\"name\":\"Smashing Magazine\"},\n  \"offers\":{\"@type\":\"Offer\",\"price\":\"0.00\",\"priceCurrency\":\"USD\",\"availability\":\"https://schema.org/InStock\"}}\n</script>"
     },
     {
       "id": "F-003",
@@ -84,7 +86,7 @@
       "category": "structured-data",
       "confidence": "high",
       "kind": "defect",
-      "evidence": "1 of 10 page(s) (10%) look like articles but lack Article/BlogPosting JSON-LD, e.g. https://www.smashingmagazine.com/articles/.",
+      "evidence": "1 of 12 page(s) (8%) look like articles but lack Article/BlogPosting JSON-LD, e.g. https://www.smashingmagazine.com/articles/.",
       "affected_pages": [
         "https://www.smashingmagazine.com/articles/"
       ],
@@ -95,13 +97,14 @@
       "details": {},
       "why": "Without Article markup an assistant cannot reliably attribute the piece to an author or date it, so it is trusted and cited less for topical questions.",
       "how_to_fix": "Add Article/BlogPosting JSON-LD with headline, author, datePublished, and dateModified to the article template.",
-      "scope": "1 of 10 page(s) (10%)",
+      "scope": "1 of 12 page(s) (8%)",
       "measurements": {
         "article_like_without_schema": 1,
-        "pages": 10
+        "pages": 12
       },
       "impact": 3,
-      "priority": 3
+      "priority": 3,
+      "fix_snippet": "<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"Article\",\"headline\":\"<title>\",\n  \"author\":{\"@type\":\"Person\",\"name\":\"<author>\"},\"datePublished\":\"2026-01-01\",\"dateModified\":\"2026-01-01\"}\n</script>"
     },
     {
       "id": "F-004",
@@ -124,7 +127,8 @@
         "homepage_identity_types": []
       },
       "impact": 3,
-      "priority": 4
+      "priority": 4,
+      "fix_snippet": "<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\n  \"name\":\"Smashing Magazine\",\"url\":\"https://smashingmagazine.com/\",\"logo\":\"https://smashingmagazine.com/logo.png\",\n  \"sameAs\":[\"https://www.linkedin.com/company/…\",\"https://www.wikidata.org/wiki/…\"]}\n</script>\n<script type=\"application/ld+json\">\n{\"@context\":\"https://schema.org\",\"@type\":\"WebSite\",\"name\":\"Smashing Magazine\",\"url\":\"https://smashingmagazine.com/\"}\n</script>"
     },
     {
       "id": "F-005",
@@ -134,7 +138,7 @@
       "category": "extractability",
       "confidence": "high",
       "kind": "defect",
-      "evidence": "1 of 10 page(s) (10%) have no H1, e.g. https://www.smashingmagazine.com/articles/.",
+      "evidence": "1 of 12 page(s) (8%) have no H1, e.g. https://www.smashingmagazine.com/articles/.",
       "affected_pages": [
         "https://www.smashingmagazine.com/articles/"
       ],
@@ -145,13 +149,14 @@
       "details": {},
       "why": "The H1 is the primary topic anchor a machine uses to decide what a page is about; without it the page's subject must be guessed from weaker signals.",
       "how_to_fix": "Add exactly one descriptive H1 per page that states the page's topic in plain words.",
-      "scope": "1 of 10 page(s) (10%)",
+      "scope": "1 of 12 page(s) (8%)",
       "measurements": {
         "pages_without_h1": 1,
-        "pages": 10
+        "pages": 12
       },
       "impact": 3,
-      "priority": 5
+      "priority": 5,
+      "fix_snippet": "<h1><the single main topic of this page, in plain words></h1>"
     },
     {
       "id": "F-006",
@@ -161,11 +166,9 @@
       "category": "performance",
       "confidence": "low",
       "kind": "defect",
-      "evidence": "4 of 10 page(s) (40%) took over 3s to return HTML in this run (e.g. https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/: 47469 ms). Single-sample timing — confirm with a repeat measurement.",
+      "evidence": "2 of 12 page(s) (17%) took over 3s to return HTML in this run (e.g. https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/: 47534 ms). Single-sample timing — confirm with a repeat measurement.",
       "affected_pages": [
-        "https://www.smashingmagazine.com/",
-        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
-        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
       ],
       "suggested_action": {
@@ -175,10 +178,10 @@
       "details": {},
       "why": "A slow first byte (TTFB) delays everything downstream, so the page starts rendering late and visitors abandon before it appears.",
       "how_to_fix": "Investigate TTFB — add caching/CDN, reduce per-request server work, and warm slow endpoints.",
-      "scope": "4 of 10 page(s) (40%)",
+      "scope": "2 of 12 page(s) (17%)",
       "measurements": {
-        "slow_pages": 4,
-        "worst_ms": 47469,
+        "slow_pages": 2,
+        "worst_ms": 47534,
         "threshold_ms": 3000
       },
       "expected_impact": "Faster time-to-content and lower bounce (confirm the timing is consistent, not a one-off).",
@@ -193,7 +196,7 @@
       "category": "extractability",
       "confidence": "medium",
       "kind": "defect",
-      "evidence": "10 of 10 page(s) (100%) jump heading levels (e.g. H1→H3 with no H2), e.g. https://www.smashingmagazine.com/.",
+      "evidence": "12 of 12 page(s) (100%) jump heading levels (e.g. H1→H3 with no H2), e.g. https://www.smashingmagazine.com/.",
       "affected_pages": [
         "https://www.smashingmagazine.com/",
         "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
@@ -213,9 +216,9 @@
       "details": {},
       "why": "A machine reconstructs a page's outline from heading levels; skipped levels break that nesting, so the relationship between sections is ambiguous.",
       "how_to_fix": "Use headings in order (H1→H2→H3) without skipping a level; style, don't skip, to change size.",
-      "scope": "10 of 10 page(s) (100%)",
+      "scope": "12 of 12 page(s) (100%)",
       "measurements": {
-        "pages_with_skipped_levels": 10
+        "pages_with_skipped_levels": 12
       },
       "impact": 2,
       "priority": 7
@@ -228,7 +231,7 @@
       "category": "extractability",
       "confidence": "medium",
       "kind": "defect",
-      "evidence": "7 of 10 page(s) (70%) have a meta description longer than 160 characters, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/ (434 chars).",
+      "evidence": "8 of 12 page(s) (67%) have a meta description longer than 160 characters, e.g. https://www.smashingmagazine.com/ebook-bundles/smashing-library/ (434 chars).",
       "affected_pages": [
         "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
         "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
@@ -236,7 +239,8 @@
         "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+        "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
       ],
       "suggested_action": {
         "summary": "Keep meta descriptions under ~160 characters, key fact first.",
@@ -245,13 +249,14 @@
       "details": {},
       "why": "Over-long descriptions are cut off, so the most important summary sentence may never be shown or quoted.",
       "how_to_fix": "Trim descriptions to ≈50–160 characters, leading with the key fact.",
-      "scope": "7 of 10 page(s) (70%)",
+      "scope": "8 of 12 page(s) (67%)",
       "measurements": {
-        "pages_with_long_description": 7,
+        "pages_with_long_description": 8,
         "max": 160
       },
       "impact": 2,
-      "priority": 8
+      "priority": 8,
+      "fix_snippet": "<meta name=\"description\" content=\"<≈150-char, fact-bearing summary of this page>\">"
     },
     {
       "id": "F-009",
@@ -284,7 +289,7 @@
       "category": "extractability",
       "confidence": "medium",
       "kind": "defect",
-      "evidence": "8 of 10 page(s) (80%) have a <title> shorter than 15 or longer than 65 characters, e.g. https://www.smashingmagazine.com/ (75 chars).",
+      "evidence": "9 of 12 page(s) (75%) have a <title> shorter than 15 or longer than 65 characters, e.g. https://www.smashingmagazine.com/ (75 chars).",
       "affected_pages": [
         "https://www.smashingmagazine.com/",
         "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
@@ -293,7 +298,8 @@
         "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
         "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+        "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
       ],
       "suggested_action": {
         "summary": "Keep titles roughly 15–65 characters and topic-first.",
@@ -302,18 +308,19 @@
       "details": {},
       "why": "Very short titles under-describe the page while very long ones get truncated in results and answers, so the specific topic is lost either way.",
       "how_to_fix": "Rewrite titles to ≈15–65 characters: lead with the unique topic, then the brand.",
-      "scope": "8 of 10 page(s) (80%)",
+      "scope": "9 of 12 page(s) (75%)",
       "measurements": {
-        "pages_with_offlength_title": 8,
+        "pages_with_offlength_title": 9,
         "min": 15,
         "max": 65
       },
       "impact": 2,
-      "priority": 10
+      "priority": 10,
+      "fix_snippet": "<title><Page-specific topic> — Smashing Magazine</title>"
     }
   ],
   "notes": [
-    "Crawled 10 page(s) in 212935 ms; 19 HTTP request(s). Static, read-only analysis."
+    "Crawled 12 page(s) in 177319 ms; 16 HTTP request(s). Static, read-only analysis."
   ],
   "profile": "balanced",
   "skills_run": [
@@ -394,7 +401,7 @@
       "expected_impact": "Clearer site structure for machines and better orientation for visitors.",
       "effort": "Low",
       "confidence": "medium",
-      "evidence": "8 deep page(s) sampled with no BreadcrumbList schema.",
+      "evidence": "10 deep page(s) sampled with no BreadcrumbList schema.",
       "id": "OP-002"
     }
   ],
@@ -460,7 +467,7 @@
         "failed": 0,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 0,
         "confidence": "high",
         "note": "All checks passed across the sampled pages."
@@ -495,7 +502,7 @@
         "failed": 0,
         "not_verified": 1,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 0,
         "confidence": "medium",
         "note": "1 check(s) require rendered/browser validation (not executed)."
@@ -542,7 +549,7 @@
         "failed": 3,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 3,
         "confidence": "high",
         "note": "3 check(s) failed across the sampled pages."
@@ -601,7 +608,7 @@
         "failed": 3,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 5,
         "confidence": "medium",
         "note": "3 check(s) failed across the sampled pages."
@@ -630,7 +637,7 @@
         "failed": 1,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 1,
         "confidence": "high",
         "note": "1 check(s) failed across the sampled pages."
@@ -659,7 +666,7 @@
         "failed": 0,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 3,
+        "pages_assessed": 5,
         "findings": 0,
         "confidence": "high",
         "note": "All checks passed across the sampled pages."
@@ -694,7 +701,7 @@
         "failed": 0,
         "not_verified": 0,
         "partial_checks": 1,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 0,
         "confidence": "medium",
         "note": "1 check(s) only partially verifiable (no external verification)."
@@ -759,7 +766,7 @@
         "failed": 1,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 1,
         "confidence": "low",
         "note": "1 check(s) failed across the sampled pages."
@@ -775,7 +782,7 @@
         "failed": 0,
         "not_verified": 0,
         "partial_checks": 0,
-        "pages_assessed": 10,
+        "pages_assessed": 12,
         "findings": 2,
         "confidence": "medium",
         "note": "Context-justified recommendations beyond fixing defects."
@@ -787,7 +794,7 @@
       "areas_partial": 2,
       "areas_not_assessed": 0,
       "areas_assessed": 8,
-      "pages_crawled": 10
+      "pages_crawled": 12
     }
   },
   "pages": [
@@ -797,22 +804,20 @@
       "status": 200,
       "redirected": true,
       "final_url": "https://www.smashingmagazine.com/",
-      "score": 63,
-      "finding_count": 6,
+      "score": 67,
+      "finding_count": 5,
       "finding_ids": [
         "F-001",
         "F-004",
-        "F-006",
         "F-007",
         "F-009",
         "F-010"
       ],
       "top_severity": "high",
       "dimensions": [
-        "discoverability",
-        "engagement"
+        "discoverability"
       ],
-      "confidence": "low",
+      "confidence": "medium",
       "title": "Smashing Magazine — For Web Designers And DevelopersClear SearchBack to top",
       "title_len": 75,
       "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
@@ -881,7 +886,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 287,
-      "response_ms": 32102,
+      "response_ms": 1658,
       "word_count": 1384,
       "rendering": {
         "static_text_words": 1384,
@@ -893,11 +898,11 @@
       "render_risk": "low"
     },
     {
-      "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
       "is_home": false,
       "status": 200,
       "redirected": false,
-      "final_url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
       "score": 71,
       "finding_count": 5,
       "finding_ids": [
@@ -913,116 +918,16 @@
         "engagement"
       ],
       "confidence": "low",
-      "title": "The Smashing Library (69 eBooks) — Smashing MagazineClear SearchBack to top",
-      "title_len": 75,
-      "meta_description": "Since over 19 years, Smashing Magazine is where thousands of designers and developers go to learn about design trends and advanced coding techniques. \n\nThat is why we have developed the Smashing Library, a comprehensive access to **69 valuable eBooks**. The Library includes our latest releases _Accessible UX Research_, _Success at Scale_, _Understanding Privacy_, _Touch Design for Mobile Interfaces_, and _Image Optimization_, too! ",
-      "h1": "The Smashing Library (69 eBooks)",
+      "title": "UX eBook Bundle (12 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 70,
+      "meta_description": "This eBook collection will guide you into the usability for web design field showing you how to use design elements for each purpose. The various possibilities for developing websites foster not only a designer’s creativity, but also the necessity of applying techniques that enhance the user experience and website’s usability.",
+      "h1": "UX eBook Bundle (12 eBooks)",
       "h1_count": 1,
       "h2_count": 0,
       "headings_outline": [
         [
           "h1",
-          "The Smashing Library (69 eBooks)"
-        ],
-        [
-          "h3",
-          "ePUB, Kindle, PDF"
-        ],
-        [
-          "h3",
-          "About The ebook Bundle"
-        ],
-        [
-          "h3",
-          "Latest Additions To The Smashing Library"
-        ],
-        [
-          "h4",
-          "Accessible UX Research"
-        ],
-        [
-          "h4",
-          "Success at Scale"
-        ],
-        [
-          "h4",
-          "Understanding Privacy"
-        ],
-        [
-          "h4",
-          "Touch Design for Mobile Interfaces"
-        ],
-        [
-          "h4",
-          "Image Optimization"
-        ],
-        [
-          "h3",
-          "A Few Valuable Library Features:"
-        ],
-        [
-          "h3",
-          "ePUB, Kindle, PDF"
-        ],
-        [
-          "h4",
-          "More Books"
-        ]
-      ],
-      "structured_data_types": [],
-      "lang": "en",
-      "canonical": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
-      "indexable": true,
-      "internal_links": 121,
-      "external_links": 11,
-      "pdf_links": 3,
-      "cta_signal": true,
-      "images": 29,
-      "images_missing_alt": 0,
-      "scripts": 3,
-      "html_kb": 294,
-      "response_ms": 47242,
-      "word_count": 12892,
-      "rendering": {
-        "static_text_words": 12892,
-        "verified": false,
-        "note": "static HTML only — rendered DOM not executed"
-      },
-      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles The Smashing Library (69 eBooks) The Smashing Library (69 eBooks) ePUB, Kindle, PDF $ 99 .00 $ 625 .00 Free! Get the Bundle Get the Bundle Download PDF , ePU…",
-      "extractable_words": 12892,
-      "render_risk": "low"
-    },
-    {
-      "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-      "is_home": false,
-      "status": 200,
-      "redirected": false,
-      "final_url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-      "score": 71,
-      "finding_count": 5,
-      "finding_ids": [
-        "F-002",
-        "F-006",
-        "F-007",
-        "F-008",
-        "F-010"
-      ],
-      "top_severity": "high",
-      "dimensions": [
-        "discoverability",
-        "engagement"
-      ],
-      "confidence": "low",
-      "title": "Content Strategy eBook Bundle (3 eBooks) — Smashing MagazineClear SearchBack to top",
-      "title_len": 83,
-      "meta_description": "With this bundle you will master content and copywriting in no time. Three eBooks contain Smashing Magazine’s best articles on content, carefully prepared, edited and — of course — without advertising. Perfect for those looking to get into the world of content development for online platforms, this eBook expertly pinpoints the key things one must know before beginning a journey into copywriting.",
-      "h1": "Content Strategy eBook Bundle (3 eBooks)",
-      "h1_count": 1,
-      "h2_count": 0,
-      "headings_outline": [
-        [
-          "h1",
-          "Content Strategy eBook Bundle (3 eBooks)"
+          "UX eBook Bundle (12 eBooks)"
         ],
         [
           "h3",
@@ -1071,7 +976,7 @@
       ],
       "structured_data_types": [],
       "lang": "en",
-      "canonical": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
       "indexable": true,
       "internal_links": 105,
       "external_links": 11,
@@ -1080,16 +985,16 @@
       "images": 24,
       "images_missing_alt": 0,
       "scripts": 3,
-      "html_kb": 164,
-      "response_ms": 47469,
-      "word_count": 796,
+      "html_kb": 175,
+      "response_ms": 16761,
+      "word_count": 1634,
       "rendering": {
-        "static_text_words": 796,
+        "static_text_words": 1634,
         "verified": false,
         "note": "static HTML only — rendered DOM not executed"
       },
-      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles Content Strategy eBook Bundle (3 eBooks) Content Strategy eBook Bundle (3 eBooks) ePUB, Kindle, PDF $ 12 .00 $ 14 .70 Free! Get the Bundle Get the Bundle Dow…",
-      "extractable_words": 796,
+      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles UX eBook Bundle (12 eBooks) UX eBook Bundle (12 eBooks) ePUB, Kindle, PDF $ 49 .00 $ 58 .80 Free! Get the Bundle Get the Bundle Download PDF , ePUB , Kindle …",
+      "extractable_words": 1634,
       "render_risk": "low"
     },
     {
@@ -1181,7 +1086,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 174,
-      "response_ms": 16868,
+      "response_ms": 47534,
       "word_count": 1453,
       "rendering": {
         "static_text_words": 1453,
@@ -1190,6 +1095,104 @@
       },
       "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles Web Design eBook Bundle (10 eBooks) Web Design eBook Bundle (10 eBooks) ePUB, Kindle, PDF $ 49 .00 $ 54 .10 Free! Get the Bundle Get the Bundle Download PDF …",
       "extractable_words": 1453,
+      "render_risk": "low"
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "The Smashing Library (69 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 75,
+      "meta_description": "Since over 19 years, Smashing Magazine is where thousands of designers and developers go to learn about design trends and advanced coding techniques. \n\nThat is why we have developed the Smashing Library, a comprehensive access to **69 valuable eBooks**. The Library includes our latest releases _Accessible UX Research_, _Success at Scale_, _Understanding Privacy_, _Touch Design for Mobile Interfaces_, and _Image Optimization_, too! ",
+      "h1": "The Smashing Library (69 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "The Smashing Library (69 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "Latest Additions To The Smashing Library"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success at Scale"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h3",
+          "A Few Valuable Library Features:"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+      "indexable": true,
+      "internal_links": 121,
+      "external_links": 11,
+      "pdf_links": 3,
+      "cta_signal": true,
+      "images": 29,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 294,
+      "response_ms": 1656,
+      "word_count": 12892,
+      "rendering": {
+        "static_text_words": 12892,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      },
+      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles The Smashing Library (69 eBooks) The Smashing Library (69 eBooks) ePUB, Kindle, PDF $ 99 .00 $ 625 .00 Free! Get the Bundle Get the Bundle Download PDF , ePU…",
+      "extractable_words": 12892,
       "render_risk": "low"
     },
     {
@@ -1279,7 +1282,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 170,
-      "response_ms": 1578,
+      "response_ms": 850,
       "word_count": 1701,
       "rendering": {
         "static_text_words": 1701,
@@ -1377,7 +1380,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 169,
-      "response_ms": 1360,
+      "response_ms": 1161,
       "word_count": 1253,
       "rendering": {
         "static_text_words": 1253,
@@ -1386,6 +1389,104 @@
       },
       "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles Business eBook Bundle (8 eBooks) Business eBook Bundle (8 eBooks) ePUB, Kindle, PDF $ 35 .00 $ 67 .40 Free! Get the Bundle Get the Bundle Download PDF , ePUB…",
       "extractable_words": 1253,
+      "render_risk": "low"
+    },
+    {
+      "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "score": 75,
+      "finding_count": 4,
+      "finding_ids": [
+        "F-002",
+        "F-007",
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "high",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "Content Strategy eBook Bundle (3 eBooks) — Smashing MagazineClear SearchBack to top",
+      "title_len": 83,
+      "meta_description": "With this bundle you will master content and copywriting in no time. Three eBooks contain Smashing Magazine’s best articles on content, carefully prepared, edited and — of course — without advertising. Perfect for those looking to get into the world of content development for online platforms, this eBook expertly pinpoints the key things one must know before beginning a journey into copywriting.",
+      "h1": "Content Strategy eBook Bundle (3 eBooks)",
+      "h1_count": 1,
+      "h2_count": 0,
+      "headings_outline": [
+        [
+          "h1",
+          "Content Strategy eBook Bundle (3 eBooks)"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h3",
+          "About The ebook Bundle"
+        ],
+        [
+          "h3",
+          "ePUB, Kindle, PDF"
+        ],
+        [
+          "h4",
+          "More Books"
+        ],
+        [
+          "h4",
+          "Accessible UX Research"
+        ],
+        [
+          "h4",
+          "Success At Scale"
+        ],
+        [
+          "h4",
+          "Interface Design Checklists"
+        ],
+        [
+          "h4",
+          "Understanding Privacy"
+        ],
+        [
+          "h4",
+          "Touch Design for Mobile Interfaces"
+        ],
+        [
+          "h4",
+          "Image Optimization"
+        ],
+        [
+          "h4",
+          "TypeScript in 50 Lessons"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+      "indexable": true,
+      "internal_links": 105,
+      "external_links": 11,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 24,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 164,
+      "response_ms": 1427,
+      "word_count": 796,
+      "rendering": {
+        "static_text_words": 796,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      },
+      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles Content Strategy eBook Bundle (3 eBooks) Content Strategy eBook Bundle (3 eBooks) ePUB, Kindle, PDF $ 12 .00 $ 14 .70 Free! Get the Bundle Get the Bundle Dow…",
+      "extractable_words": 796,
       "render_risk": "low"
     },
     {
@@ -1475,7 +1576,7 @@
       "images_missing_alt": 0,
       "scripts": 3,
       "html_kb": 172,
-      "response_ms": 1575,
+      "response_ms": 1381,
       "word_count": 1948,
       "rendering": {
         "static_text_words": 1948,
@@ -1484,104 +1585,6 @@
       },
       "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles Front-End eBook Bundle (4 eBooks) Front-End eBook Bundle (4 eBooks) ePUB, Kindle, PDF $ 29 .00 $ 34 .87 Free! Get the Bundle Get the Bundle Download PDF , eP…",
       "extractable_words": 1948,
-      "render_risk": "low"
-    },
-    {
-      "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-      "is_home": false,
-      "status": 200,
-      "redirected": false,
-      "final_url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-      "score": 75,
-      "finding_count": 4,
-      "finding_ids": [
-        "F-002",
-        "F-007",
-        "F-008",
-        "F-010"
-      ],
-      "top_severity": "high",
-      "dimensions": [
-        "discoverability"
-      ],
-      "confidence": "medium",
-      "title": "UX eBook Bundle (12 eBooks) — Smashing MagazineClear SearchBack to top",
-      "title_len": 70,
-      "meta_description": "This eBook collection will guide you into the usability for web design field showing you how to use design elements for each purpose. The various possibilities for developing websites foster not only a designer’s creativity, but also the necessity of applying techniques that enhance the user experience and website’s usability.",
-      "h1": "UX eBook Bundle (12 eBooks)",
-      "h1_count": 1,
-      "h2_count": 0,
-      "headings_outline": [
-        [
-          "h1",
-          "UX eBook Bundle (12 eBooks)"
-        ],
-        [
-          "h3",
-          "ePUB, Kindle, PDF"
-        ],
-        [
-          "h3",
-          "About The ebook Bundle"
-        ],
-        [
-          "h3",
-          "ePUB, Kindle, PDF"
-        ],
-        [
-          "h4",
-          "More Books"
-        ],
-        [
-          "h4",
-          "Accessible UX Research"
-        ],
-        [
-          "h4",
-          "Success At Scale"
-        ],
-        [
-          "h4",
-          "Interface Design Checklists"
-        ],
-        [
-          "h4",
-          "Understanding Privacy"
-        ],
-        [
-          "h4",
-          "Touch Design for Mobile Interfaces"
-        ],
-        [
-          "h4",
-          "Image Optimization"
-        ],
-        [
-          "h4",
-          "TypeScript in 50 Lessons"
-        ]
-      ],
-      "structured_data_types": [],
-      "lang": "en",
-      "canonical": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-      "indexable": true,
-      "internal_links": 105,
-      "external_links": 11,
-      "pdf_links": 0,
-      "cta_signal": true,
-      "images": 24,
-      "images_missing_alt": 0,
-      "scripts": 3,
-      "html_kb": 175,
-      "response_ms": 1278,
-      "word_count": 1634,
-      "rendering": {
-        "static_text_words": 1634,
-        "verified": false,
-        "note": "static HTML only — rendered DOM not executed"
-      },
-      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Books eBook Bundles UX eBook Bundle (12 eBooks) UX eBook Bundle (12 eBooks) ePUB, Kindle, PDF $ 49 .00 $ 58 .80 Free! Get the Bundle Get the Bundle Download PDF , ePUB , Kindle …",
-      "extractable_words": 1634,
       "render_risk": "low"
     },
     {
@@ -1670,7 +1673,7 @@
       "images_missing_alt": 0,
       "scripts": 4,
       "html_kb": 252,
-      "response_ms": 1514,
+      "response_ms": 1425,
       "word_count": 822,
       "rendering": {
         "static_text_words": 822,
@@ -1679,6 +1682,102 @@
       },
       "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Accessibility UX CSS JavaScript Performance Design Figma Wallpapers React Vue Round-Ups Web Design Guides Business Career Privacy Jump to all articles ↬ 2274 articles Articles H…",
       "extractable_words": 822,
+      "render_risk": "low"
+    },
+    {
+      "url": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
+      "score": 96,
+      "finding_count": 2,
+      "finding_ids": [
+        "F-008",
+        "F-010"
+      ],
+      "top_severity": "low",
+      "dimensions": [
+        "discoverability"
+      ],
+      "confidence": "medium",
+      "title": "The Many Faces Of September (2026 Wallpapers Edition) — Smashing MagazineClear SearchBack to top",
+      "title_len": 96,
+      "meta_description": "Could there be a better way to welcome the new month than with a new collection of desktop wallpapers? Whether you’re holding tightly onto summer or eagerly awaiting autumn, we’ve got some eye-catching designs to make your September just a bit more colorful. Enjoy!",
+      "h1": "The Many Faces Of September (2026 Wallpapers Edition)",
+      "h1_count": 1,
+      "h2_count": 31,
+      "headings_outline": [
+        [
+          "h1",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h4",
+          "About The Author"
+        ],
+        [
+          "h4",
+          "Email Newsletter"
+        ],
+        [
+          "h2",
+          "Welcome Autumn"
+        ],
+        [
+          "h2",
+          "September On Repeat"
+        ],
+        [
+          "h2",
+          "A Stream Of Consciousness"
+        ],
+        [
+          "h2",
+          "Autumn Rains"
+        ],
+        [
+          "h2",
+          "Funny Cats"
+        ],
+        [
+          "h2",
+          "Terrazzo"
+        ],
+        [
+          "h2",
+          "Summer Ending"
+        ],
+        [
+          "h2",
+          "Cacti Everywhere"
+        ],
+        [
+          "h2",
+          "Flower Soul"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/",
+      "indexable": true,
+      "internal_links": 704,
+      "external_links": 99,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 41,
+      "images_missing_alt": 0,
+      "scripts": 4,
+      "html_kb": 357,
+      "response_ms": 1647,
+      "word_count": 3121,
+      "rendering": {
+        "static_text_words": 3121,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      },
+      "extractable_preview": "Skip to main content Start reading the article Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Accessibility UX CSS JavaScript Performance Design Figma Wallpapers React Vue Round-Ups Web Design Guides Business Career Privacy Jump to all articles …",
+      "extractable_words": 3121,
       "render_risk": "low"
     },
     {
@@ -1765,7 +1864,7 @@
       "images_missing_alt": 0,
       "scripts": 5,
       "html_kb": 1403,
-      "response_ms": 2479,
+      "response_ms": 1745,
       "word_count": 14877,
       "rendering": {
         "static_text_words": 14877,
@@ -1775,6 +1874,97 @@
       "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Author Cosima Mielke 180 articles Cosima has been an editor at SmashingMag since 2013. Whenever she’s not writing articles for the weekly Smashing Newsletter , she’s probably wo…",
       "extractable_words": 14877,
       "render_risk": "low"
+    },
+    {
+      "url": "https://www.smashingmagazine.com/category/wallpapers/",
+      "is_home": false,
+      "status": 200,
+      "redirected": false,
+      "final_url": "https://www.smashingmagazine.com/category/wallpapers/",
+      "score": 100,
+      "finding_count": 0,
+      "finding_ids": [],
+      "top_severity": null,
+      "dimensions": [],
+      "confidence": "high",
+      "title": "Desktop Wallpapers — Smashing MagazineClear SearchNextBack to top",
+      "title_len": 65,
+      "meta_description": "Magazine on CSS, JavaScript, front-end, accessibility, UX and design. For developers, designers and front-end engineers.",
+      "h1": "Category Desktop Wallpapers",
+      "h1_count": 1,
+      "h2_count": 10,
+      "headings_outline": [
+        [
+          "h1",
+          "Category Desktop Wallpapers"
+        ],
+        [
+          "h4",
+          "211\narticles"
+        ],
+        [
+          "h2",
+          "The Many Faces Of September (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Small Joys And Big Adventures (August 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Snapshots Of Summer (July 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "June Is For Exploring (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Fresh View In May (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "The Joy Of A Fresh Beginning (April 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Fresh Energy In March (2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Short Month, Big Ideas (February 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "Countdown To New Adventures (January 2026 Wallpapers Edition)"
+        ],
+        [
+          "h2",
+          "A Sparkle Of December Magic (2025 Wallpapers Edition)"
+        ]
+      ],
+      "structured_data_types": [],
+      "lang": "en",
+      "canonical": "https://www.smashingmagazine.com/categories/wallpapers/",
+      "indexable": true,
+      "internal_links": 133,
+      "external_links": 7,
+      "pdf_links": 0,
+      "cta_signal": true,
+      "images": 11,
+      "images_missing_alt": 0,
+      "scripts": 3,
+      "html_kb": 247,
+      "response_ms": 644,
+      "word_count": 826,
+      "rendering": {
+        "static_text_words": 826,
+        "verified": false,
+        "note": "static HTML only — rendered DOM not executed"
+      },
+      "extractable_preview": "Skip to main content Jump to list of all articles Jump to all topics Articles Books Events Membership Newsletter Write for us Advertise More Less Menu Less Articles Books Events Membership Newsletter Write for us Advertise Accessibility UX CSS JavaScript Performance Design Figma Wallpapers React Vue Round-Ups Web Design Guides Business Career Privacy Jump to all articles ↬ Category Desktop Wallpap…",
+      "extractable_words": 826,
+      "render_risk": "low"
     }
   ],
   "sections": [
@@ -1782,12 +1972,11 @@
       "key": "/",
       "label": "Home (/)",
       "pages": 1,
-      "score": 63,
-      "findings": 6,
+      "score": 67,
+      "findings": 5,
       "top_severity": "high",
       "dimensions": [
-        "discoverability",
-        "engagement"
+        "discoverability"
       ],
       "examples": [
         "https://www.smashingmagazine.com/"
@@ -1797,7 +1986,7 @@
       "key": "/ebook-bundles",
       "label": "/ebook-bundles/",
       "pages": 7,
-      "score": 73,
+      "score": 74,
       "findings": 5,
       "top_severity": "high",
       "dimensions": [
@@ -1805,9 +1994,9 @@
         "engagement"
       ],
       "examples": [
-        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
-        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
-        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+        "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/"
       ]
     },
     {
@@ -1825,6 +2014,20 @@
       ]
     },
     {
+      "key": "/2026",
+      "label": "/2026/",
+      "pages": 1,
+      "score": 96,
+      "findings": 2,
+      "top_severity": "low",
+      "dimensions": [
+        "discoverability"
+      ],
+      "examples": [
+        "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
+      ]
+    },
+    {
       "key": "/author",
       "label": "/author/",
       "pages": 1,
@@ -1836,6 +2039,18 @@
       ],
       "examples": [
         "https://www.smashingmagazine.com/author/cosima-mielke/"
+      ]
+    },
+    {
+      "key": "/category",
+      "label": "/category/",
+      "pages": 1,
+      "score": 100,
+      "findings": 0,
+      "top_severity": null,
+      "dimensions": [],
+      "examples": [
+        "https://www.smashingmagazine.com/category/wallpapers/"
       ]
     }
   ],
@@ -1979,7 +2194,7 @@
       "projected_score": 67,
       "projected_gain": 10,
       "potential_score": 100,
-      "pages_analyzed": 10,
+      "pages_analyzed": 12,
       "weakest_pillar": "Structured Data",
       "weakest_pillar_score": 48.0,
       "strongest_pillar": "Crawl & Render",
@@ -2218,9 +2433,7 @@
         "quadrant": "low_priority",
         "points_at_stake": 2,
         "affected_pages": [
-          "https://www.smashingmagazine.com/",
-          "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
-          "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+          "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
           "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
         ]
       },
@@ -2270,7 +2483,8 @@
           "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
           "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
           "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-          "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+          "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+          "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
         ]
       },
       {
@@ -2309,7 +2523,8 @@
           "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
           "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
           "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
-          "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+          "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
+          "https://www.smashingmagazine.com/2026/08/desktop-wallpaper-calendars-september-2026/"
         ]
       }
     ],
@@ -2371,13 +2586,7 @@
     },
     "hotspots": [
       {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
-        "findings": 5,
-        "impact": 12,
-        "top_severity": "high"
-      },
-      {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+        "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
         "findings": 5,
         "impact": 12,
         "top_severity": "high"
@@ -2386,6 +2595,12 @@
         "url": "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/",
         "findings": 5,
         "impact": 12,
+        "top_severity": "high"
+      },
+      {
+        "url": "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "findings": 4,
+        "impact": 10,
         "top_severity": "high"
       },
       {
@@ -2401,13 +2616,13 @@
         "top_severity": "high"
       },
       {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
+        "url": "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
         "findings": 4,
         "impact": 10,
         "top_severity": "high"
       },
       {
-        "url": "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+        "url": "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/",
         "findings": 4,
         "impact": 10,
         "top_severity": "high"
@@ -2525,5 +2740,198 @@
       "Discoverability (31) and engagement (96) diverge by 65 points; discoverability is the side pulling the score down.",
       "Assessed 8 of 8 areas. 2 proactive opportunity(ies) identified."
     ]
-  }
+  },
+  "funnel": {
+    "gates": [
+      {
+        "key": "reach",
+        "label": "Reach",
+        "mechanism": "Can a crawler get in and be allowed to index the page?",
+        "score": 100.0,
+        "status": "healthy",
+        "findings": 0
+      },
+      {
+        "key": "read",
+        "label": "Read",
+        "mechanism": "Can a fetch-only machine actually read the content as text?",
+        "score": 83.0,
+        "status": "warning",
+        "findings": 5
+      },
+      {
+        "key": "quote",
+        "label": "Quote",
+        "mechanism": "Can it lift a clear, attributable fact to cite?",
+        "score": 48.0,
+        "status": "critical",
+        "findings": 4
+      },
+      {
+        "key": "trust",
+        "label": "Trust",
+        "mechanism": "Does the fact look current and agreed-upon enough to repeat?",
+        "score": 100.0,
+        "status": "healthy",
+        "findings": 0
+      }
+    ],
+    "weakest": "quote",
+    "weakest_label": "Quote",
+    "weakest_score": 48.0,
+    "note": "Bottleneck: **Quote** (48/100). Fixing it is what unlocks Trust downstream."
+  },
+  "fix_plan": [
+    {
+      "step": 1,
+      "finding_id": "F-001",
+      "title": "No structured data anywhere in the sampled pages",
+      "category": "structured-data",
+      "action": "add_or_fix_structured_data",
+      "severity": "high",
+      "effort": "Medium",
+      "expected_gain_points": 11,
+      "affected_pages": [],
+      "has_snippet": true
+    },
+    {
+      "step": 2,
+      "finding_id": "F-002",
+      "title": "Product-like pages missing Product/Offer schema",
+      "category": "structured-data",
+      "action": "add_or_fix_structured_data",
+      "severity": "high",
+      "effort": "High",
+      "expected_gain_points": 11,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/"
+      ],
+      "has_snippet": true
+    },
+    {
+      "step": 3,
+      "finding_id": "F-004",
+      "title": "Homepage lacks Organization/WebSite structured data",
+      "category": "entity-identity",
+      "action": "strengthen_entity_identity",
+      "severity": "medium",
+      "effort": "Low",
+      "expected_gain_points": 5,
+      "affected_pages": [],
+      "has_snippet": true
+    },
+    {
+      "step": 4,
+      "finding_id": "F-005",
+      "title": "Pages missing an H1 heading",
+      "category": "extractability",
+      "action": "edit_page_markup",
+      "severity": "medium",
+      "effort": "Low",
+      "expected_gain_points": 5,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/articles/"
+      ],
+      "has_snippet": true
+    },
+    {
+      "step": 5,
+      "finding_id": "F-003",
+      "title": "Article/blog pages missing Article schema",
+      "category": "structured-data",
+      "action": "add_or_fix_structured_data",
+      "severity": "medium",
+      "effort": "Medium",
+      "expected_gain_points": 5,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/articles/"
+      ],
+      "has_snippet": true
+    },
+    {
+      "step": 6,
+      "finding_id": "F-006",
+      "title": "Slow server response on sampled pages",
+      "category": "performance",
+      "action": "optimize_performance",
+      "severity": "medium",
+      "effort": "High",
+      "expected_gain_points": 2,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/ebook-bundles/ux-ebook-bundle-12-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/web-design-ebook-bundle-10-ebooks/"
+      ],
+      "has_snippet": false
+    },
+    {
+      "step": 7,
+      "finding_id": "F-007",
+      "title": "Heading hierarchy skips levels",
+      "category": "extractability",
+      "action": "edit_page_markup",
+      "severity": "low",
+      "effort": "Low",
+      "expected_gain_points": 1,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/",
+        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/"
+      ],
+      "has_snippet": false
+    },
+    {
+      "step": 8,
+      "finding_id": "F-008",
+      "title": "Meta descriptions likely to be truncated",
+      "category": "extractability",
+      "action": "edit_page_markup",
+      "severity": "low",
+      "effort": "Low",
+      "expected_gain_points": 1,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/front-end-ebook-bundle-4-ebooks/"
+      ],
+      "has_snippet": true
+    },
+    {
+      "step": 9,
+      "finding_id": "F-009",
+      "title": "Substantial content offloaded to PDF files",
+      "category": "extractability",
+      "action": "edit_page_markup",
+      "severity": "low",
+      "effort": "Low",
+      "expected_gain_points": 1,
+      "affected_pages": [],
+      "has_snippet": false
+    },
+    {
+      "step": 10,
+      "finding_id": "F-010",
+      "title": "Title tags outside the useful length range",
+      "category": "extractability",
+      "action": "edit_page_markup",
+      "severity": "low",
+      "effort": "Low",
+      "expected_gain_points": 1,
+      "affected_pages": [
+        "https://www.smashingmagazine.com/",
+        "https://www.smashingmagazine.com/ebook-bundles/smashing-library/",
+        "https://www.smashingmagazine.com/ebook-bundles/accessibility-ebook-bundle-3-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/business-ebook-bundle-8-ebooks/",
+        "https://www.smashingmagazine.com/ebook-bundles/content-strategy-ebook-bundle-3-ebooks/"
+      ],
+      "has_snippet": true
+    }
+  ]
 }

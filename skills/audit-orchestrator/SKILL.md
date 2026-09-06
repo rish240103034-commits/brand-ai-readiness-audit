@@ -60,7 +60,10 @@ running every other skill's checks over a shared crawl and merging their finding
    report's what-if planner recomputes scores identically to the engine.
 7. **Analyze** (analyst layer): derive pillar sub-scores (with coverage-aware status), an
    impact×effort matrix with quick wins, a "what-if" score projection, page hotspots, a
-   Now/Next/Later roadmap, and a short auto-written executive summary — the `analytics` block.
+   Now/Next/Later roadmap, a short auto-written executive summary (`analytics`); the **visibility
+   funnel** (reach→read→quote→trust with the bottleneck gate); a **machine-executable fix plan**
+   plus copy-paste fix snippets; and, opt-in (`--compare-with`), a **competitor benchmark**.
+   A standalone `scripts/eval.py` proves generalization + zero false positives on a labeled corpus.
 8. **Summarize**: counts by severity and by dimension (discoverability vs engagement).
 9. **Emit** one JSON audit report (schema below); or the self-contained HTML dashboard
    (`--format html`), a Markdown brief (`--format md`), and/or a findings CSV (`--csv FILE`).

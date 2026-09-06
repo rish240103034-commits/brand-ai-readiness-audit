@@ -41,6 +41,9 @@ from auditlib import llmstxt as llmstxt_mod                 # noqa: E402
 from auditlib import consistency as consistency_mod         # noqa: E402
 from auditlib import knowledge_graph as kg_mod              # noqa: E402
 from auditlib import prompts as prompts_mod                 # noqa: E402
+from auditlib import funnel as funnel_mod                   # noqa: E402
+from auditlib import snippets as snippets_mod               # noqa: E402
+from auditlib import benchmark as benchmark_mod             # noqa: E402
 from auditlib import exports as exports_mod                 # noqa: E402
 from auditlib import render as render_mod                   # noqa: E402
 from auditlib.checks import freshness as _freshness         # noqa: E402
@@ -50,7 +53,8 @@ LOG = get_logger("orchestrator")
 EXIT_OK, EXIT_PARTIAL, EXIT_BADINPUT = 0, 1, 2
 
 
-def run(url: str, cfg, external: bool = True, only_skills=None, verify_external: bool = False):
+def run(url: str, cfg, external: bool = True, only_skills=None, verify_external: bool = False,
+        compare_with=None):
     """Crawl once, run the selected skills, and return (report_dict, exit_code)."""
     started = report_mod._now_iso()
     t0 = time.time()
@@ -117,6 +121,11 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     rpt["knowledge_graph"] = _safe(rpt, "knowledge-graph", lambda: kg_mod.build(ctx), {})
     rpt["prompt_pack"] = _safe(rpt, "prompt-pack", lambda: prompts_mod.build(ctx, rpt["answer_readiness"]), {})
     _safe(rpt, "analytics", lambda: analytics_mod.attach(rpt), None)  # mutates rpt in place
+    rpt["funnel"] = _safe(rpt, "funnel", lambda: funnel_mod.build(rpt), {})  # reach→read→quote→trust
+    _safe(rpt, "fix-snippets", lambda: snippets_mod.attach(rpt, ctx), None)  # code + fix_plan
+    if compare_with:
+        rpt["benchmark"] = _safe(rpt, "benchmark",
+                                 lambda: _run_benchmark(cfg, compare_with, rpt), {})
 
     errs = report_mod.validate(rpt)
     if errs:
@@ -133,6 +142,23 @@ def _safe(rpt, label, fn, default):
         rpt.setdefault("notes", []).append(f"{label} step skipped ({type(e).__name__}: {e})")
         LOG.warning("%s step failed: %s", label, e)
         return default
+
+
+def _run_benchmark(cfg, competitors, primary_rpt):
+    """Audit up to 3 competitors (lighter + no nested benchmark) and build the comparison block."""
+    comp_cfg = cfg.derive(max_pages=min(cfg.max_pages, 6))
+    reports = []
+    for spec in competitors[:3]:
+        valid, target, reason = http.validate_target(spec, comp_cfg)
+        if not valid:
+            LOG.warning("skipping competitor %r: %s", spec, reason)
+            continue
+        try:
+            crpt, _ = run(target, comp_cfg, external=False, compare_with=None)
+            reports.append(crpt)
+        except Exception as e:  # a bad competitor must never fail the primary audit
+            LOG.warning("competitor audit failed for %s: %s", target, e)
+    return benchmark_mod.build(primary_rpt, reports) if reports else {}
 
 
 def _run_skills_concurrently(skills, ctx, cfg):
@@ -195,6 +221,8 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--verify-external", action="store_true",
                     help="Opt-in: corroborate the brand against Wikidata and its own declared profile "
                          "links (bounded, read-only requests to public third-party sources; off by default)")
+    ap.add_argument("--compare-with", default=None, metavar="a.com,b.com",
+                    help="Opt-in: benchmark against up to 3 competitor domains (side-by-side scores + gaps)")
     ap.add_argument("--timeout", type=int, default=None, help="Per-request timeout seconds")
     ap.add_argument("--profile", choices=VALID_PROFILES, default="balanced", help="Scoring/threshold profile")
     ap.add_argument("--crawl-scope", choices=["host", "domain"], default=None,
@@ -235,8 +263,9 @@ def main(argv=None) -> int:
         return EXIT_OK
 
     try:
+        competitors = [s.strip() for s in args.compare_with.split(",") if s.strip()] if args.compare_with else None
         rpt, code = run(target, cfg, external=not args.no_external, only_skills=only,
-                        verify_external=args.verify_external)
+                        verify_external=args.verify_external, compare_with=competitors)
     except KeyboardInterrupt:
         LOG.error("interrupted")
         return 130

@@ -22,6 +22,9 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `external_verification` | object | — | Present only with `--verify-external`: off-site corroboration results (see below). |
 | `answer_readiness` | object | — | Who/what/where machine-readability scorecard (see below). |
 | `llms_txt` | object | — | llms.txt presence + a generated suggestion (see below). |
+| `funnel` | object | — | Visibility funnel: reach→read→quote→trust gate scores + bottleneck (see below). |
+| `benchmark` | object | — | Present with `--compare-with`: competitor comparison + gaps (see below). |
+| `fix_plan` | array | — | Ordered, machine-executable remediation steps (see below). |
 | `consistency` | object | — | Hallucination-risk scan: self-contradictions across the site (see below). |
 | `knowledge_graph` | object | — | Entity graph an AI can build from the markup (see below). |
 | `prompt_pack` | object | — | Real-query readiness grades (see below). |
@@ -86,6 +89,7 @@ projection reuses the one score model in `scoring.py`, so the numbers are consis
 | `scope` | string | — | Prevalence, e.g. `8 of 12 page(s) (67%)`. |
 | `measurements` | object | — | Observed numbers behind the finding (e.g. `{"pages_without_h1": 4}`). |
 | `expected_impact` | string | — | What fixing it is expected to improve. |
+| `fix_snippet` | string | — | Ready-to-paste remediation code (when a template exists for the finding type). |
 | `kind` | enum | — | `defect` (default) — opportunities live in the top-level `opportunities` array. |
 | `impact` | int | — | 1–5 estimated impact (used for prioritization). |
 | `priority` | int | — | Rank across all findings; `1` = act first. |
@@ -173,6 +177,21 @@ summary { nodes, edges, missing, has_identity } }`. `missing` lists absent-but-e
 Real-query readiness (`auditlib/prompts.py`). `{ brand, ready, total, prompts[ { prompt, state
 (ready|partial|weak|n/a), needs } ] }` — grades whether the site exposes the machine-readable facts
 to be the source of a good answer for common assistant prompts.
+
+## `funnel`
+Discoverability scored as a pipeline (`auditlib/funnel.py`): `{ gates[ { key (reach|read|quote|
+trust), label, mechanism, score, status, findings } ], weakest, weakest_label, weakest_score, note }`.
+An early gate caps the rest, so the **bottleneck** (weakest gate) is where a fix unlocks the most.
+
+## `benchmark`
+Present only with `--compare-with` (`auditlib/benchmark.py`): `{ you {site,score,grade,pillars,
+answer_ready,…}, competitors[ …same… ], gaps[ { pillar, you, best, leader } ], note }`. `gaps` are
+pillars where a competitor leads by ≥15 points.
+
+## `fix_plan`
+An ordered, machine-consumable remediation graph (`auditlib/snippets.py`): a list of `{ step,
+finding_id, title, category, action, severity, effort, expected_gain_points, affected_pages,
+has_snippet }`, sequenced Now→Next→Later — designed for another agent to execute.
 
 ## `opportunities`
 Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They

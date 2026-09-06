@@ -4,6 +4,34 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.6.0] — 2026-09-05
+
+Winning-tier features — evidence of quality + competitive context + mechanism-sound scoring +
+agent-native remediation.
+
+### Added
+- **Generalization / false-positive eval harness** (`scripts/eval.py`, `tests/test_eval.py`): a
+  labeled corpus of synthetic sites (one per failure mode + a clean site + a non-English site)
+  served from an in-process mock, audited, and scored. Proves **recall 1.00** on the failure-mode
+  fixtures and **0 findings on the clean site** (zero false positives) — the evidence behind the
+  rubric's "few misses, few false positives … generalization tested by construction". Runnable:
+  `python skills/audit-orchestrator/scripts/eval.py`.
+- **Competitor benchmarking** (`--compare-with a.com,b.com`, `benchmark.py`, `report.benchmark`):
+  audits up to 3 competitors and renders side-by-side scores, per-pillar comparison, and the
+  **citation gaps** where a competitor leads.
+- **Visibility funnel** (`funnel.py`, `report.funnel`): scores discoverability as the mechanism-
+  sound **reach → read → quote → trust** pipeline and names the **bottleneck** gate (an early-gate
+  failure caps the rest) — reasoned from how the systems work, not a flat weighted sum.
+- **Agent-native remediation** (`snippets.py`): a ready-to-paste **fix snippet** per common finding
+  (prefilled Organization JSON-LD, meta/viewport tags, robots fix, BreadcrumbList…) and a
+  **machine-executable `fix_plan`** — an ordered remediation graph another agent could run (also in
+  the JSON export).
+
+### Changed
+- Report renders the benchmark, funnel, fix-plan sections and per-finding copy-paste snippets.
+- `render.py` now imports `re` (fixes a latent crash in the funnel note formatter); added a
+  render-smoke test so every output format is exercised by the suite. Version → `2.6`.
+
 ## [2.5.1] — 2026-09-05
 
 Rubric-hardening pass — robustness, false-positive, runtime, and determinism fixes that matter for
