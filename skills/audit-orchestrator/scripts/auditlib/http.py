@@ -462,12 +462,16 @@ def sample_pages(start_url: str, fetcher: Fetcher, max_pages: Optional[int] = No
     from_home = _internal_links(home, scope_base, in_scope) if home.ok else []
     from_map = discover_sitemap_urls(scope_base, fetcher, limit=max_pages * 2, in_scope=in_scope)
 
-    queue: List[str] = []
+    frontier: List[str] = []
     seen = {home.final_url, start}
     for u in from_home + from_map:
         if u not in seen:
             seen.add(u)
-            queue.append(u)
+            frontier.append(u)
+    # Smart sampling: within the page budget, fetch the page TYPES that carry brand facts first
+    # (about, contact, product, pricing, ...), then everything else. Ties broken alphabetically so
+    # the sample stays fully deterministic.
+    queue = sorted(frontier, key=lambda u: (_page_type_rank(u), u))
 
     # Global wall-clock budget so a site full of slow/timing-out pages can't blow the runtime limit.
     deadline = time.monotonic() + getattr(fetcher.cfg, "crawl_budget", 120)
@@ -478,6 +482,26 @@ def sample_pages(start_url: str, fetcher: Fetcher, max_pages: Optional[int] = No
         if r.ok and _is_html(r):
             results.append(r)
     return results
+
+
+# High-value page types, in fetch-priority order — these carry the brand facts the audit reasons
+# about (identity, contact, catalogue, pricing). Lower rank = fetched earlier within the budget.
+_PAGE_TYPE_PRIORITY = [
+    re.compile(r"/(about|about-us|company|who-we-are|our-story|team)(/|$|\?)", re.I),
+    re.compile(r"/(contact|contact-us|support|help)(/|$|\?)", re.I),
+    re.compile(r"/(product|products|shop|store|collections?|catalog(ue)?)(/|$|\?)", re.I),
+    re.compile(r"/(pricing|plans|price)(/|$|\?)", re.I),
+    re.compile(r"/(service|services|solutions?|offerings?)(/|$|\?)", re.I),
+    re.compile(r"/(faq|faqs|questions)(/|$|\?)", re.I),
+]
+
+
+def _page_type_rank(url: str) -> int:
+    """Rank a URL by how likely it is to carry brand facts (lower = fetch sooner)."""
+    for i, rx in enumerate(_PAGE_TYPE_PRIORITY):
+        if rx.search(url):
+            return i
+    return len(_PAGE_TYPE_PRIORITY)  # everything else, after the high-value types
 
 
 def _is_html(resp: Response) -> bool:

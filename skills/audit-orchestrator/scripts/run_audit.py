@@ -42,6 +42,9 @@ from auditlib import consistency as consistency_mod         # noqa: E402
 from auditlib import knowledge_graph as kg_mod              # noqa: E402
 from auditlib import prompts as prompts_mod                 # noqa: E402
 from auditlib import funnel as funnel_mod                   # noqa: E402
+from auditlib import claims as claims_mod                   # noqa: E402
+from auditlib import citation as citation_mod               # noqa: E402
+from auditlib import answersim as answersim_mod             # noqa: E402
 from auditlib import snippets as snippets_mod               # noqa: E402
 from auditlib import benchmark as benchmark_mod             # noqa: E402
 from auditlib import exports as exports_mod                 # noqa: E402
@@ -123,6 +126,16 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     _safe(rpt, "analytics", lambda: analytics_mod.attach(rpt), None)  # mutates rpt in place
     rpt["funnel"] = _safe(rpt, "funnel", lambda: funnel_mod.build(rpt), {})  # reach→read→quote→trust
     _safe(rpt, "fix-snippets", lambda: snippets_mod.attach(rpt, ctx), None)  # code + fix_plan
+    # Fact layer: extract every brand claim once, then reason about citation & AI answers over it.
+    rpt["claims"] = _safe(rpt, "claims",
+                          lambda: claims_mod.build(ctx, rpt.get("consistency"),
+                                                   rpt.get("external_verification")),
+                          {"claims": [], "summary": {}})
+    rpt["citation_readiness"] = _safe(rpt, "citation-readiness", lambda: citation_mod.build(rpt), {})
+    rpt["ai_answer_simulation"] = _safe(rpt, "answer-simulation",
+                                        lambda: answersim_mod.build(rpt, ctx), [])
+    rpt["scores"] = _safe(rpt, "scores", lambda: _scores_block(rpt), {})
+    rpt["action_plan"] = _safe(rpt, "action-plan", lambda: _action_plan(rpt), [])
     if compare_with:
         rpt["benchmark"] = _safe(rpt, "benchmark",
                                  lambda: _run_benchmark(cfg, compare_with, rpt), {})
@@ -142,6 +155,45 @@ def _safe(rpt, label, fn, default):
         rpt.setdefault("notes", []).append(f"{label} step skipped ({type(e).__name__}: {e})")
         LOG.warning("%s step failed: %s", label, e)
         return default
+
+
+def _scores_block(rpt):
+    """Headline scores an AI-readiness reader wants first: can it be found, cited, engaged with.
+    Additive — the detailed `score` block is unchanged, this is the flat summary view."""
+    sc = rpt.get("score", {})
+    cit = rpt.get("citation_readiness", {})
+    return {
+        "overall_ai_readiness": sc.get("value"),
+        "discoverability": round(sc.get("discoverability", 0)),
+        "citation_readiness": cit.get("score"),
+        "engagement_readiness": round(sc.get("engagement", 0)),
+    }
+
+
+def _action_plan(rpt):
+    """Prioritized, do-this-next plan. Reshapes the machine fix_plan + impact/effort matrix into a
+    flat ranked list with the *why* and *how* attached, so a developer can work top-down."""
+    matrix = {m["id"]: m for m in (rpt.get("analytics", {}) or {}).get("matrix", [])}
+    by_id = {f["id"]: f for f in rpt.get("findings", [])}
+    plan = []
+    for step in rpt.get("fix_plan", []):
+        fid = step.get("finding_id")
+        f = by_id.get(fid, {})
+        m = matrix.get(fid, {})
+        plan.append({
+            "rank": step.get("step"),
+            "finding_id": fid,
+            "action": f.get("title") or step.get("title"),
+            "why": f.get("why") or f.get("expected_impact"),
+            "how": f.get("how_to_fix") or (f.get("suggested_action") or {}).get("summary"),
+            "dimension": f.get("dimension"),
+            "severity": step.get("severity"),
+            "effort": step.get("effort"),
+            "expected_gain_points": step.get("expected_gain_points"),
+            "quadrant": m.get("quadrant"),
+            "has_snippet": step.get("has_snippet", False),
+        })
+    return plan
 
 
 def _run_benchmark(cfg, competitors, primary_rpt):
@@ -221,6 +273,9 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--verify-external", action="store_true",
                     help="Opt-in: corroborate the brand against Wikidata and its own declared profile "
                          "links (bounded, read-only requests to public third-party sources; off by default)")
+    ap.add_argument("--search-provider", choices=["commoncrawl", "none"], default=None,
+                    help="Corpus-presence provider used with --verify-external "
+                         "(default commoncrawl, keyless; 'none' = Wikidata + declared links only)")
     ap.add_argument("--compare-with", default=None, metavar="a.com,b.com",
                     help="Opt-in: benchmark against up to 3 competitor domains (side-by-side scores + gaps)")
     ap.add_argument("--timeout", type=int, default=None, help="Per-request timeout seconds")
@@ -249,7 +304,7 @@ def main(argv=None) -> int:
 
     cfg = make_config(args.profile).derive(
         max_pages=args.max_pages, timeout=args.timeout, allow_private_hosts=args.allow_private or None,
-        crawl_scope=args.crawl_scope)
+        crawl_scope=args.crawl_scope, search_provider=args.search_provider)
 
     valid, target, reason = http.validate_target(args.url, cfg)
     if not valid:

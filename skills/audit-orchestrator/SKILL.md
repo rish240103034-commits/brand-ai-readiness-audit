@@ -29,16 +29,19 @@ running every other skill's checks over a shared crawl and merging their finding
 - Optional: `--max-pages N` (default 12), `--profile strict|balanced|lenient`,
   `--crawl-scope host|domain` (default host), `--skills a,b` (subset),
   `--format json|html|md`, `--out FILE`, `--csv FILE`, `--no-external`,
-  `--verify-external` (opt-in Wikidata + declared-profile corroboration),
+  `--verify-external` (opt-in Wikidata + declared-profile + corpus-presence corroboration),
+  `--search-provider commoncrawl|none` (provider-neutral corpus check used with `--verify-external`),
   `--compare-previous` (+ `--history-db PATH`), `--dry-run`, `--verbose`/`--quiet`.
 
 ## Procedure (deterministic)
 1. **Normalize** the URL (add scheme if missing) and derive the start host.
 2. **Fetch once, share everywhere.** Crawl a small, deterministic, robots-respecting
-   sample: homepage → in-page internal links (sorted) → sitemap-declared URLs, capped at
-   `--max-pages`. Every page is fetched read-only, size- and time-capped, and cached so no
-   URL is requested twice. This shared sample is passed to all checks — the orchestration
-   contract is "crawl once, analyze many times."
+   sample: homepage → in-page internal links → sitemap-declared URLs, capped at `--max-pages`.
+   **Smart sampling** orders the frontier by page *type* — about, contact, product, pricing,
+   services, faq first (they carry brand facts), everything else after — with alphabetical
+   tie-breaks so the sample stays deterministic. Every page is fetched read-only, size- and
+   time-capped, and cached so no URL is requested twice. This shared sample is passed to all
+   checks — the orchestration contract is "crawl once, analyze many times."
 3. **Invoke each skill's checks** over the shared sample (see [orchestration](references/orchestration.md)):
    - `crawl-render-audit` — is the crawler let in, and can it read the page?
    - `structured-data-audit` — is the key fact machine-quotable?
@@ -58,6 +61,13 @@ running every other skill's checks over a shared crawl and merging their finding
    detect/generate **llms.txt**, run the **hallucination-risk** (self-contradiction) scan, build the
    **knowledge-graph** preview, and grade the **prompt-pack**. The scoring model is embedded so the
    report's what-if planner recomputes scores identically to the engine.
+6b. **Fact layer** (reason about facts, not markup): extract every brand claim once into a **claim
+   inventory** (`claims`) recording where each fact lives (structured data vs. visible text vs.
+   off-site) and whether the site contradicts itself; score **citation readiness** (`citation_readiness`
+   — will an AI quote *and attribute* the brand, not just find it?); and run a deterministic, offline
+   **AI answer simulation** (`ai_answer_simulation`) projecting, per common question, whether an
+   answer engine could answer and would cite this site. Emit the flat headline `scores`
+   (overall / discoverability / citation / engagement) and a ranked `action_plan`.
 7. **Analyze** (analyst layer): derive pillar sub-scores (with coverage-aware status), an
    impact×effort matrix with quick wins, a "what-if" score projection, page hotspots, a
    Now/Next/Later roadmap, a short auto-written executive summary (`analytics`); the **visibility

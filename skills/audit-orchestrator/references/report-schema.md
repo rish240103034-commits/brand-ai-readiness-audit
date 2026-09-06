@@ -13,6 +13,11 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `pages_crawled` | int | — | Size of the analyzed sample. |
 | `summary` | object | ✅ | Counts (see below). |
 | `score` | object | — | AI Visibility Score (see below). |
+| `scores` | object | — | Flat headline view: `overall_ai_readiness`, `discoverability`, `citation_readiness`, `engagement_readiness` (see below). |
+| `claims` | object | — | Extracted brand-fact inventory + status summary (see below). |
+| `citation_readiness` | object | — | 0–100 composite: will an AI *quote & attribute* this brand? (see below). |
+| `ai_answer_simulation` | array | — | Per-question projection of what an answer engine would say and whether it would cite the site (see below). |
+| `action_plan` | array | — | Flat, ranked do-this-next plan (reshaped `fix_plan` + why/how; see below). |
 | `coverage` | object | — | Per-area assessment matrix (see below) — distinguishes not-assessed from healthy. |
 | `analytics` | object | — | Analyst layer derived from the scored report (see below). |
 | `opportunities` | array | — | Proactive, context-justified recommendations (non-defect; see below). |
@@ -146,6 +151,12 @@ entity's official-website property (P856) resolves to the audited domain — a d
 name-only hit is `found` but not `links_back`. When present, this drives Corroboration's
 `external_verification` coverage check to PASS/FAIL instead of the default PARTIAL.
 
+Also carries `corpus` from the **provider-neutral `SearchProvider`** (`auditlib/search_provider.py`):
+`{ provider, status (present|absent|unavailable), records?, index?, detail }`. The default provider is
+a **keyless Common Crawl** presence check (is the domain in the open web corpus AI models learn from?);
+`--search-provider none` limits corroboration to Wikidata + declared links. A positive `absent` adds a
+single low/low finding; `unavailable`/`present` add none — the source is pluggable and never fabricated.
+
 ## `answer_readiness`
 Can an assistant answer common questions about the brand? (`auditlib/answer_readiness.py`.) Grades
 six questions on machine-readability: `{ score (machine-readable count), applicable, machine_readable,
@@ -162,9 +173,11 @@ pages) for copy-paste. Recommend-only; llms.txt is an optional emerging conventi
 ## `consistency`
 Hallucination-risk scan (`auditlib/consistency.py`) — the site audited against itself.
 `{ risk (none|low|elevated), facts_checked, conflicts[ { type, label, severity, values[ { value,
-examples[urls], pages } ] } ], note }`. Only facts expected to be singular are compared (founding
-year, primary phone, per-platform social handles); conflicts also surface as `entity-identity`
-findings. `pages[].extractable_preview` / `extractable_words` / `render_risk` carry the
+examples[urls], pages } ] } ], unverifiable_claims[ { claim, context, page } ], note }`. Only facts
+expected to be singular are compared (founding year, per-platform social handles); conflicts surface
+as `entity-identity` findings. `unverifiable_claims` are absolute superlatives ("world's #1", "the
+leading platform") found on identity pages — a low/low `trust-signals` finding recommending they be
+attributed or softened (soft marketing is deliberately not flagged). `pages[].extractable_preview` / `extractable_words` / `render_risk` carry the
 "what a fetch-only AI sees" view per page.
 
 ## `knowledge_graph`
@@ -192,6 +205,40 @@ pillars where a competitor leads by ≥15 points.
 An ordered, machine-consumable remediation graph (`auditlib/snippets.py`): a list of `{ step,
 finding_id, title, category, action, severity, effort, expected_gain_points, affected_pages,
 has_snippet }`, sequenced Now→Next→Later — designed for another agent to execute.
+
+## `scores`
+Flat headline view over the detailed `score` block, framed as the three questions a reader asks:
+`{ overall_ai_readiness (int, == score.value), discoverability, citation_readiness (== citation_readiness.score),
+engagement_readiness }`. Additive; `score` remains the source of truth for discoverability/engagement.
+
+## `claims`
+The brand-fact inventory (`auditlib/claims.py`). Every checkable statement the brand makes about
+itself is extracted **once**, so downstream layers reason about facts, not markup.
+`{ claims[ { id (C-001…), type (brand_name|founding_year|location|offering|contact|
+identity_link|social_profile|price_signal), subject, predicate, value, in_structured_data (bool),
+in_visible_text (bool), off_site (bool), source_pages[], status, confidence, corroboration } ],
+summary { total, by_status, quotable, quotable_pct, machine_readable_pct, contradicted, note } }`.
+`status` ∈ `quotable` (in schema **and** text) / `structured_only` / `text_only` / `external_only`
+/ `contradicted` (the hallucination scan flags a conflict) / `unverified`.
+
+## `citation_readiness`
+Deterministic 0–100 composite (`auditlib/citation.py`) answering "once found, will an AI *quote and
+attribute* this brand?": `{ score, grade, headline, weakest, method, components[ { key, label, value
+(0–100), weight, detail } ], limits? }`. Components + weights: machine_quotability .30, extractability
+.20, corroboration .25, stability .15, attribution .10. Without `--verify-external` the corroboration
+component is capped and `limits` says so — the number is never overstated.
+
+## `ai_answer_simulation`
+A transparent, offline projection (`auditlib/answersim.py`) of what an answer engine would do per
+common question — not a model call. List of `{ question, answerable (yes|partial|risky|no),
+basis (structured|text|off-site|conflicting|none), would_cite (bool), confidence, supporting_claims[],
+gap }`. Rule: an engine can only state a fact it can extract, and prefers to cite facts that are
+machine-readable and non-contradictory — applied to the `claims` inventory.
+
+## `action_plan`
+Flat, ranked "do this next" plan reshaped from `fix_plan` + the impact/effort matrix: `{ rank,
+finding_id, action, why, how, dimension, severity, effort, expected_gain_points, quadrant,
+has_snippet }`. Same ordering as `fix_plan`; adds the plain-English *why*/*how* per step.
 
 ## `opportunities`
 Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They

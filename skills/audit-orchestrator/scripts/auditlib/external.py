@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Tuple
 from .context import AuditContext
 from .report import Finding
 from . import http as _http
+from . import search_provider as _sp
 from .htmlparse import Page, jsonld_types
 
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
@@ -56,12 +57,37 @@ def verify(ctx: AuditContext) -> Tuple[Dict[str, Any], List[Finding]]:
     result["wikidata"] = _wikidata(candidates, ctx.start_url, result["notes"])
     result["profiles"] = _profiles(ctx, result["notes"])
 
+    # Provider-neutral corpus/search presence (keyless Common Crawl by default; pluggable).
+    provider = _sp.for_config(ctx.cfg)
+    result["corpus"] = provider.corroborate(brand, result["domain"], result["notes"])
+    result["sources"].append(f"search:{provider.name}")
+
     wd = result["wikidata"]
     profiles_ok = sum(1 for p in result["profiles"] if p["state"] == "verified")
     result["verified"] = bool(wd.get("links_back") or profiles_ok >= 1)
 
     findings += _findings_from(result, wd, profiles_ok)
+    findings += _corpus_findings(result["corpus"])
     return result, findings
+
+
+def _corpus_findings(corpus: Dict[str, Any]) -> List[Finding]:
+    """A low-severity nudge only when a provider positively reports the brand is *absent* from the
+    open corpus. 'unavailable'/'present' add no finding (no signal / good signal)."""
+    if not corpus or corpus.get("status") != "absent":
+        return []
+    return [Finding(
+        title="Brand domain absent from the open web corpus",
+        severity="low", dimension="discoverability", category="corroboration", confidence="low",
+        evidence=corpus.get("detail", ""),
+        why="Models form priors from large open crawls of the web. A domain missing from that corpus "
+            "tends to be under-represented in what an assistant already 'knows' about the brand.",
+        how_to_fix="Grow authoritative inbound coverage (press, directories, Wikipedia/Wikidata, partner "
+                   "sites) so the brand is captured and corroborated across the open web.",
+        measurements={"corpus": corpus.get("provider"), "index": corpus.get("index")},
+        suggested_action_summary="Build off-site presence so the brand appears in the open web corpus.",
+        suggested_action_priority="low",
+    )]
 
 
 # --- Wikidata -----------------------------------------------------------------------

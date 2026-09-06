@@ -13,7 +13,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Dict, Mapping
 
 # --- Network / crawl defaults -----------------------------------------------------
-DEFAULT_USER_AGENT = "brand-ai-readiness-audit/2.6 (+read-only audit bot; respects robots.txt)"
+DEFAULT_USER_AGENT = "brand-ai-readiness-audit/2.7 (+read-only audit bot; respects robots.txt)"
 DEFAULT_TIMEOUT = 15            # seconds per request
 DEFAULT_MAX_BYTES = 3_000_000   # 3 MB body cap
 DEFAULT_DELAY = 0.4             # polite seconds between requests to one host
@@ -108,6 +108,10 @@ class Config:
     respect_robots: bool = True
     allow_private_hosts: bool = False  # SSRF guard; True only for local testing
     profile: str = "balanced"
+    # Provider-neutral corroboration source consulted ONLY under --verify-external. "commoncrawl"
+    # is a keyless public-corpus presence check; "none" limits corroboration to Wikidata + declared
+    # links. Default runs never touch it (deterministic + offline).
+    search_provider: str = "commoncrawl"
     thresholds: Mapping[str, float] = field(default_factory=lambda: dict(BASE_THRESHOLDS))
 
     def t(self, name: str) -> float:

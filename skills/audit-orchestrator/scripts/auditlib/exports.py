@@ -62,6 +62,56 @@ def render_markdown(report: Dict[str, Any]) -> str:
             out.append(f"| {label} | {val} |")
         out.append("")
 
+    # AI-readiness headline scores (can it be found, cited, engaged with?)
+    scores = report.get("scores") or {}
+    if scores:
+        out.append("## AI readiness at a glance")
+        out.append("")
+        out.append("| Dimension | Score |")
+        out.append("|---|---|")
+        out.append(f"| Overall AI readiness | {scores.get('overall_ai_readiness')}/100 |")
+        out.append(f"| Discoverability (can an AI find it?) | {scores.get('discoverability')}/100 |")
+        out.append(f"| Citation readiness (will an AI quote it?) | {scores.get('citation_readiness')}/100 |")
+        out.append(f"| Engagement readiness (will visitors stay?) | {scores.get('engagement_readiness')}/100 |")
+        out.append("")
+
+    # Citation readiness breakdown
+    cr = report.get("citation_readiness") or {}
+    if cr.get("components"):
+        out.append(f"### Citation readiness — {cr.get('score')}/100 ({cr.get('grade')})")
+        out.append("")
+        out.append("| Signal | Score | Detail |")
+        out.append("|---|---|---|")
+        for c in cr["components"]:
+            out.append(f"| {c['label']} | {c['value']}/100 | {c['detail']} |")
+        if cr.get("limits"):
+            out.append("")
+            out.append(f"> _{cr['limits']}_")
+        out.append("")
+
+    # AI answer simulation — what an answer engine would do with these facts
+    sim = report.get("ai_answer_simulation") or []
+    if sim:
+        out.append("### What an AI would answer about this brand")
+        out.append("")
+        out.append("| Question | Answerable | Would cite this site? | Basis |")
+        out.append("|---|---|---|---|")
+        for r in sim:
+            out.append(f"| {r['question']} | {r['answerable']} | "
+                       f"{'yes' if r['would_cite'] else 'no'} | {r['basis']} |")
+        out.append("")
+
+    # Claim inventory summary
+    csum = (report.get("claims") or {}).get("summary") or {}
+    if csum.get("total"):
+        out.append("### Claim inventory")
+        out.append("")
+        out.append(f"- {csum['total']} brand facts extracted; "
+                   f"{csum.get('machine_readable_pct')}% machine-readable, "
+                   f"{csum.get('quotable_pct')}% quotable verbatim, "
+                   f"{csum.get('contradicted')} contradicted.")
+        out.append("")
+
     # Pillar breakdown
     pillars = an.get("pillars", [])
     if pillars:

@@ -169,10 +169,28 @@ single-language sites (no false positives).
 - **Agent-native remediation** — a copy-paste fix snippet per finding and a machine-executable
   `fix_plan` another agent could run.
 
+### The fact layer — "will an AI *quote* you?"
+- **Claim inventory** — every checkable brand fact (name, founding year, location, offering,
+  contact, identity links, pricing) is extracted *once* and tagged by where it lives: machine-readable
+  structured data, human-visible prose, or off-site. The audit reasons about **facts, not markup**.
+- **Citation-readiness score** (0–100) — the harder question beyond discoverability: once an AI has
+  found you, will it **quote and attribute** you, or paraphrase a competitor? A deterministic composite
+  of machine-quotability, extractability, corroboration, stability and attribution, with a weakest-link
+  callout — honest about being capped until `--verify-external` confirms corroboration.
+- **AI answer simulation** — for each common question ("who is X?", "when was X founded?", "how much
+  does X cost?") a transparent, offline projection of whether an answer engine could answer and
+  **whether it would cite your site**. Not a model call — an explainable rule over your own claims.
+- **Smart sampling** fills that claim inventory by crawling the fact-bearing page *types* first
+  (about, contact, product, pricing) within the page budget — deterministically.
+- **Provider-neutral corroboration** (`--verify-external`): a pluggable `SearchProvider` interface
+  with a bundled **keyless Common Crawl** presence check (is the brand in the open web corpus AI
+  learns from?) — degrades honestly to "unavailable", never hard-wired to one vendor.
+
 ### AI-era differentiators
 - **Hallucination-risk scan** — audits the site *against itself* and flags facts that should be
-  singular but disagree across pages (founding year, phone, social handles). Those internal
-  contradictions are a direct cause of assistants stating the wrong fact about a brand.
+  singular but disagree across pages (founding year, social handles), plus **unverifiable superlative
+  claims** ("world's #1", "market leader") an assistant may repeat as fact. Those are direct causes of
+  assistants stating the wrong thing about a brand.
 - **"What a fetch-only AI sees"** — each page shows the exact text a JavaScript-less retriever
   extracts, with a content-density risk: the visceral gap between the human page and the bot's view.
 - **Knowledge-graph preview** — draws the entity graph an AI can build from your JSON-LD

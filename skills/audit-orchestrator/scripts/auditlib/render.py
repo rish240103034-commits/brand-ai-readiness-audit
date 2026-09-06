@@ -51,6 +51,7 @@ def render_html(report: Dict[str, Any]) -> str:
         _exec_summary(an),
         _benchmark_section(report),
         _funnel_section(report),
+        _citation_section(report),
         _coverage_section(report),
         _answer_readiness_section(report),
         _prompt_pack_section(report),
@@ -291,6 +292,60 @@ def _answer_readiness_section(report) -> str:
   <p class="ar-head"><b>{score}/{appl}</b> questions answerable from <b>machine-readable</b> data
      · {ar.get('text_only',0)} text-only · {ar.get('missing',0)} missing</p>
   <ul class="ar-list">{rows}</ul>
+</section>"""
+
+
+# --- citation readiness + AI answer simulation ------------------------------------
+
+_SIM_STATE = {"yes": ("#2e7d32", "answerable"), "partial": ("#e0a500", "partial"),
+              "risky": ("#d1620a", "risky"), "no": ("#c0182f", "no answer")}
+
+
+def _citation_section(report) -> str:
+    """Citation readiness (will an AI *quote* this brand?) + a per-question answer simulation
+    + the claim inventory the whole thing is derived from. All read from the embedded report."""
+    cr = report.get("citation_readiness") or {}
+    sim = report.get("ai_answer_simulation") or []
+    csum = (report.get("claims") or {}).get("summary") or {}
+    if not cr.get("components") and not sim:
+        return ""
+
+    bars = ""
+    for c in cr.get("components", []):
+        v = int(c.get("value", 0))
+        col = "#2e7d32" if v >= 75 else "#e0a500" if v >= 50 else "#c0182f"
+        bars += (f'<li><span class="cr-lbl">{html.escape(c["label"])}</span>'
+                 f'<span class="cr-bar"><span style="width:{v}%;background:{col}"></span></span>'
+                 f'<span class="cr-val">{v}</span>'
+                 f'<span class="cr-det">{html.escape(c.get("detail",""))}</span></li>')
+
+    sim_rows = ""
+    for r in sim:
+        col, lbl = _SIM_STATE.get(r["answerable"], ("#889", r["answerable"]))
+        cite = ('<span class="chip mini" style="background:#2e7d32">cites site</span>'
+                if r["would_cite"] else
+                '<span class="chip mini" style="background:#8a8f98">no citation</span>')
+        gap = f'<span class="sim-gap">{html.escape(r["gap"])}</span>' if r.get("gap") else ""
+        sim_rows += (f'<li><span class="chip mini" style="background:{col}">{html.escape(lbl)}</span>'
+                     f'<span class="sim-q">{html.escape(r["question"])}</span>{cite}{gap}</li>')
+
+    score = cr.get("score", 0)
+    grade = cr.get("grade", "")
+    limits = f'<p class="cr-limits">{html.escape(cr["limits"])}</p>' if cr.get("limits") else ""
+    inv = ""
+    if csum.get("total"):
+        inv = (f'<p class="cr-inv">{csum["total"]} brand facts extracted · '
+               f'<b>{csum.get("machine_readable_pct",0)}%</b> machine-readable · '
+               f'<b>{csum.get("quotable_pct",0)}%</b> quotable verbatim · '
+               f'{csum.get("contradicted",0)} contradicted.</p>')
+    return f"""<section class="card">
+  <h2>Citation readiness <span class="hint">once found, will an AI quote &amp; attribute this brand?</span></h2>
+  <p class="ar-head"><b>{score}/100</b> ({html.escape(str(grade))}) — weakest link: <b>{html.escape(str(cr.get('weakest','') or '—'))}</b></p>
+  <ul class="cr-list">{bars}</ul>
+  {inv}
+  {limits}
+  <h3 class="sim-h">What an AI would answer about this brand</h3>
+  <ul class="sim-list">{sim_rows}</ul>
 </section>"""
 
 
@@ -1379,6 +1434,21 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
 .ar-list { list-style:none; margin:0; padding:0; }
 .ar-list li { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f2f4f7; font-size:13px; }
 .ar-q { font-weight:600; color:#33404f; min-width:170px; } .ar-e { color:var(--muted); font-size:12px; }
+/* citation readiness + answer simulation */
+.cr-list { list-style:none; margin:0 0 10px; padding:0; }
+.cr-list li { display:grid; grid-template-columns:180px 1fr 34px; grid-auto-rows:auto; align-items:center;
+  gap:6px 10px; padding:7px 0; border-bottom:1px solid #f2f4f7; font-size:13px; }
+.cr-lbl { font-weight:600; color:#33404f; }
+.cr-bar { background:#eef1f5; border-radius:6px; height:10px; overflow:hidden; }
+.cr-bar span { display:block; height:100%; border-radius:6px; }
+.cr-val { text-align:right; font-variant-numeric:tabular-nums; font-weight:700; color:#33404f; }
+.cr-det { grid-column:1 / -1; color:var(--muted); font-size:12px; margin-top:-2px; }
+.cr-inv { font-size:13px; color:#33404f; margin:6px 0; }
+.cr-limits { font-size:12px; color:var(--muted); font-style:italic; margin:6px 0; }
+.sim-h { font-size:14px; margin:14px 0 6px; color:#33404f; }
+.sim-list { list-style:none; margin:0; padding:0; }
+.sim-list li { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f2f4f7; font-size:13px; flex-wrap:wrap; }
+.sim-q { font-weight:600; color:#33404f; } .sim-gap { color:var(--muted); font-size:12px; flex-basis:100%; }
 /* llms.txt */
 .llms-note { font-size:14px; color:#33404f; } .llms-pre { background:#1c2430; color:#e6e8ec; border-radius:8px;
   padding:14px 16px; font-family:ui-monospace,Consolas,monospace; font-size:12px; overflow-x:auto; white-space:pre; }

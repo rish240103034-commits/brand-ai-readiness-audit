@@ -4,6 +4,45 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.7.0] — 2026-09-06
+
+Fact layer — the audit now reasons about the brand's **claims**, not just its markup, and answers
+the question judges care about most: not "can an AI find it?" but "will an AI **quote and attribute**
+it?"
+
+### Added
+- **Claim-extraction engine** (`auditlib/claims.py`, `report.claims`): extracts every checkable brand
+  fact once — name, founding year, location, offering, contact, identity links, pricing — recording
+  where each lives (structured data vs. visible text vs. off-site) and whether the site contradicts
+  itself. Downstream analyses read facts from here instead of re-parsing HTML. Each claim carries a
+  `status` (quotable / structured_only / text_only / external_only / contradicted / unverified).
+- **Citation-readiness score** (`auditlib/citation.py`, `report.citation_readiness`): a deterministic
+  0–100 composite of machine-quotability, extractability, corroboration, stability and attribution,
+  with a weakest-link callout. Honest about its limits — corroboration is capped (and `limits` says
+  so) unless `--verify-external` confirmed identity off-site.
+- **AI answer simulation** (`auditlib/answersim.py`, `report.ai_answer_simulation`): a transparent,
+  offline projection — no model call — of what an answer engine would say to each common question
+  about the brand, and whether it would **cite this site** or paraphrase without attribution.
+- **Flat headline `scores`** (`overall_ai_readiness` / `discoverability` / `citation_readiness` /
+  `engagement_readiness`) and a ranked **`action_plan`** (fix_plan reshaped with plain-English
+  why/how) — the two views a reader wants first and last.
+- **Surfaced in every output**: new "Citation readiness" card in the HTML dashboard (component bars,
+  claim inventory, per-question answer-simulation table) and a new "AI readiness at a glance"
+  section in the Markdown brief.
+- **Smart page sampling** (`http.py`): the crawl now fetches high-value page *types* first
+  (about, contact, product, pricing, services, faq) within the page budget, then everything else —
+  so the claim inventory is richer on large sites. Fully deterministic (ties broken alphabetically).
+- **Advanced contradiction detection** (`consistency.py`): a conservative, low-severity scan for
+  **unverifiable superlative claims** ("world's #1", "the leading platform", "market leader") on
+  identity pages — the other way a site feeds bad AI answers. Narrow by design (soft marketing is not
+  flagged) to keep false positives near zero; verified against the eval corpus (still 0 FPs).
+- **Provider-neutral `SearchProvider` abstraction** (`search_provider.py`): pluggable off-site
+  corroboration, never hard-wired to one vendor. Bundled keyless **Common Crawl** presence check
+  (is the brand's domain in the open web corpus AI models learn from?) with an honest `NullProvider`
+  fallback; consulted only under `--verify-external` and degrades to `unavailable` on any failure.
+  New `--search-provider commoncrawl|none` flag and `report.external_verification.corpus`.
+- 23 new tests (`tests/test_ai_readiness.py`); suite now **168 tests**, all offline.
+
 ## [2.6.0] — 2026-09-05
 
 Winning-tier features — evidence of quality + competitive context + mechanism-sound scoring +
