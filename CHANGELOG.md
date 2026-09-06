@@ -4,6 +4,33 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.5.1] — 2026-09-05
+
+Rubric-hardening pass — robustness, false-positive, runtime, and determinism fixes that matter for
+grading on unseen sites, plus a SKILL.md refresh so the skills' instructions match the code.
+
+### Fixed
+- **Crash-proofing (generalization):** every derived-analysis block in the entrypoint (coverage,
+  page explorer, sections, answer-readiness, llms.txt, knowledge graph, prompt-pack, analytics,
+  opportunities) now runs through a safe wrapper — an edge case on an unseen site degrades to a
+  note instead of crashing the whole audit. The report (findings + score) is always emitted.
+- **False positive:** broken-link probing now reports only definitive **4xx/5xx** targets; a
+  timeout / DNS / connection error (status 0) is no longer counted as "broken" (avoids false
+  positives on slow or bot-protected sites).
+- **Runtime:** added a global **crawl wall-clock budget** (`crawl_budget`, default 120 s) so a site
+  full of slow/timing-out pages can't push total runtime past the 5-minute limit.
+- **False positive:** the hallucination scan no longer treats multiple phone numbers as a
+  contradiction (brands legitimately list sales/support/regional numbers); it keeps founding-year
+  and per-platform social-handle checks, which are genuinely singular.
+- **Determinism:** the single-sample "slow server response" finding is now low-confidence and worded
+  as network-dependent, so a one-off timing blip doesn't read as a hard defect.
+
+### Changed
+- Refreshed every sub-skill `SKILL.md` Procedure/Output to list the checks the code actually runs
+  (canonical, hreflang/i18n, broken/nofollow links, empty/conflicting schema, heading hierarchy,
+  title/meta quality, render-blocking, login barriers, accessibility, name-neutral identity,
+  opt-in Wikidata verification), and to state that rendered-DOM verification is out of scope.
+
 ## [2.5.0] — 2026-09-05
 
 Four AI-era differentiators — features framed around how assistants actually read and reason about

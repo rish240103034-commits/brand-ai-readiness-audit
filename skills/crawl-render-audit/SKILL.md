@@ -27,21 +27,31 @@ blocked, non-200, `noindex`, or rendered entirely in the browser.
 `url` (required); optional `--max-pages N`.
 
 ## Procedure
-1. Fetch `robots.txt`; parse user-agent groups. Flag a full-site `Disallow: /` and — a
-   discoverability-specific check — any group that blocks a known **AI-assistant crawler**.
+1. Fetch `robots.txt`; parse user-agent groups. Flag a full-site `Disallow: /`, and — nuanced,
+   not "allow everything" — distinguish blocked **AI retrieval/citation** crawlers (OAI-SearchBot,
+   ChatGPT-User, PerplexityBot… → *critical*) from blocked **AI training** crawlers (GPTBot,
+   ClaudeBot, Google-Extended… → a low-severity, explicit policy note, since excluding training is
+   a legitimate choice).
 2. Over the sampled pages, flag non-200 status, robots-blocked paths, and `noindex`
    (meta robots or `X-Robots-Tag`).
-3. Detect **JS-render gaps**: an app-shell marker (empty `#root`/`#app`, `__NEXT_DATA__`,
+3. **Canonical**: flag `rel=canonical` pointing to a *different domain* (consolidates this site away).
+4. **hreflang / i18n** (only on internationalized sites — silent on single-language sites): missing
+   `x-default`, invalid language codes, and non-reciprocal (return-link) hreflang.
+5. **Link health**: internal links marked `rel=nofollow`; and a bounded, time-capped probe of a few
+   internal links for real **4xx/5xx** targets (a timeout is *not* treated as broken).
+6. Detect **JS-render gaps**: an app-shell marker (empty `#root`/`#app`, `__NEXT_DATA__`,
    Nuxt/Angular markers) plus very little server-rendered text, or a `<noscript>` "enable
    JavaScript" notice — signals that a fetch-only retriever sees an empty shell.
-4. Check for an XML sitemap (file or `robots.txt` `Sitemap:` directive).
+7. Check for an XML sitemap (file or `robots.txt` `Sitemap:` directive).
 
+Render analysis is **static only**: JS-render gaps are inferred from the raw HTML and reported at
+medium confidence; true rendered-DOM parity is not executed and is marked *not verified* in coverage.
 See [crawlability-checklist](references/crawlability-checklist.md) and
 [js-render-checklist](references/js-render-checklist.md) for the full signal list and rationale.
 
 ## Output
-A list of findings (`crawlability`, `indexability`, `reachability`, `js-render-gap`
-categories), each with evidence, severity, and a suggested action. Standalone:
+Findings in `crawlability`, `indexability`, `reachability`, and `js-render-gap` categories, each
+with evidence, severity, and a suggested action. Standalone:
 ```bash
 python skills/crawl-render-audit/scripts/run.py https://example.com
 ```

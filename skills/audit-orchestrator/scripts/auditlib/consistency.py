@@ -22,7 +22,6 @@ from .htmlparse import Page, jsonld_types
 
 # "since" is too generic (appears in article prose); require an explicit founding verb.
 _FOUNDED_RE = re.compile(r"\b(?:founded|established|est\.?|incorporated)\b[^.\d]{0,15}(19\d{2}|20\d{2})", re.I)
-_TEL_RE = re.compile(r'href=["\']tel:([^"\']+)["\']', re.I)
 _SOCIAL_HANDLE_RE = re.compile(
     r"(?:https?://)?(?:www\.)?(twitter|x|instagram|facebook|linkedin|youtube|tiktok|github)\.com/"
     r"(?:company/|@)?([A-Za-z0-9_.\-]{2,40})", re.I)
@@ -42,8 +41,9 @@ def scan(ctx: AuditContext) -> Tuple[Dict[str, Any], List[Finding]]:
         return {"risk": "none", "conflicts": [], "facts_checked": []}, []
     conflicts: List[Dict[str, Any]] = []
     conflicts += _founding_year(pages)
-    conflicts += _phone(pages)
     conflicts += _social(pages)
+    # NB: phone numbers are deliberately NOT compared — a brand legitimately lists several
+    # (sales / support / regional), so distinct numbers are not a contradiction.
 
     findings = [_finding(c) for c in conflicts]
     high = any(c["severity"] == "medium" for c in conflicts)
@@ -51,7 +51,7 @@ def scan(ctx: AuditContext) -> Tuple[Dict[str, Any], List[Finding]]:
     block = {
         "risk": risk,
         "conflicts": conflicts,
-        "facts_checked": ["founding year", "primary phone", "social handles"],
+        "facts_checked": ["founding year", "social handles"],
         "note": ("Facts that disagree across the site can be resolved arbitrarily by an assistant — "
                  "reconcile each to one canonical value." if conflicts else
                  "No self-contradictions found among the facts checked."),
@@ -76,21 +76,6 @@ def _founding_year(pages: List[Page]) -> List[Dict[str, Any]]:
             if ym:
                 values.setdefault(ym.group(1), []).append(p.url + " (schema)")
     return _mk_conflict("founding_year", "Founding year", values, "medium") if len(values) > 1 else []
-
-
-def _phone(pages: List[Page]) -> List[Dict[str, Any]]:
-    values: Dict[str, List[str]] = {}
-    for p in pages:
-        nums = _TEL_RE.findall(p.raw_html)
-        for obj in p.jsonld:
-            t = obj.get("telephone")
-            if isinstance(t, str):
-                nums.append(t)
-        for n in nums:
-            norm = re.sub(r"\D", "", n)[-10:]  # compare on the last 10 digits
-            if len(norm) >= 7:
-                values.setdefault(norm, []).append(p.url)
-    return _mk_conflict("phone", "Primary phone number", values, "low") if len(values) > 1 else []
 
 
 def _social(pages: List[Page]) -> List[Dict[str, Any]]:

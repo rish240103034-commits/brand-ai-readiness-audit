@@ -29,11 +29,14 @@ in AI answers; pages are image-heavy or PDF-driven; titles/headings are missing 
 
 ## Procedure
 1. **Textual anchors**: missing/duplicate `<title>`, missing meta description.
-2. **Outline**: missing H1, multiple H1s.
-3. **Images**: high proportion of images with no `alt`; image-heavy + text-thin pages where
+2. **Anchor quality**: titles outside the useful ~15–65 char range; meta descriptions long enough
+   to be truncated (>~160 chars).
+3. **Outline**: missing H1, multiple H1s, and **heading-hierarchy skips** (e.g. H1→H3 with no H2,
+   which breaks the machine-reconstructed outline).
+4. **Images**: high proportion of images with no `alt`; image-heavy + text-thin pages where
    copy is likely baked into pictures.
-4. **Language**: undeclared `<html lang>`.
-5. **PDF-locked content**: substantive information offloaded to PDF files (often unreadable
+5. **Language**: undeclared `<html lang>`.
+6. **PDF-locked content**: substantive information offloaded to PDF files (often unreadable
    scans).
 
 See [extractability-checklist](references/extractability-checklist.md).

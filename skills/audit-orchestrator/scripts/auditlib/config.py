@@ -97,6 +97,8 @@ class Config:
     max_retries: int = DEFAULT_MAX_RETRIES
     backoff_base: float = DEFAULT_BACKOFF_BASE
     analysis_timeout: int = 240    # global guard (s) for the analysis phase; well under 5 min
+    crawl_budget: int = 120        # global wall-clock (s) for the crawl loop, so a slow/bot-
+    #                                protected site can't push total runtime past the 5-min limit
     max_workers: int = 6           # thread pool size for concurrent skill execution
     # Crawl scope: "host" audits only the exact host given (treating support./blog./shop.
     # subdomains as separate properties — fair attribution); "domain" spans the whole

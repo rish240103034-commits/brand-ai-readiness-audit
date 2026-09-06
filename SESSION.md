@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.5.0_
+_Last updated: 2026-09-05 · version 2.5.1_
 
 ---
 
@@ -53,7 +53,12 @@ The brief PDF is at:
   sees"** (per-page extractable text + density risk in the explorer), **knowledge-graph preview**
   (`knowledge_graph.py`; entity graph from JSON-LD with missing edges), and **prompt-pack readiness**
   (`prompts.py`; real AI queries graded ready/partial/weak).
-- **130 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+- **v2.5.1 is a rubric-hardening pass**: crash-proofed the entrypoint's derived-analysis pipeline
+  (edge case → note, never a lost report), broken-link probing ignores timeouts (4xx/5xx only),
+  global crawl wall-clock budget (`crawl_budget`, 120s), dropped phone from the hallucination scan
+  (multiple numbers are legit), slow-response finding is low-confidence/network-dependent, and every
+  sub-skill SKILL.md refreshed to match the code.
+- **133 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
   All UI verified in-browser (hallucination cards, KG SVG, prompt-pack, machine view, what-if,
   0 console errors). `--verify-external` verified live on python.org (Wikidata Q28865, links_back).
   Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.

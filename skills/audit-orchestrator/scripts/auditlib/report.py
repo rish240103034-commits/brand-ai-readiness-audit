@@ -97,10 +97,13 @@ def build_report(
         if f.dimension in dim_counts:
             dim_counts[f.dimension] += 1
 
+    # Always include the four standard severity counts (0 if none) so the counts-by-severity
+    # summary matches the handout's floor shape exactly; `info` only when it actually occurs.
     summary: Dict[str, Any] = {"total_findings": len(ordered)}
-    for s in SEVERITIES:
-        if counts[s]:
-            summary[s] = counts[s]
+    for s in ("critical", "high", "medium", "low"):
+        summary[s] = counts[s]
+    if counts["info"]:
+        summary["info"] = counts["info"]
     summary["by_dimension"] = dim_counts
 
     return {

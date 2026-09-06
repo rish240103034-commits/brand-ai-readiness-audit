@@ -29,19 +29,25 @@ give no obvious next step.
 
 ## Procedure
 1. **Mobile**: missing responsive `viewport` meta → zoomed-out unreadable mobile layout.
-2. **Next step**: homepage with no action-oriented CTA (buy/contact/sign up/book/demo…).
+2. **Next step**: homepage with no action-oriented CTA — detected **language-neutrally** (English
+   keywords *or* conversion-path links like `/cart`, `/contact`, `tel:` *or* `cta`/`btn` markup), so
+   non-English sites aren't falsely flagged.
 3. **Orientation**: no semantic `<nav>`; dead-end pages with < 3 onward internal links.
-4. **Performance**: very large HTML / script-dense pages, or > 3 s server response.
+4. **Performance**: very large HTML / script-dense pages; **render-blocking** CSS/JS in `<head>`;
+   and (single-sample, low-confidence) slow server response.
 5. **Readability**: 900+ words with ≤ 1 heading (a wall of text).
 6. **Context retention**: deep pages with no breadcrumb trail.
-7. **Interruption**: markup suggesting an on-load newsletter/subscribe interstitial.
+7. **Interruption / barriers**: on-load newsletter/subscribe interstitials; content gated behind a
+   login/registration wall (invisible to crawlers and first-time visitors).
+8. **Accessibility**: form controls with no associable label; content iframes with no `title`;
+   non-descriptive link text ("click here"/"read more").
 
 See [engagement-checklist](references/engagement-checklist.md) for thresholds and rationale.
 
 ## Output
-Findings in `mobile`, `conversion`, `orientation`, `performance`, and `readability`
-categories, all on the `engagement` dimension, with evidence and prioritized actions.
-Standalone:
+Findings in `mobile`, `conversion`, `orientation`, `performance`, `readability`, and
+`accessibility` categories, all on the `engagement` dimension, with evidence and prioritized
+actions. Standalone:
 ```bash
 python skills/engagement-audit/scripts/run.py https://example.com
 ```

@@ -341,8 +341,11 @@ def _broken_link_findings(ctx: AuditContext) -> List[Finding]:
             r = ctx.fetcher.fetch(n)
         except Exception:
             continue
-        if (not r.ok and r.error != "blocked_by_robots") or r.status >= 400:
-            broken.append((n, r.status or r.error))
+        # Only a definitive HTTP error status is "broken". A timeout / DNS / connection error
+        # (status 0) is NOT proof the link is broken — the host may be slow or bot-protected —
+        # so we never report those as broken (avoids false positives on real e-commerce sites).
+        if isinstance(r.status, int) and r.status >= 400:
+            broken.append((n, r.status))
     if not broken:
         return []
     u, st = broken[0]

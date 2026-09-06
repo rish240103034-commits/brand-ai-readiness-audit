@@ -26,7 +26,7 @@ The brand is found but distrusted, dated, or conflated with a namesake; AI answe
 competitors or repeat stale facts.
 
 ## Inputs
-`url` (required); optional `--max-pages N`, `--no-external`.
+`url` (required); optional `--max-pages N`, `--no-external`, `--verify-external`.
 
 ## Procedure
 1. **Freshness**: stale footer copyright year *with no other recent-date signal on the page*
@@ -34,9 +34,15 @@ competitors or repeat stale facts.
    dates are > 2 years old; article-type pages published with no visible date.
 2. **Corroboration**: an `Organization` node with no `sameAs`; no links anywhere to external
    brand/authority profiles (social, Wikipedia/Wikidata, Crunchbase, maps/reviews).
-3. **Entity disambiguation**: a short/generic brand name with no distinguishing attributes
-   (address, foundingDate, founder, legalName, sameAs); conflicting `og:site_name` across
-   same-language pages.
+3. **Entity identity (name-neutral)**: inconsistent `og:site_name` across same-language pages;
+   and disagreement between the two *explicit* brand-name signals — `og:site_name` vs the
+   Organization/WebSite schema `name` (the brand-name *length* is never penalized).
+4. **Opt-in external verification** (`--verify-external`, off by default so the audit stays
+   deterministic and dependency-free): confirm a **Wikidata** entity whose official-website
+   property points back to the domain, surface the Wikipedia article, and resolve the site's own
+   declared `sameAs`/social links — upgrading corroboration from *partial* to a real
+   verified/not-found result. Keyless public sources only; never scrapes search engines; never
+   fabricates.
 
 See [freshness-checklist](references/freshness-checklist.md) and
 [corroboration-checklist](references/corroboration-checklist.md).

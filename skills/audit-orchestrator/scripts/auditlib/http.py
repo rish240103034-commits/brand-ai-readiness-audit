@@ -469,8 +469,10 @@ def sample_pages(start_url: str, fetcher: Fetcher, max_pages: Optional[int] = No
             seen.add(u)
             queue.append(u)
 
+    # Global wall-clock budget so a site full of slow/timing-out pages can't blow the runtime limit.
+    deadline = time.monotonic() + getattr(fetcher.cfg, "crawl_budget", 120)
     for u in queue:
-        if len(results) >= max_pages:
+        if len(results) >= max_pages or time.monotonic() > deadline:
             break
         r = fetcher.fetch(u)
         if r.ok and _is_html(r):

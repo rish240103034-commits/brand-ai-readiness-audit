@@ -38,6 +38,10 @@ product/article pages lack machine-readable specs, prices, dates, or authorship.
    pages without `Article`/`BlogPosting`.
 6. Flag existing nodes **missing recommended properties** (e.g. `Product` without `offers`,
    `Article` without `datePublished`).
+7. Flag properties **present but empty/placeholder** (e.g. `name:""`, `"TBD"`) — worse than absent,
+   they look complete to a validator but carry no fact.
+8. Flag **conflicting Organization identities** — a homepage declaring multiple Organization nodes
+   with different names (ambiguous entity).
 
 Page-type detection uses URL shape plus cart/price cues, deliberately narrow to avoid
 flagging blog posts that merely mention a price. See

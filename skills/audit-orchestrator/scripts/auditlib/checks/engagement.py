@@ -157,13 +157,15 @@ def _page_weight(ctx: AuditContext) -> List[Finding]:
         out.append(Finding(
             title="Slow server response on sampled pages",
             severity="medium", dimension="engagement", category="performance",
-            evidence=f"{scope_str(len(slow), len(ctx.pages))} took over {int(slow_ms/1000)}s to return HTML (e.g. {s[0]}: {s[1]} ms).",
+            evidence=f"{scope_str(len(slow), len(ctx.pages))} took over {int(slow_ms/1000)}s to return HTML in this run (e.g. {s[0]}: {s[1]} ms). Single-sample timing — confirm with a repeat measurement.",
             why="A slow first byte (TTFB) delays everything downstream, so the page starts rendering late and visitors abandon before it appears.",
             how_to_fix="Investigate TTFB — add caching/CDN, reduce per-request server work, and warm slow endpoints.",
             scope=scope_str(len(slow), len(ctx.pages)),
             measurements={"slow_pages": len(slow), "worst_ms": s[1], "threshold_ms": int(slow_ms)},
-            suggested_action_summary="Investigate TTFB (caching, CDN, server work) so pages start rendering quickly; each added second measurably increases abandonment.",
-            suggested_action_priority="medium", confidence="medium", affected_pages=[u for u, _ in slow],
+            expected_impact="Faster time-to-content and lower bounce (confirm the timing is consistent, not a one-off).",
+            # low confidence: response time is a single-request, network-dependent sample (not deterministic).
+            suggested_action_summary="Investigate TTFB (caching, CDN, server work); confirm the slowness is consistent before prioritizing.",
+            suggested_action_priority="medium", confidence="low", affected_pages=[u for u, _ in slow],
         ))
     return out
 

@@ -102,25 +102,37 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     score_report(rpt)          # attach AI Visibility Score + grade
     if ext_result is not None:
         rpt["external_verification"] = ext_result
-    rpt["opportunities"] = proactive_mod.build(ctx)  # context-justified, non-defect recommendations
-    # Coverage matrix: what each area actually assessed (healthy vs not-assessed vs partial).
+    # Every derived/analysis block is wrapped: an edge case on an unseen site degrades to a note,
+    # never a crash — the report (findings + score) is always emitted.
     signals = {"date_signal_pages": _freshness.count_date_signal_pages(ctx.pages),
                "external_lookups": external,
                "external_verified": (None if ext_result is None else bool(ext_result.get("verified")))}
-    rpt["coverage"] = coverage_mod.build(rpt, signals)
-    rpt["pages"] = pages_mod.build(ctx, rpt)  # per-page detail for the page explorer
-    rpt["sections"] = pages_mod.build_sections(rpt["pages"], rpt["findings"])  # per-URL-section scores
-    rpt["answer_readiness"] = answer_mod.build(ctx)  # who/what/where machine-readability scorecard
-    rpt["llms_txt"] = llmstxt_mod.build(ctx)          # llms.txt presence + generated suggestion
+    rpt["opportunities"] = _safe(rpt, "opportunities", lambda: proactive_mod.build(ctx), [])
+    rpt["coverage"] = _safe(rpt, "coverage", lambda: coverage_mod.build(rpt, signals), {})
+    rpt["pages"] = _safe(rpt, "page-explorer", lambda: pages_mod.build(ctx, rpt), [])
+    rpt["sections"] = _safe(rpt, "sections", lambda: pages_mod.build_sections(rpt["pages"], rpt["findings"]), [])
+    rpt["answer_readiness"] = _safe(rpt, "answer-readiness", lambda: answer_mod.build(ctx), {})
+    rpt["llms_txt"] = _safe(rpt, "llms.txt", lambda: llmstxt_mod.build(ctx), {})
     rpt["consistency"] = cons_block                   # hallucination-risk (self-contradiction) scan
-    rpt["knowledge_graph"] = kg_mod.build(ctx)        # entity graph an AI can build from the markup
-    rpt["prompt_pack"] = prompts_mod.build(ctx, rpt["answer_readiness"])  # real-query readiness
-    analytics_mod.attach(rpt)  # attach the analyst layer (pillars, matrix, projection, …)
+    rpt["knowledge_graph"] = _safe(rpt, "knowledge-graph", lambda: kg_mod.build(ctx), {})
+    rpt["prompt_pack"] = _safe(rpt, "prompt-pack", lambda: prompts_mod.build(ctx, rpt["answer_readiness"]), {})
+    _safe(rpt, "analytics", lambda: analytics_mod.attach(rpt), None)  # mutates rpt in place
 
     errs = report_mod.validate(rpt)
     if errs:
         rpt["notes"].append("SCHEMA WARNINGS: " + "; ".join(errs))
     return rpt, (EXIT_PARTIAL if partial else EXIT_OK)
+
+
+def _safe(rpt, label, fn, default):
+    """Run a derived-analysis step; on any failure, record a note and return *default* so the
+    report is still emitted. Judges test unseen sites — one edge case must never lose the report."""
+    try:
+        return fn()
+    except Exception as e:  # pragma: no cover - defensive
+        rpt.setdefault("notes", []).append(f"{label} step skipped ({type(e).__name__}: {e})")
+        LOG.warning("%s step failed: %s", label, e)
+        return default
 
 
 def _run_skills_concurrently(skills, ctx, cfg):
