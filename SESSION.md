@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.3.0_
+_Last updated: 2026-09-05 · version 2.5.0_
 
 ---
 
@@ -44,8 +44,17 @@ The brief PDF is at:
   `report.external_verification`): Wikidata entity + P856 link-back + Wikipedia, and resolving the
   brand's declared sameAs/social links; upgrades Corroboration from *partial* to verified/not-found.
   Default runs still touch no third-party sites. Keyless, bounded, SSRF-guarded, never fabricated.
-- **114 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
-  Interactive UI verified in-browser (what-if recompute, filters, page explorer, jumps, exports,
+- **v2.4 adds three analysis features**: AI **answer-readiness** scorecard (`answer_readiness.py`;
+  who/what/where/contact/pricing/hours graded machine-readable/text-only/missing/n-a), **llms.txt**
+  detect+generate (`llmstxt.py`), and **hreflang/i18n** checks (in `crawl_render.py`; x-default,
+  invalid codes, non-reciprocal — only fire on international sites).
+- **v2.5 adds four AI-era differentiators**: **hallucination-risk scan** (`consistency.py`; site
+  audited against itself for contradictory founding year/phone/social), **"what a fetch-only AI
+  sees"** (per-page extractable text + density risk in the explorer), **knowledge-graph preview**
+  (`knowledge_graph.py`; entity graph from JSON-LD with missing edges), and **prompt-pack readiness**
+  (`prompts.py`; real AI queries graded ready/partial/weak).
+- **130 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`).
+  All UI verified in-browser (hallucination cards, KG SVG, prompt-pack, machine view, what-if,
   0 console errors). `--verify-external` verified live on python.org (Wikidata Q28865, links_back).
   Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
 - Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
@@ -79,6 +88,11 @@ skills/
         pages.py           PAGE EXPLORER data: per-URL facts, signals, findings, per-page score
         proactive.py       PROACTIVE OPPORTUNITIES: context-justified, non-defect recommendations
         external.py        OPT-IN off-site corroboration (--verify-external): Wikidata + declared profiles
+        answer_readiness.py  AI ANSWER-READINESS scorecard (who/what/where machine-readability)
+        llmstxt.py         llms.txt detect + generate a suggested one
+        consistency.py     HALLUCINATION-RISK scan: site audited against itself for contradictory facts
+        knowledge_graph.py KNOWLEDGE-GRAPH preview: entity graph from JSON-LD + missing edges
+        prompts.py         PROMPT-PACK readiness: real AI queries graded ready/partial/weak
         analytics.py       ANALYST LAYER: pillars (coverage-aware status), matrix, projection, hotspots, roadmap, KPIs, narrative
         render.py          self-contained HTML DASHBOARD (coverage, opportunities, limitations, score explanation, dynamic filters)
         exports.py         Markdown brief + findings CSV
@@ -134,13 +148,15 @@ cd D:/SIH && python - <<'PY'
 import os, zipfile
 root="brand-ai-readiness-audit"; z=zipfile.ZipFile("brand-ai-readiness-audit.zip","w",zipfile.ZIP_DEFLATED)
 for dp,dn,fn in os.walk(root):
-    dn[:]=[d for d in dn if d!="__pycache__"]
+    dn[:]=[d for d in dn if d not in ("__pycache__",".git")]
     for f in fn:
-        if f.endswith(".pyc"): continue
+        if f.endswith((".pyc",".pdf")): continue   # exclude stray handouts/PDFs and bytecode
         z.write(os.path.join(dp,f))
 z.close(); print("zip rebuilt")
 PY
 ```
+> Note: a stray `iitm.pdf` (~1.6 MB) was found in the repo root once; it's now `.gitignore`d and
+> excluded from the zip. Keep the `.pdf` exclusion so the submission stays small.
 
 ## 8. Not done / possible next steps
 - [x] `git init` + first commit — done (branch `main`, commit bd8aa53).

@@ -12,6 +12,9 @@ __pycache__/
 /report.html
 /report.json
 
+# Stray docs / handouts dropped into the working dir — not part of the marketplace
+*.pdf
+
 # OS / editor
 .DS_Store
 Thumbs.db

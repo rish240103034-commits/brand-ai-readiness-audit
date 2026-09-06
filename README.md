@@ -141,6 +141,30 @@ upgrades Corroboration from *partial* to a real **verified / found-but-unlinked 
 result. Keyless, ToS-friendly public sources only; it never scrapes search engines or social feeds
 and never fabricates a result.
 
+**AI answer-readiness scorecard.** Grades six common questions — who / what / where / contact /
+pricing / hours — on whether the answer is **machine-readable** (in structured data), text-only, or
+missing (questions that don't apply to a site are marked n/a). It reframes discoverability as
+"could an assistant actually answer questions about this brand?"
+
+**llms.txt support.** Detects whether the site publishes an `llms.txt` (the emerging standard for
+telling AI assistants what a site is and where its key content lives) and, if not, **generates a
+suggested one** from the brand, description, and key pages — copy-paste ready.
+
+**hreflang / i18n checks.** For internationalized sites, flags the common, high-confidence mistakes
+(missing `x-default`, invalid language codes, non-reciprocal hreflang) — and stays silent on
+single-language sites (no false positives).
+
+### AI-era differentiators
+- **Hallucination-risk scan** — audits the site *against itself* and flags facts that should be
+  singular but disagree across pages (founding year, phone, social handles). Those internal
+  contradictions are a direct cause of assistants stating the wrong fact about a brand.
+- **"What a fetch-only AI sees"** — each page shows the exact text a JavaScript-less retriever
+  extracts, with a content-density risk: the visceral gap between the human page and the bot's view.
+- **Knowledge-graph preview** — draws the entity graph an AI can build from your JSON-LD
+  (Organization → sameAs → Products / Articles / People), with the **missing edges** highlighted.
+- **Prompt-pack readiness** — grades the real prompts people ask assistants ("is <brand> legit?",
+  "<brand> pricing", "who founded <brand>?") as ready / partial / weak by the facts you expose.
+
 ```
 AI Visibility Score  63 / 100  (D — Weak)     → 72 (C) after 2 quick wins  → 100 if all fixed
   Discoverability ▓▓▓▓░░░░░░  38      Engagement ▓▓▓▓▓▓▓▓▓▓ 100
@@ -156,7 +180,7 @@ F-001  HIGH   discoverability  No structured data anywhere in the sampled pages 
 | Skill | Dimension | Gate → what it detects |
 |---|---|---|
 | **audit-orchestrator** *(entrypoint)* | both | Crawls once, runs every skill over the shared sample, scores, prioritizes, and emits the single report. No detection logic of its own. |
-| **crawl-render-audit** | discoverability | *reach + read* — robots.txt (incl. **AI bots**: GPTBot, ClaudeBot, PerplexityBot, Google-Extended…), status, `noindex`, sitemap; client-side-render gaps. |
+| **crawl-render-audit** | discoverability | *reach + read* — robots.txt (incl. **AI bots**: GPTBot, ClaudeBot, PerplexityBot, Google-Extended…), status, `noindex`, canonical, sitemap, **hreflang/i18n**, broken/nofollow internal links; client-side-render gaps. |
 | **structured-data-audit** | discoverability | *quote* — JSON-LD / microdata / RDFa presence **and validity**; Organization/WebSite identity; Product/Article types + required props. |
 | **content-extractability-audit** | discoverability | *read* — title/meta/headings, image alt & text-in-images, language, PDF-locked content. |
 | **freshness-corroboration** | discoverability | *trust + resolve* — staleness (FP-guarded), `sameAs`/external corroboration, entity disambiguation. |
@@ -184,7 +208,8 @@ run_audit.py (ENTRYPOINT)
 auditlib/  (shared engine, stdlib only)
    config.py  logutil.py  http.py  htmlparse.py  frontmatter.py
    registry.py  context.py  report.py  scoring.py  coverage.py  pages.py  proactive.py
-   analytics.py  render.py  exports.py  history.py  runner.py
+   analytics.py  answer_readiness.py  llmstxt.py  external.py  consistency.py
+   knowledge_graph.py  prompts.py  render.py  exports.py  history.py  runner.py
    checks/  crawl_render · structured_data · extractability · freshness · corroboration · engagement
 ```
 Each skill exposes one pure `analyze(ctx) -> [Finding]`; the orchestrator owns only the

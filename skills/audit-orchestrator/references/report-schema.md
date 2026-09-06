@@ -20,6 +20,11 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `sections` | array | — | Per-URL-section scores (see below). |
 | `scoring_model` | object | — | The exact deduction model, so the report can recompute "what-if" scores identically (see below). |
 | `external_verification` | object | — | Present only with `--verify-external`: off-site corroboration results (see below). |
+| `answer_readiness` | object | — | Who/what/where machine-readability scorecard (see below). |
+| `llms_txt` | object | — | llms.txt presence + a generated suggestion (see below). |
+| `consistency` | object | — | Hallucination-risk scan: self-contradictions across the site (see below). |
+| `knowledge_graph` | object | — | Entity graph an AI can build from the markup (see below). |
+| `prompt_pack` | object | — | Real-query readiness grades (see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
 | `profile` | string | — | Scoring profile used (`strict`/`balanced`/`lenient`). |
 | `skills_run` | array<string> | — | Ids of the skills that executed. |
@@ -136,6 +141,38 @@ links_back, id, label, description, official_website, wikipedia }, profiles [ { 
 entity's official-website property (P856) resolves to the audited domain — a definitive match; a
 name-only hit is `found` but not `links_back`. When present, this drives Corroboration's
 `external_verification` coverage check to PASS/FAIL instead of the default PARTIAL.
+
+## `answer_readiness`
+Can an assistant answer common questions about the brand? (`auditlib/answer_readiness.py`.) Grades
+six questions on machine-readability: `{ score (machine-readable count), applicable, machine_readable,
+text_only, missing, items[ { key, question, state, evidence } ] }`. `state` ∈ `machine_readable`
+(in structured data) · `text_only` (in prose only) · `missing` · `n/a` (not applicable to this site
+— excluded from `applicable`/`score`). Questions: identity, offerings, location, contact, pricing
+(commerce sites only), hours (local businesses only).
+
+## `llms_txt`
+`{ present (bool), url, status, suggested (Markdown string), note }`. `present` is true when the site
+serves a non-empty `/llms.txt`; otherwise `suggested` holds a generated file (brand, description, key
+pages) for copy-paste. Recommend-only; llms.txt is an optional emerging convention, never a defect.
+
+## `consistency`
+Hallucination-risk scan (`auditlib/consistency.py`) — the site audited against itself.
+`{ risk (none|low|elevated), facts_checked, conflicts[ { type, label, severity, values[ { value,
+examples[urls], pages } ] } ], note }`. Only facts expected to be singular are compared (founding
+year, primary phone, per-platform social handles); conflicts also surface as `entity-identity`
+findings. `pages[].extractable_preview` / `extractable_words` / `render_risk` carry the
+"what a fetch-only AI sees" view per page.
+
+## `knowledge_graph`
+The entity graph an AI can assemble from the site's JSON-LD (`auditlib/knowledge_graph.py`).
+`{ nodes[ { id, type, label, core? } ], edges[ { from, to, rel } ], missing[ { from, rel, note } ],
+summary { nodes, edges, missing, has_identity } }`. `missing` lists absent-but-expected edges
+(no sameAs, product without brand, article without author, no identity node).
+
+## `prompt_pack`
+Real-query readiness (`auditlib/prompts.py`). `{ brand, ready, total, prompts[ { prompt, state
+(ready|partial|weak|n/a), needs } ] }` — grades whether the site exposes the machine-readable facts
+to be the source of a good answer for common assistant prompts.
 
 ## `opportunities`
 Proactive, context-justified recommendations that raise AI-readiness beyond fixing defects. They

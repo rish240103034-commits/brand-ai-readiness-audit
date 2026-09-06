@@ -74,11 +74,20 @@ class MatrixTests(unittest.TestCase):
         an = scored([mk("critical", cat="crawlability"), mk("low", cat="freshness")])["analytics"]
         self.assertTrue(all(m["points_at_stake"] >= 0 for m in an["matrix"]))
 
-    def test_site_wide_finding_costs_more_effort(self):
+    def test_site_wide_per_page_work_costs_more_effort(self):
+        # Non-template work (authoring schema) scales with pages -> +1 effort at site scale.
+        local = scored([mk("medium", cat="structured-data")])["analytics"]["matrix"][0]["effort"]
+        wide = scored([mk("medium", cat="structured-data",
+                          pages=[f"https://x/{i}" for i in range(6)])])["analytics"]["matrix"][0]["effort"]
+        self.assertEqual(wide, local + 1)
+
+    def test_basic_template_fixes_stay_low_effort_site_wide(self):
+        # Basic tag/template fixes (extractability) stay low-effort even across many pages.
         local = scored([mk("medium", cat="extractability")])["analytics"]["matrix"][0]["effort"]
         wide = scored([mk("medium", cat="extractability",
                           pages=[f"https://x/{i}" for i in range(6)])])["analytics"]["matrix"][0]["effort"]
-        self.assertEqual(wide, local + 1)
+        self.assertEqual(wide, local)          # no bump
+        self.assertLessEqual(wide, 2)          # Low
 
 
 class ProjectionTests(unittest.TestCase):

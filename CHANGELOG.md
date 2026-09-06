@@ -4,6 +4,57 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [2.5.0] — 2026-09-05
+
+Four AI-era differentiators — features framed around how assistants actually read and reason about
+a brand, not a generic SEO checklist.
+
+### Added
+- **Hallucination-risk scan** (`consistency.py`, `report.consistency`): audits the site **against
+  itself**, flagging facts that should be singular but disagree across pages (founding year, primary
+  phone, per-platform social handles) — the internal contradictions that make an assistant state the
+  wrong value. Emits findings + a dedicated report section.
+- **"What a fetch-only AI sees"** (`report.pages[].extractable_preview` / `render_risk`): each page
+  in the explorer shows the exact text a JavaScript-less retriever extracts, with a content-density
+  risk — the visceral "here's what the bot gets, here's what's missing".
+- **Knowledge-graph preview** (`knowledge_graph.py`, `report.knowledge_graph`): builds and draws the
+  entity graph an AI can assemble from the site's JSON-LD (Organization → sameAs → Products / Articles
+  / People), with the **missing edges** (no sameAs, products with no brand link, articles with no
+  author) highlighted — rendered as an inline node diagram.
+- **Prompt-pack readiness** (`prompts.py`, `report.prompt_pack`): grades the real prompts people ask
+  assistants — "is <brand> legit?", "<brand> pricing", "how to contact <brand>", "who founded
+  <brand>?" — as ready / partial / weak based on the machine-readable facts the site exposes.
+
+### Changed
+- Report renders the four new sections (all vanilla inline SVG/CSS, 0 console errors). Version → `2.5`.
+
+## [2.4.0] — 2026-09-05
+
+Three analysis additions: an answer-readiness scorecard, llms.txt support, and hreflang checks.
+
+### Added
+- **AI answer-readiness scorecard** (`answer_readiness.py`, `report.answer_readiness`): grades six
+  common questions — who / what / where / contact / pricing / hours — on whether the answer is
+  **machine-readable** (in structured data), **text-only**, **missing**, or **n/a** (questions that
+  don't apply to a site, e.g. opening hours for pure SaaS, are excluded from the score). Rendered as
+  a scorecard.
+- **llms.txt support** (`llmstxt.py`, `report.llms_txt`): detects whether the site publishes an
+  `llms.txt` (the emerging standard for telling AI assistants what a site is), and if not, **generates
+  a suggested one** from the brand name, description, and key pages — shown as a copy-paste block.
+- **hreflang / i18n checks** (new detections in `crawl_render.py`, category `indexability`): only
+  fire on internationalized sites (no false positives on single-language sites) and cover the common,
+  high-confidence mistakes — missing `x-default`, invalid language codes, and non-reciprocal (return-
+  link) hreflang. Added as a named "International targeting (hreflang)" check in the coverage matrix.
+
+### Changed
+- Report renders the answer-readiness and llms.txt sections; version bumped to `2.4`.
+- **Effort model**: basic tag/template fixes (headings, meta, title, canonical, viewport, breadcrumbs,
+  alt) now stay **low-effort even site-wide** — one template edit fixes every page — instead of being
+  bumped to "medium" by page count. The site-wide effort bump now applies only to genuinely per-page
+  work (authoring schema, content rewrites, performance, infra). This makes basic on-page fixes
+  surface as quick wins / fill-ins. (Effort is about difficulty; the score points a finding is worth
+  come from its severity — a basic fix can still be high-value.)
+
 ## [2.3.0] — 2026-09-05
 
 Opt-in off-site corroboration. By default the audit still never touches third-party sites

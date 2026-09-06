@@ -49,6 +49,10 @@ def render_html(report: Dict[str, Any]) -> str:
         _kpi_row(an, summary),
         _exec_summary(an),
         _coverage_section(report),
+        _answer_readiness_section(report),
+        _prompt_pack_section(report),
+        _hallucination_section(report),
+        _knowledge_graph_section(report),
         _external_section(report),
         _projection_section(an),
         _score_explanation(report, an),
@@ -60,6 +64,7 @@ def render_html(report: Dict[str, Any]) -> str:
         _findings_section(findings),
         _page_explorer_section(report),
         _opportunities_section(report),
+        _llmstxt_section(report),
         _limitations_section(report),
         _methodology(report),
     ]
@@ -258,6 +263,156 @@ def _coverage_row(a: Dict[str, Any]) -> str:
   </summary>
   <div class="cov-body"><p class="cov-note">{html.escape(a.get("note",""))}</p>{body}</div>
 </details>"""
+
+
+# --- AI answer-readiness scorecard ------------------------------------------------
+
+_AR_STATE = {"machine_readable": ("#2e7d32", "machine-readable"), "text_only": ("#e0a500", "text only"),
+             "missing": ("#c0182f", "missing"), "n/a": ("#8a8f98", "n/a")}
+
+
+def _answer_readiness_section(report) -> str:
+    ar = report.get("answer_readiness")
+    if not ar or not ar.get("items"):
+        return ""
+    rows = ""
+    for it in ar["items"]:
+        color, label = _AR_STATE.get(it["state"], ("#889", it["state"]))
+        rows += (f'<li><span class="chip mini" style="background:{color}">{html.escape(label)}</span>'
+                 f'<span class="ar-q">{html.escape(it["question"])}</span>'
+                 f'<span class="ar-e">{html.escape(it["evidence"])}</span></li>')
+    score, appl = ar.get("score", 0), ar.get("applicable", 0)
+    return f"""<section class="card">
+  <h2>AI answer-readiness <span class="hint">can an assistant answer common questions about the brand?</span></h2>
+  <p class="ar-head"><b>{score}/{appl}</b> questions answerable from <b>machine-readable</b> data
+     · {ar.get('text_only',0)} text-only · {ar.get('missing',0)} missing</p>
+  <ul class="ar-list">{rows}</ul>
+</section>"""
+
+
+# --- prompt-pack readiness --------------------------------------------------------
+
+_PROMPT_STATE = {"ready": ("#2e7d32", "ready"), "partial": ("#e0a500", "partial"),
+                 "weak": ("#c0182f", "weak"), "n/a": ("#8a8f98", "n/a")}
+
+
+def _prompt_pack_section(report) -> str:
+    pp = report.get("prompt_pack")
+    if not pp or not pp.get("prompts"):
+        return ""
+    rows = ""
+    for p in pp["prompts"]:
+        color, label = _PROMPT_STATE.get(p["state"], ("#889", p["state"]))
+        needs = f'<span class="pp-needs">{html.escape(p["needs"])}</span>' if p.get("needs") else ""
+        rows += (f'<li><span class="chip mini" style="background:{color}">{html.escape(label)}</span>'
+                 f'<span class="pp-q">“{html.escape(p["prompt"])}”</span>{needs}</li>')
+    return f"""<section class="card">
+  <h2>Prompt-pack readiness <span class="hint">could the site source good answers to real AI queries?</span></h2>
+  <p class="ar-head"><b>{pp.get('ready',0)}/{pp.get('total',0)}</b> common prompts are fully answerable from the site's machine-readable facts.</p>
+  <ul class="pp-list">{rows}</ul>
+</section>"""
+
+
+# --- hallucination-risk scan ------------------------------------------------------
+
+def _hallucination_section(report) -> str:
+    c = report.get("consistency")
+    if not c:
+        return ""
+    conflicts = c.get("conflicts", [])
+    if not conflicts:
+        return f"""<section class="card">
+  <h2>Hallucination-risk scan <span class="hint">the site audited against itself</span></h2>
+  <p class="hall-ok">✓ No self-contradictions found among {html.escape(", ".join(c.get("facts_checked", [])))}.</p>
+</section>"""
+    rows = ""
+    for cf in conflicts:
+        vals = "".join(
+            f'<li><b>{html.escape(str(v["value"]))}</b> <span class="hall-src">'
+            f'({v["pages"]} page(s), e.g. {html.escape(v["examples"][0]) if v["examples"] else "?"})</span></li>'
+            for v in cf["values"])
+        color = _SEV_COLOR.get(cf["severity"], "#889")
+        rows += (f'<div class="hall-conflict"><div class="hall-head">'
+                 f'<span class="chip mini" style="background:{color}">{html.escape(cf["severity"].upper())}</span>'
+                 f'<b>{html.escape(cf["label"])}</b> disagrees across the site</div>'
+                 f'<ul class="hall-vals">{vals}</ul></div>')
+    return f"""<section class="card">
+  <h2>Hallucination-risk scan <span class="hint">facts that disagree across your own pages — what makes AI state them wrong</span></h2>
+  <p class="hall-note">{html.escape(c.get("note",""))}</p>
+  {rows}
+</section>"""
+
+
+# --- knowledge-graph preview ------------------------------------------------------
+
+def _knowledge_graph_section(report) -> str:
+    kg = report.get("knowledge_graph")
+    if not kg or not kg.get("nodes"):
+        return ""
+    svg = _kg_svg(kg)
+    missing = kg.get("missing", [])
+    miss_html = ""
+    if missing:
+        items = "".join(f'<li><span class="kg-warn">⚠</span> {html.escape(m["note"])}</li>' for m in missing)
+        miss_html = f'<div class="kg-missing"><span>Missing edges</span><ul>{items}</ul></div>'
+    else:
+        miss_html = '<p class="hall-ok">✓ No obvious missing edges in the entity graph.</p>'
+    return f"""<section class="card">
+  <h2>Knowledge-graph preview <span class="hint">what an AI can learn about the brand from your markup</span></h2>
+  <div class="kg-wrap">{svg}{miss_html}</div>
+</section>"""
+
+
+def _kg_svg(kg: Dict[str, Any]) -> str:
+    nodes = kg["nodes"]
+    edges = kg["edges"]
+    W, H, cx, cy, R = 380, 300, 190, 150, 108
+    pos = {"hub": (cx, cy)}
+    spokes = [n for n in nodes if n["id"] != "hub"]
+    n = len(spokes)
+    _type_color = {"Organization": "#2f6fb0", "Site": "#8a8f98", "sameAs": "#2e7d32",
+                   "Product": "#e0a500", "Article": "#7a4fd0", "Person": "#e05a1e"}
+    for i, s in enumerate(spokes):
+        ang = -math.pi / 2 + i * 2 * math.pi / max(1, n)
+        pos[s["id"]] = (cx + R * math.cos(ang), cy + R * 0.9 * math.sin(ang))
+    lines = ""
+    for e in edges:
+        if e["from"] in pos and e["to"] in pos:
+            x1, y1 = pos[e["from"]]; x2, y2 = pos[e["to"]]
+            mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+            lines += (f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" stroke="#cfd4db" stroke-width="1.5"/>'
+                      f'<text x="{mx:.0f}" y="{my-2:.0f}" text-anchor="middle" font-size="8" fill="#8a8f98">{html.escape(e["rel"])}</text>')
+    circles = ""
+    for nd in nodes:
+        x, y = pos.get(nd["id"], (cx, cy))
+        color = _type_color.get(nd["type"], "#6b7a8d")
+        r = 8 if nd.get("core") else 6
+        circles += (f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r}" fill="{color}"/>'
+                    f'<text x="{x:.0f}" y="{y+ (18 if y<cy else -12):.0f}" text-anchor="middle" '
+                    f'font-size="10" fill="#33404f">{html.escape(nd["label"])}</text>')
+    return (f'<svg viewBox="0 0 {W} {H}" width="100%" style="max-width:420px" role="img" '
+            f'aria-label="Brand knowledge graph">{lines}{circles}</svg>')
+
+
+# --- llms.txt ---------------------------------------------------------------------
+
+def _llmstxt_section(report) -> str:
+    lt = report.get("llms_txt")
+    if not lt:
+        return ""
+    present = lt.get("present")
+    badge_color = "#2e7d32" if present else "#e0a500"
+    badge = "published" if present else "not found"
+    suggested = ""
+    if not present and lt.get("suggested"):
+        suggested = (f'<p class="hint">Suggested <code>/llms.txt</code> (copy-paste):</p>'
+                     f'<pre class="llms-pre">{html.escape(lt["suggested"])}</pre>')
+    return f"""<section class="card">
+  <h2>llms.txt <span class="hint">emerging standard: tell AI assistants what the site is</span></h2>
+  <p class="llms-note"><span class="chip mini" style="background:{badge_color}">{badge}</span>
+     {html.escape(lt.get("note",""))}</p>
+  {suggested}
+</section>"""
 
 
 # --- external corroboration (opt-in) ----------------------------------------------
@@ -871,6 +1026,13 @@ def _page_card(i: int, p: Dict[str, Any]) -> str:
         row("HTTP", f"{p.get('status','?')}" + (" · redirected" if p.get("redirected") else "")),
         row("Confidence", p.get("confidence", "—")),
     ])
+    # "What a fetch-only AI sees" — the extractable text + content-density risk.
+    risk = p.get("render_risk", "low")
+    risk_color = {"high": "#c0182f", "medium": "#e0a500", "low": "#2e7d32"}.get(risk, "#889")
+    mv = (f'<div class="mv"><div class="mv-h">What a fetch-only AI sees '
+          f'<span class="chip mini" style="background:{risk_color}">{p.get("extractable_words",0)} words · {html.escape(risk)} risk</span></div>'
+          f'<div class="mv-text">{html.escape(p.get("extractable_preview","") or "(no extractable text)")}</div></div>')
+
     fids = p.get("finding_ids") or []
     fids_html = ""
     if fids:
@@ -885,7 +1047,7 @@ def _page_card(i: int, p: Dict[str, Any]) -> str:
     <span class="pmeta">{p.get('finding_count',0)} finding(s) · {html.escape(dims)}</span>
     <a class="popen" href="{url}" target="_blank" rel="noopener noreferrer">Open ↗</a>
   </summary>
-  <div class="pbody">{facts}{fids_html}</div>
+  <div class="pbody">{facts}{mv}{fids_html}</div>
 </details>"""
 
 
@@ -1064,6 +1226,32 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
   border-radius:6px; padding:2px 8px; font-size:11px; cursor:pointer; font-family:ui-monospace,Consolas,monospace; }
 .pages a { color:var(--accent); text-decoration:none; word-break:break-all; }
 .pages li { margin:3px 0; }
+/* prompt-pack */
+.pp-list { list-style:none; margin:0; padding:0; }
+.pp-list li { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f2f4f7; font-size:13px; flex-wrap:wrap; }
+.pp-q { font-weight:600; color:#33404f; } .pp-needs { color:var(--muted); font-size:12px; margin-left:auto; }
+/* hallucination-risk */
+.hall-ok { color:#2e7d32; font-weight:600; } .hall-note { color:#4a5563; font-size:13px; margin:0 0 12px; }
+.hall-conflict { border:1px solid #f0d9d9; background:#fdf6f6; border-radius:8px; padding:10px 12px; margin:8px 0; }
+.hall-head { display:flex; align-items:center; gap:8px; font-size:14px; color:#33404f; }
+.hall-vals { list-style:none; margin:6px 0 0; padding-left:6px; } .hall-vals li { font-size:13px; padding:2px 0; }
+.hall-src { color:var(--muted); font-size:12px; font-weight:400; }
+/* knowledge graph */
+.kg-wrap { display:grid; grid-template-columns:420px 1fr; gap:20px; align-items:center; }
+.kg-missing span { font-size:12px; color:var(--muted); } .kg-missing ul { margin:6px 0; padding-left:16px; }
+.kg-missing li { font-size:13px; color:#33404f; margin:4px 0; } .kg-warn { color:#c0182f; font-weight:700; }
+/* machine's-eye view */
+.mv { grid-column:1/-1; margin-top:8px; }
+.mv-h { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+.mv-text { background:#1c2430; color:#cfe3d8; border-radius:8px; padding:10px 12px; font-family:ui-monospace,Consolas,monospace; font-size:12px; line-height:1.5; max-height:120px; overflow:auto; }
+/* answer-readiness */
+.ar-head { font-size:14px; color:#33404f; margin:0 0 10px; }
+.ar-list { list-style:none; margin:0; padding:0; }
+.ar-list li { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f2f4f7; font-size:13px; }
+.ar-q { font-weight:600; color:#33404f; min-width:170px; } .ar-e { color:var(--muted); font-size:12px; }
+/* llms.txt */
+.llms-note { font-size:14px; color:#33404f; } .llms-pre { background:#1c2430; color:#e6e8ec; border-radius:8px;
+  padding:14px 16px; font-family:ui-monospace,Consolas,monospace; font-size:12px; overflow-x:auto; white-space:pre; }
 /* external corroboration */
 .ext-verdict { font-size:15px; margin:0 0 8px; } .ext-wd { font-size:14px; color:#33404f; margin:0 0 10px; }
 .ext-profiles span { font-size:12px; color:var(--muted); } .ext-profiles ul { margin:4px 0; padding-left:18px; }
@@ -1114,7 +1302,7 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
 .measures { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
 .mchip { background:#f2f4f7; color:#4a5563; font-size:11px; border-radius:5px; padding:2px 8px; font-family:ui-monospace,Consolas,monospace; }
 @media (max-width:760px) {
-  .charts, .pillars-grid, .roadmap { grid-template-columns:1fr; }
+  .charts, .pillars-grid, .roadmap, .kg-wrap { grid-template-columns:1fr; }
   .card, main, footer, .kpis, .charts { margin-left:12px; margin-right:12px; }
   .coverage .checks { display:none; }
 }

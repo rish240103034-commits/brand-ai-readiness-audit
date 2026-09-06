@@ -40,6 +40,7 @@ def analyze(ctx: AuditContext) -> List[Finding]:
     findings += _status_findings(ctx)
     findings += _index_directive_findings(ctx)
     findings += _canonical_findings(ctx)
+    findings += _hreflang_findings(ctx)
     findings += _nofollow_findings(ctx)
     findings += _broken_link_findings(ctx)
     findings += _render_gap_findings(ctx)
@@ -194,6 +195,103 @@ def _canonical_findings(ctx: AuditContext) -> List[Finding]:
         suggested_action_priority="medium", confidence="high",
         affected_pages=[pu for pu, _ in conflicts],
     )]
+
+
+_ALT_LINK_RE = re.compile(r'<link\b[^>]*\brel=["\']?alternate["\']?[^>]*>', re.I)
+_HREFLANG_RE = re.compile(r'hreflang=["\']([^"\']+)["\']', re.I)
+_ALT_HREF_RE = re.compile(r'href=["\']([^"\']+)["\']', re.I)
+_LANG_CODE_RE = re.compile(r'^[a-z]{2,3}(-[a-z]{4})?(-[a-z]{2}|-\d{3})?$', re.I)
+
+
+def _alternates(page) -> List[tuple]:
+    """Extract (hreflang, href) pairs from a page's <link rel=alternate hreflang=…> tags."""
+    out = []
+    for tag in _ALT_LINK_RE.findall(page.raw_html):
+        m = _HREFLANG_RE.search(tag)
+        h = _ALT_HREF_RE.search(tag)
+        if m and h:
+            out.append((m.group(1).strip(), h.group(1).strip()))
+    return out
+
+
+def _hreflang_findings(ctx: AuditContext) -> List[Finding]:
+    """International-targeting checks — only when the site actually uses hreflang / multiple langs.
+
+    A single-language site legitimately has no hreflang, so nothing is flagged there (no false
+    positives). When hreflang IS used, check for the common, high-confidence mistakes: no
+    x-default, malformed language codes, and missing reciprocal (return) links within the sample.
+    """
+    alts_by_page = {p.url: _alternates(p) for p in ctx.pages}
+    langs = {(p.lang or "").split("-")[0].lower() for p in ctx.pages if p.lang}
+    used = any(alts_by_page.values())
+    if not used and len(langs) < 2:
+        return []  # not an international site — hreflang is not applicable
+    if not used:
+        return []  # multiple langs but no hreflang is a broader content-strategy call; don't over-flag
+
+    out: List[Finding] = []
+    total = sum(1 for a in alts_by_page.values() if a)
+    # 1) x-default missing
+    no_xdefault = [u for u, a in alts_by_page.items()
+                   if a and not any(hl.lower() == "x-default" for hl, _ in a)]
+    if no_xdefault:
+        out.append(Finding(
+            title="hreflang set without an x-default",
+            severity="low", dimension="discoverability", category="indexability", confidence="high",
+            evidence=f"{scope_str(len(no_xdefault), total)} using hreflang declare no x-default, e.g. {no_xdefault[0]}.",
+            why="Without an x-default, search/answer engines have no fallback for languages you don't explicitly "
+                "target, so unmatched visitors may be sent to the wrong-language page.",
+            how_to_fix='Add <link rel="alternate" hreflang="x-default" href="…"> pointing at your default/'
+                       "language-selector page, alongside the per-language alternates.",
+            scope=scope_str(len(no_xdefault), total),
+            measurements={"pages_using_hreflang": total, "missing_x_default": len(no_xdefault)},
+            suggested_action_summary='Add an hreflang="x-default" alternate on internationalized pages.',
+            suggested_action_priority="low", affected_pages=no_xdefault,
+        ))
+    # 2) malformed language codes
+    malformed = []
+    for u, a in alts_by_page.items():
+        for hl, _ in a:
+            if hl.lower() != "x-default" and not _LANG_CODE_RE.match(hl):
+                malformed.append((u, hl))
+    if malformed:
+        u, hl = malformed[0]
+        out.append(Finding(
+            title="Invalid hreflang language codes",
+            severity="low", dimension="discoverability", category="indexability", confidence="high",
+            evidence=f"{len(malformed)} hreflang value(s) aren't valid language/region codes, e.g. \"{hl}\" on {u}.",
+            why="An unrecognized hreflang code is ignored, so that language variant isn't connected to its "
+                "siblings and can be treated as duplicate content.",
+            how_to_fix="Use valid ISO codes: language (en), or language-region (en-GB, pt-BR) — not country-only or made-up codes.",
+            measurements={"invalid_hreflang_values": len(malformed)},
+            suggested_action_summary="Correct hreflang values to valid ISO language / language-region codes.",
+            suggested_action_priority="low", affected_pages=[m[0] for m in malformed],
+        ))
+    # 3) non-reciprocal (return-link) gaps within the crawled sample
+    gaps = []
+    for u, a in alts_by_page.items():
+        for hl, href in a:
+            if hl.lower() == "x-default":
+                continue
+            target = _http.normalize(href, base=u)
+            if target and target in alts_by_page and alts_by_page[target]:
+                back = any(_http.normalize(h2, base=target) == u for _, h2 in alts_by_page[target])
+                if not back:
+                    gaps.append((u, target))
+    if gaps:
+        u, t = gaps[0]
+        out.append(Finding(
+            title="hreflang links are not reciprocal",
+            severity="medium", dimension="discoverability", category="indexability", confidence="medium",
+            evidence=f"{len(gaps)} hreflang alternate(s) are not confirmed back within the sample, e.g. {u} → {t} with no return link.",
+            why="hreflang must be reciprocal — if A points to B, B must point back to A. Non-reciprocal annotations "
+                "are ignored, so the language cluster isn't consolidated.",
+            how_to_fix="Ensure every page in a language set lists hreflang alternates for all the others, including itself.",
+            measurements={"non_reciprocal_pairs": len(gaps)},
+            suggested_action_summary="Make hreflang annotations reciprocal across the whole language set.",
+            suggested_action_priority="medium", affected_pages=[g[0] for g in gaps],
+        ))
+    return out
 
 
 def _nofollow_findings(ctx: AuditContext) -> List[Finding]:

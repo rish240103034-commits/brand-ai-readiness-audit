@@ -46,6 +46,7 @@ _REG: Dict[str, List] = {
         ("reachability", "Pages return 2xx", ["server errors"], "static"),
         ("sitemap", "XML sitemap present", ["no xml sitemap"], "static"),
         ("canonical", "Canonical consistency", ["canonical tags point"], "static"),
+        ("hreflang", "International targeting (hreflang)", ["hreflang"], "static"),
         ("internal_links", "Internal links resolve", ["broken internal links"], "static"),
         ("nofollow", "Internal links followable", ["marked rel=nofollow"], "static"),
     ],

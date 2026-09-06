@@ -75,6 +75,12 @@ EFFORT_BY_CATEGORY = {
 }
 DEFAULT_EFFORT = 3
 EFFORT_LABELS = {1: "Low", 2: "Low", 3: "Medium", 4: "High", 5: "High"}
+# Basic tag/template-level fixes stay low-effort even across many pages — one template edit fixes
+# them all (an H1, a meta tag, a canonical, a lang attribute, a breadcrumb block). They are exempt
+# from the "affects many pages -> more effort" bump, which is meant for genuinely per-page work
+# (authoring unique schema, rewriting content, perf, infra).
+TEMPLATE_FIXABLE = {"extractability", "indexability", "crawlability", "mobile",
+                    "orientation", "accessibility"}
 QUADRANTS = {
     "quick_win": "Quick win",          # high impact, low effort — do first
     "major_project": "Major project",  # high impact, high effort — plan for it
@@ -136,10 +142,16 @@ def attach(report: Dict[str, Any]) -> Dict[str, Any]:
 # --- per-finding enrichment -------------------------------------------------------
 
 def _effort(finding: Dict[str, Any]) -> int:
-    """Estimated implementation effort 1–5 for a finding (category-based, +1 if site-wide)."""
-    base = EFFORT_BY_CATEGORY.get(finding.get("category", ""), DEFAULT_EFFORT)
-    if len(finding.get("affected_pages") or []) >= 5:  # site-wide template work costs more
-        base = min(5, base + 1)
+    """Estimated implementation effort 1–5 (category-based; +1 site-wide only for per-page work).
+
+    Basic tag/template fixes (headings, meta, canonical, viewport, breadcrumbs, alt) stay low-effort
+    even when they span many pages, since one template change fixes them all — so they surface as
+    quick wins / fill-ins rather than being inflated to 'medium'.
+    """
+    cat = finding.get("category", "")
+    base = EFFORT_BY_CATEGORY.get(cat, DEFAULT_EFFORT)
+    if cat not in TEMPLATE_FIXABLE and len(finding.get("affected_pages") or []) >= 5:
+        base = min(5, base + 1)  # genuinely per-page work costs more at scale
     return base
 
 

@@ -159,4 +159,9 @@ def _page_record(p: Page, r, page_findings, is_home) -> Dict[str, Any]:
         # Rendering is assessed statically only; true rendered-DOM parity is NOT verified.
         "rendering": {"static_text_words": p.word_count, "verified": False,
                       "note": "static HTML only — rendered DOM not executed"},
+        # "What the AI sees": the exact fetch-only text a JS-less retriever extracts, plus a
+        # content-density risk (how much a fetch-only bot is likely to be missing).
+        "extractable_preview": (p.visible_text[:400] + ("…" if len(p.visible_text) > 400 else "")),
+        "extractable_words": p.word_count,
+        "render_risk": ("high" if p.word_count < 60 else "medium" if p.word_count < 120 else "low"),
     }

@@ -30,8 +30,16 @@ so `F-001` is always the most important problem on the site.
 
 ## Impact × effort (the analytics layer)
 On top of severity, the analyst layer (`auditlib/analytics.py`) estimates **effort** (1 = a
-trivial config/markup edit … 5 = an architectural change such as server-side rendering; +1 when
-a finding is site-wide) and crosses it with impact to place every finding in a quadrant:
+trivial config/markup edit … 5 = an architectural change such as server-side rendering) and
+crosses it with impact to place every finding in a quadrant. Effort scales with page count (+1
+when a finding spans many pages) **only for genuinely per-page work** (authoring schema, rewriting
+content, performance, infra). **Basic tag/template fixes stay low-effort even site-wide** — an H1,
+a meta tag, a canonical, a viewport tag, a breadcrumb block or a lang attribute is one template
+edit that fixes every page — so they surface as *quick wins* / *fill-ins*, never inflated to
+"medium" just because many pages are affected. Note effort ≠ value: a "basic" fix like a missing
+H1 can still recover several points (medium severity), which is exactly what makes it a quick win.
+
+The quadrant grid:
 
 | | low effort (≤2) | high effort (≥3) |
 |---|---|---|

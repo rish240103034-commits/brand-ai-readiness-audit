@@ -36,6 +36,11 @@ from auditlib import coverage as coverage_mod               # noqa: E402
 from auditlib import pages as pages_mod                     # noqa: E402
 from auditlib import proactive as proactive_mod             # noqa: E402
 from auditlib import external as external_mod               # noqa: E402
+from auditlib import answer_readiness as answer_mod         # noqa: E402
+from auditlib import llmstxt as llmstxt_mod                 # noqa: E402
+from auditlib import consistency as consistency_mod         # noqa: E402
+from auditlib import knowledge_graph as kg_mod              # noqa: E402
+from auditlib import prompts as prompts_mod                 # noqa: E402
 from auditlib import exports as exports_mod                 # noqa: E402
 from auditlib import render as render_mod                   # noqa: E402
 from auditlib.checks import freshness as _freshness         # noqa: E402
@@ -77,6 +82,14 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
         except Exception as e:  # never let an external hiccup fail the whole audit
             notes.append(f"external verification skipped: {e}")
 
+    # Hallucination-risk scan: the site audited against itself (contradictory facts). Offline.
+    cons_block = {"risk": "none", "conflicts": [], "facts_checked": []}
+    try:
+        cons_block, cons_findings = consistency_mod.scan(ctx)
+        all_findings.extend(cons_findings)
+    except Exception as e:  # pragma: no cover - defensive
+        notes.append(f"consistency scan skipped: {e}")
+
     notes.append(f"Crawled {len(ctx.pages)} page(s) in {int((time.time()-t0)*1000)} ms; "
                  f"{fetcher.request_count} HTTP request(s). Static, read-only analysis.")
     notes.extend(ctx.notes)
@@ -97,6 +110,11 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     rpt["coverage"] = coverage_mod.build(rpt, signals)
     rpt["pages"] = pages_mod.build(ctx, rpt)  # per-page detail for the page explorer
     rpt["sections"] = pages_mod.build_sections(rpt["pages"], rpt["findings"])  # per-URL-section scores
+    rpt["answer_readiness"] = answer_mod.build(ctx)  # who/what/where machine-readability scorecard
+    rpt["llms_txt"] = llmstxt_mod.build(ctx)          # llms.txt presence + generated suggestion
+    rpt["consistency"] = cons_block                   # hallucination-risk (self-contradiction) scan
+    rpt["knowledge_graph"] = kg_mod.build(ctx)        # entity graph an AI can build from the markup
+    rpt["prompt_pack"] = prompts_mod.build(ctx, rpt["answer_readiness"])  # real-query readiness
     analytics_mod.attach(rpt)  # attach the analyst layer (pillars, matrix, projection, …)
 
     errs = report_mod.validate(rpt)
