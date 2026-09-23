@@ -1,0 +1,124 @@
+============================================================
+REPLAY_Alphacoders.txt
+Adobe University Hackathon 2026 — Round 4 reproduction manifest
+Project: brand-ai-readiness-audit  (Agent Skill Marketplace)
+Team:    Alphacoders
+============================================================
+
+This manifest reproduces the SAME engine submitted for Round 3.
+The Round 3 submission is the tag  v2.7.0  (commit 553f3c3).
+All steps below check that exact tag out, so the demonstrated engine is
+byte-identical to the submitted marketplace — no demo-only build, no
+hardcoded findings, no post-submission changes.
+
+------------------------------------------------------------
+TEST_SITE_URLS:
+------------------------------------------------------------
+  Primary : https://www.sqlite.org
+  Alternate: https://www.iiitmanipur.ac.in
+  (Any public, crawlable, login-free site works — the engine is not tuned
+   to these. They are chosen only because they are stable, quick to crawl,
+   and produce several clear, understandable findings.)
+
+------------------------------------------------------------
+LLM_MODEL:
+------------------------------------------------------------
+  Claude Opus 4.8  (model id: claude-opus-4-8), Anthropic.
+  The LLM does NOT compute findings. It acts only as the operator/agent that
+  runs the CLI command below and narrates the output. All findings, evidence,
+  severity, and scoring are produced deterministically by the Python engine.
+
+------------------------------------------------------------
+AGENT_HARNESS:
+------------------------------------------------------------
+  Claude Code (Anthropic) — CLI/desktop agent harness.
+  Version: <FILL IN before recording>
+    - CLI:     run `claude --version`
+    - Desktop: Help/About shows the app version
+  The harness invokes the actual Round 3 marketplace entrypoint
+  (skills/audit-orchestrator/scripts/run_audit.py) as a normal shell command.
+  There is no wrapper that alters, filters, or fabricates results.
+
+------------------------------------------------------------
+ENV_SETUP:
+------------------------------------------------------------
+  Requirements: Python 3.8+ (verified on 3.13.14). Standard library only —
+  NO pip install, no packages, no model weights, no network services other
+  than read-only HTTP(S) to the site being audited.
+
+  Windows (PowerShell or cmd) — REQUIRED so console/redirected output is UTF-8:
+      set PYTHONUTF8=1            (cmd)
+      $env:PYTHONUTF8=1          (PowerShell)
+  (macOS/Linux: no env change needed.)
+  Note: always use the --out FILE option shown below. The engine writes
+  UTF-8 files correctly; on a legacy Windows code page, printing JSON to a
+  bare console can raise UnicodeEncodeError, which PYTHONUTF8=1 also prevents.
+
+------------------------------------------------------------
+TEST_STEPS:   (copy-paste from a clean checkout)
+------------------------------------------------------------
+  # 1. Clone and pin the exact Round 3 engine
+  git clone https://github.com/rish240103034-commits/brand-ai-readiness-audit.git
+  cd brand-ai-readiness-audit
+  git checkout v2.7.0
+
+  # 2. (Windows only) force UTF-8
+  set PYTHONUTF8=1
+
+  # 3. Prove the engine is intact (offline, deterministic)
+  python -m unittest discover -t . -s tests
+  python skills/audit-orchestrator/scripts/eval.py
+
+  # 4. LIVE audit of a real site — this is the marketplace entrypoint
+  python skills/audit-orchestrator/scripts/run_audit.py https://www.sqlite.org --out report.json
+  python skills/audit-orchestrator/scripts/run_audit.py https://www.sqlite.org --format html --out report.html
+
+  # 5. Validate the report against the fixed schema
+  python skills/audit-orchestrator/scripts/validate_report.py report.json
+
+  # 6. (Optional) open report.html in a browser to drill into findings
+
+------------------------------------------------------------
+EXPECTED_OUTPUT:
+------------------------------------------------------------
+  Step 3:
+    - unittest: "Ran 168 tests ... OK"
+    - eval.py : "Fixtures passed : 8/8   Recall 1.00   False-positive flags: 0
+                 RESULT: ALL PASS"
+
+  Step 4 (https://www.sqlite.org, defaults):
+    - Runtime  : ~30-45 s   (well under the 5-minute budget)
+    - Exit code: 0
+    - report.json contains: site, audited_at, summary (counts by severity),
+      a "score" block (AI Visibility Score ~62/100, grade D), and ~12 findings,
+      each with id, severity, evidence, why, how_to_fix / suggested_action,
+      confidence, impact, and priority.
+    - Highest-priority finding (F-001, HIGH):
+        "No structured data anywhere in the sampled pages"
+        evidence: "0 of N sampled pages contain JSON-LD, microdata, or RDFa."
+        why:      an assistant must infer every fact from prose (error-prone).
+        fix:      add schema.org JSON-LD (Organization + WebSite, then page types).
+
+  Step 5:
+    - "VALID: sqlite.org — 12 finding(s), schema OK."
+
+  DETERMINISM NOTE:
+    Findings, their severities/categories, ordering, and the AI Visibility
+    Score are reproducible run-to-run. The only value that varies is the
+    measured latency inside a network-performance finding's evidence (it
+    depends on live response time); it is reported at low confidence and does
+    not change the score. Exact finding COUNT can vary slightly if a site
+    changes its own pages between runs, or with --max-pages.
+
+------------------------------------------------------------
+INTEGRITY STATEMENT:
+------------------------------------------------------------
+  - The demonstrated engine == the Round 3 submission (tag v2.7.0).
+  - Findings are produced live by the engine from a real crawl; none are
+    hardcoded or pre-generated.
+  - The audit is read-only, robots.txt-respecting, SSRF-safe, and never
+    modifies the audited site.
+  - External corroboration is OFF by default (deterministic, no third-party
+    calls). It is available only via the opt-in --verify-external flag and is
+    never fabricated.
+============================================================

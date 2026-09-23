@@ -87,6 +87,13 @@ smashingmagazine.com) — or its [Markdown](examples/sample-report.md),
 > *impact × effort* matrix turn a list of problems into a defensible plan — the analyst
 > judgment layered on top of the raw checks.
 
+## Round 4 — live demo & reproduction
+The Round 4 prototype demo runs the **exact submitted Round 3 engine (tag `v2.7.0`)** — no
+demo-only build, no hardcoded findings. Reproduce from a clean checkout with
+[`REPLAY_Alphacoders.txt`](REPLAY_Alphacoders.txt), and see the methodology map, 5-minute demo
+script, and a read-only terminal drill-down viewer in [`round4/`](round4/). On Windows, set
+`PYTHONUTF8=1` and use `--out FILE`.
+
 ## What you get: an analyst-grade report
 Every audit produces a headline **0–100 AI Visibility Score** with an **A–F grade** and
 discoverability / engagement sub-scores, then an **analytics layer** an analyst would write on
