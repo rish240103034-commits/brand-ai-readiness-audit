@@ -125,7 +125,9 @@ class RoadmapTests(unittest.TestCase):
 
 class DistributionTests(unittest.TestCase):
     def test_severity_percentages(self):
-        dist = scored([mk("high"), mk("high"), mk("low")])["analytics"]["distribution"]
+        dist = scored([mk("high", cat="structured-data", title="no schema"),
+                       mk("high", cat="crawlability", title="broken links"),
+                       mk("low", cat="freshness", title="stale")])["analytics"]["distribution"]
         by_sev = {d["key"]: d for d in dist["by_severity"]}
         self.assertEqual(by_sev["high"]["count"], 2)
         self.assertEqual(by_sev["high"]["pct"], 67)

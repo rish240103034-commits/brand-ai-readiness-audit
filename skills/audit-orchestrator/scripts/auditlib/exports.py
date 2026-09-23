@@ -36,6 +36,12 @@ def render_markdown(report: Dict[str, Any]) -> str:
                f"{report.get('profile', 'balanced')} · {report.get('pages_crawled', 0)} page(s) crawled_")
     out.append("")
 
+    # Low-confidence / provisional callout
+    rel = report.get("reliability") or {}
+    if rel.get("provisional"):
+        out.append(f"> ⚠ **Provisional score — low confidence.** {rel.get('reason', '')}")
+        out.append("")
+
     # Executive summary
     for line in an.get("narrative", []):
         out.append(f"> {line}")
@@ -111,6 +117,30 @@ def render_markdown(report: Dict[str, Any]) -> str:
                    f"{csum.get('quotable_pct')}% quotable verbatim, "
                    f"{csum.get('contradicted')} contradicted.")
         out.append("")
+
+    # Regional variants (India / Global / …)
+    reg = report.get("regions") or {}
+    if reg.get("count"):
+        out.append("## Regional variants")
+        out.append("")
+        out.append(f"_{reg.get('note','')}_")
+        out.append("")
+        audited = {a["url"]: a for a in ((report.get("region_audits") or {}).get("regions") or [])}
+        score_h = " AI readiness |" if audited else ""
+        score_sep = "---|" if audited else ""
+        out.append(f"| Region | Locale | URL | Status | hreflang |{score_h}")
+        out.append(f"|---|---|---|---|---|{score_sep}")
+        for v in reg.get("variants", []):
+            recip = "reciprocal" if v.get("reciprocal") else ("not reciprocal" if v.get("reciprocal") is False else "—")
+            a = audited.get(v["url"])
+            sc = f" {a['score']}/100 ({a['grade']}) |" if a else (" — |" if audited else "")
+            out.append(f"| {v.get('region','?')} | {v.get('locale','—') or '—'} | {v['url']} | "
+                       f"{v.get('reachable','?')} | {recip} |{sc}")
+        out.append("")
+        ra = report.get("region_audits") or {}
+        if ra.get("note"):
+            out.append(f"_{ra['note']}_")
+            out.append("")
 
     # Pillar breakdown
     pillars = an.get("pillars", [])

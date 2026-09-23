@@ -3,161 +3,131 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-05 · version 2.6.0_
+_Last updated: 2026-09-23 · released tag v2.7.0 · regional-variants work committed on top (unreleased)_
 
 ---
 
 ## 1. What this project is
 An **Agent Skill Marketplace** for **Adobe University Hackathon 2026 — Round 3**
-("Build the Agent Skill Marketplace"). Point it at any website; it audits the site for
-problems hurting its **AI discoverability** (getting found/cited by AI assistants) and
-**on-site engagement** (keeping visitors), and emits **one prioritized audit report**
-(JSON canonical; optional HTML). Read-only, recommend-only, robots-respecting, stdlib-only.
+("Build the Agent Skill Marketplace"). Point it at any website; it audits for problems hurting
+its **AI discoverability** (found/cited by AI assistants) and **on-site engagement** (keeping
+visitors), and emits **one prioritized audit report** — canonical JSON, plus HTML dashboard /
+Markdown / CSV. Read-only, recommend-only, robots-respecting, SSRF-safe, stdlib-only.
 
-The brief PDF is at:
-`C:\Users\Asus\.claude\uploads\9204bbf0-dc90-418e-a84b-aa47693a138b\30a083c2-6a8ffdf33590a_round3handoutupdated_2.pdf`
-(extracted text: scratchpad `round3_text.txt`).
+Brief PDF: `C:\Users\Asus\.claude\uploads\9204bbf0-dc90-418e-a84b-aa47693a138b\30a083c2-6a8ffdf33590a_round3handoutupdated_2.pdf`
+(extracted text in scratchpad `round3_text.txt`).
 
-## 2. Current status — DONE and working
-- Full marketplace built: entrypoint `audit-orchestrator` + 5 focused skills.
-- **v1.2 adds an analyst layer**: every report now carries an `analytics` block (pillars,
-  impact×effort matrix, score projection, hotspots, roadmap, KPIs, auto-written summary),
-  a rewritten **HTML dashboard**, and two new outputs: `--format md` and `--csv`.
-- **v1.3 is a fairness pass**: removed site-type bias — language-neutral CTA + CJK-aware word
-  counts, host-scoped crawl by default (`--crawl-scope host|domain`), dropped brand-name-length penalty.
-- **v2.0 is a Round-3 depth pass** (in-place, same architecture): a **coverage matrix**
-  (`coverage.py`; 0 findings ≠ healthy — not_assessed/partial statuses), a **richer evidence model**
-  (per-finding specific why/how_to_fix/scope/measurements/expected_impact), **proactive
-  opportunities** (`proactive.py`; never affect score), a **traceable score explanation**, many new
-  detections (canonical, broken links, nofollow, render-blocking, login walls, link-text, empty/
-  conflicting schema, heading hierarchy, title/meta quality, retrieval-vs-training robots), and a
-  report UI with coverage/opportunities/limitations + **dynamic filters**.
-- **v2.1 is an interactive-report + engine-depth pass**: `pages.py` (per-URL detail → **page
-  explorer**), coverage rewritten as a **check registry** (named PASS/FAIL/NOT_VERIFIED/PARTIAL;
-  Rendering honestly *partial*, never fake-healthy), report now renders from the **embedded
-  canonical JSON** (report/export can't disagree) with combined filters + search + sort, two-way
-  finding↔page nav, and Download/Copy/Print. Added accessibility checks (form labels, iframe titles).
-- **v2.2 adds analysis tools**: an in-report **what-if planner** (tick findings → score recomputes
-  live from the embedded `scoring_model`; planner's Current == engine score) and **site-section
-  analysis** (`sections`, pages grouped by URL path, scored weakest-first).
-- **v2.3 adds opt-in off-site corroboration** (`external.py`, `--verify-external`,
-  `report.external_verification`): Wikidata entity + P856 link-back + Wikipedia, and resolving the
-  brand's declared sameAs/social links; upgrades Corroboration from *partial* to verified/not-found.
-  Default runs still touch no third-party sites. Keyless, bounded, SSRF-guarded, never fabricated.
-- **v2.4 adds three analysis features**: AI **answer-readiness** scorecard (`answer_readiness.py`;
-  who/what/where/contact/pricing/hours graded machine-readable/text-only/missing/n-a), **llms.txt**
-  detect+generate (`llmstxt.py`), and **hreflang/i18n** checks (in `crawl_render.py`; x-default,
-  invalid codes, non-reciprocal — only fire on international sites).
-- **v2.5 adds four AI-era differentiators**: **hallucination-risk scan** (`consistency.py`; site
-  audited against itself for contradictory founding year/phone/social), **"what a fetch-only AI
-  sees"** (per-page extractable text + density risk in the explorer), **knowledge-graph preview**
-  (`knowledge_graph.py`; entity graph from JSON-LD with missing edges), and **prompt-pack readiness**
-  (`prompts.py`; real AI queries graded ready/partial/weak).
-- **v2.5.1 is a rubric-hardening pass**: crash-proofed the entrypoint's derived-analysis pipeline
-  (edge case → note, never a lost report), broken-link probing ignores timeouts (4xx/5xx only),
-  global crawl wall-clock budget (`crawl_budget`, 120s), dropped phone from the hallucination scan
-  (multiple numbers are legit), slow-response finding is low-confidence/network-dependent, and every
-  sub-skill SKILL.md refreshed to match the code.
-- **v2.6 adds winning-tier features**: an offline **eval harness** (`scripts/eval.py` +
-  `test_eval.py`; recall 1.00 on failure-mode fixtures, 0 findings on a clean site), **competitor
-  benchmarking** (`--compare-with`, `benchmark.py`), a **visibility funnel** (`funnel.py`;
-  reach→read→quote→trust bottleneck), and **agent-native remediation** (`snippets.py`; copy-paste
-  fix code + machine-executable `fix_plan`). Also fixed a latent render crash (added `import re`)
-  and a render-smoke test.
-- **145 unit/integration tests pass**, fully offline (`python -m unittest discover -t . -s tests`;
-  ~5s — the eval spins 8 mock audits). All UI verified in-browser (funnel, benchmark, fix-plan,
-  snippets, what-if, hallucination, KG; 0 console errors).
-  Generalization spot-checked on example.com (1 page → Freshness not_assessed), python.org, cloudflare.
-- Runs in ~8 s for 8 pages (budget is < 5 min). Verified on example.com, python.org,
-  blog.cloudflare.com, smashingmagazine.com, www.iiitmanipur.ac.in.
-- Canonical sample regenerated in all 4 formats from ONE real audit of smashingmagazine.com
-  (63/D) → `examples/sample-report.{json,html,md,csv}` + root `report.html`.
-- Submission zip produced (~141 KB) — **regenerate it after any change** (see §7).
+## 2. Hard constraints (never violate)
+stdlib-only Python (no pip deps, no model weights) · read-only · recommend-only · robots-
+respecting · SSRF-safe · deterministic by default · self-contained manifest · exactly ONE
+entrypoint skill (`audit-orchestrator`) · zip ≤ 50 MB · runtime < 5 min. External corroboration
+stays an **opt-in, provider-neutral** abstraction (`--verify-external`) that degrades to
+"unavailable/limited" — never fabricate corroboration.
 
-## 3. Layout / where things live
+## 3. Current status
+- **Tests: 191 passing**, fully offline, ~5.6s (`python -m unittest discover -t . -s tests`).
+- Released **v2.7.0** (tag pushed). On top of it, a new **Regional-variant + reliability**
+  increment is now committed locally (see §5) — marketplace.json still reads 2.7.0; not tagged.
+- The feature set spans v1.1 → v2.7: analyst layer (analytics/pillars/impact×effort/projection/
+  roadmap), coverage matrix + check registry (PASS/FAIL/NOT_VERIFIED/PARTIAL), page explorer,
+  what-if planner, section analysis, opt-in external corroboration, answer-readiness, llms.txt,
+  hallucination-risk scan, knowledge-graph preview, prompt-pack readiness, eval harness,
+  competitor benchmarking, visibility funnel, agent-native fix snippets, AI-readiness fact layer
+  (claims/citation/answer-simulation), smart sampling, provider-neutral search abstraction.
+
+## 4. Git / GitHub state — READ THIS
+- Repo: **https://github.com/rish240103034-commits/brand-ai-readiness-audit** (PUBLIC).
+- **Two admins**: `rish240103034-commits` (owner, the `gh`-authed account) AND
+  **`louvkrishnaupadhyay <louv2k@gmail.com>`** — an SIH teammate who also pushes. Expect commits
+  from both. On 2026-09-07 they pushed `eefd964` (a whitespace no-op in `tests/__init__.py`, under
+  a mislabeled "Initial commit v1.1.0" message) on top of v2.7.0.
+- **Credential gotcha:** the Windows credential manager may cache a *different* GitHub account
+  (`pandeyrishabh027`) and cause a 403 on `git push`. Push via gh's creds:
+  `git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main`.
+  `gh auth setup-git` has been run, so a fresh shell usually works.
+- Tags v1.1.0 … v2.7.0 exist on both local and remote.
+
+## 5. This session's committed work (regional variants + reliability)
+New/changed toward the CHANGELOG `[Unreleased]` "Regional 'branch' analysis":
+- `auditlib/regions.py` — detects declared locale branches (India/Global/UK/US…). **hreflang
+  alternates are authoritative**; URL/selector fallback only when no hreflang. Concurrent,
+  no-retry, robots-respecting HEAD reachability probe (wall-clock bounded); a declared-but-dead
+  branch → high `i18n` finding (401/403/405 count as reachable, not dead). Surfaced as
+  `report.regions` + a "Regional variants" report section.
+- `auditlib/reliability.py` — confidence guard: if the crawl was too thin (site blocked/timed
+  out), mark the score **provisional** so a 1-page result isn't read as a full assessment
+  (`report.reliability`).
+- Touch-ups across `http.py`, `crawl_render.py`, `config.py`, `render.py`, `report.py`,
+  `exports.py`, `run_audit.py`, `report-schema.md`, `SKILL.md`, `CHANGELOG.md`, + tests
+  (`test_regions.py`, `test_reliability.py`, `test_hardening_ssrf_dedup.py`).
+- Was rebased onto the teammate's `eefd964` so history stays linear.
+- **Not pushed** (user drives releases — see §8). Not tagged.
+
+## 6. Layout / where things live
 ```
-marketplace.json          manifest: 6 skills, one entrypoint, semver 1.1.0
-README.md  CHANGELOG.md    docs
-examples/                  sample-report.json + sample-report.html (canonical samples)
-tests/                     offline unittest suite (unit + mock-server integration)
+marketplace.json          manifest: 6 skills, one entrypoint (version 2.7.0)
+README.md  CHANGELOG.md  SESSION.md
+examples/                 canonical sample-report.{json,html,md,csv} (real smashingmagazine.com audit)
+tests/                    18 offline test files (unit + mock-server integration + eval)
 skills/
-  audit-orchestrator/      ENTRYPOINT
+  audit-orchestrator/     ENTRYPOINT (composes others; no detection logic of its own)
     SKILL.md
     scripts/
-      run_audit.py         the entrypoint CLI (crawl→checks→score→report)
-      validate_report.py   schema validator
-      auditlib/            SHARED ENGINE (all real logic lives here)
-        config.py          ALL tunables + thresholds + profiles (no inline magic numbers)
-        http.py            fetch, robots, SSRF validate_target, crawl sampling
-        htmlparse.py       stdlib HTML → Page model
-        frontmatter.py     minimal SKILL.md YAML parser
-        registry.py        skill auto-discovery + validation + check binding
-        context.py         AuditContext (shared crawl passed to checks)
-        report.py          Finding model, build_report, validate
-        scoring.py         AI Visibility Score, grade, why(fallback)/impact/priority (+ reusable compute_scores)
-        coverage.py        COVERAGE MATRIX + CHECK REGISTRY: per-area PASS/FAIL/NOT_VERIFIED/PARTIAL
-        pages.py           PAGE EXPLORER data: per-URL facts, signals, findings, per-page score
-        proactive.py       PROACTIVE OPPORTUNITIES: context-justified, non-defect recommendations
-        external.py        OPT-IN off-site corroboration (--verify-external): Wikidata + declared profiles
-        answer_readiness.py  AI ANSWER-READINESS scorecard (who/what/where machine-readability)
-        llmstxt.py         llms.txt detect + generate a suggested one
-        consistency.py     HALLUCINATION-RISK scan: site audited against itself for contradictory facts
-        knowledge_graph.py KNOWLEDGE-GRAPH preview: entity graph from JSON-LD + missing edges
-        prompts.py         PROMPT-PACK readiness: real AI queries graded ready/partial/weak
-        funnel.py          VISIBILITY FUNNEL: reach->read->quote->trust gates + bottleneck
-        benchmark.py       COMPETITOR benchmarking (--compare-with): side-by-side + citation gaps
-        snippets.py        AGENT-NATIVE remediation: copy-paste fix code + machine-executable fix_plan
-      scripts/eval.py      GENERALIZATION/FALSE-POSITIVE eval harness (offline labeled corpus)
-        analytics.py       ANALYST LAYER: pillars (coverage-aware status), matrix, projection, hotspots, roadmap, KPIs, narrative
-        render.py          self-contained HTML DASHBOARD (coverage, opportunities, limitations, score explanation, dynamic filters)
-        exports.py         Markdown brief + findings CSV
-        history.py         SQLite score history (--compare-previous)
-        runner.py          shared hardened CLI for standalone skills
-        logutil.py         logging setup
-        checks/            crawl_render, structured_data, extractability,
-                           freshness, corroboration, engagement
+      run_audit.py        entrypoint CLI (validate → discover skills → crawl once → checks
+                          concurrently → score → analytics → render)
+      eval.py             generalization / false-positive harness (labeled offline corpus)
+      validate_report.py  schema validator
+      auditlib/           SHARED ENGINE — ~34 modules. Key ones:
+        config.py         ALL tunables + thresholds + profiles (nothing magic-numbered inline)
+        http.py           fetch, robots, SSRF validate_target (is_global rule), smart crawl sampling
+        htmlparse.py      stdlib HTML → Page model
+        registry.py       skill auto-discovery + SKILL.md validation + check binding
+        report.py scoring.py analytics.py coverage.py pages.py render.py exports.py
+        proactive.py external.py answer_readiness.py llmstxt.py consistency.py
+        knowledge_graph.py prompts.py funnel.py benchmark.py snippets.py claims.py
+        citation.py answersim.py regions.py reliability.py search_provider.py history.py
+        runner.py logutil.py frontmatter.py context.py
+        checks/           crawl_render, structured_data, extractability, freshness,
+                          corroboration, engagement  (each: pure analyze(ctx) -> [Finding])
   crawl-render-audit/ structured-data-audit/ content-extractability-audit/
   freshness-corroboration/ engagement-audit/   each: SKILL.md, scripts/run.py, references/
 ```
 
-## 4. How it works (one paragraph)
-`run_audit.py` validates the target (SSRF-safe), `registry.discover_skills()` scans `skills/`
-and binds each skill's checks from its `SKILL.md` `metadata.checks`, `AuditContext.build()`
-does ONE polite crawl, checks run **concurrently** under a global timeout, `report.build_report`
-+ `scoring.score_report` produce the scored/prioritized report, output as JSON or HTML.
-Each check is a pure `analyze(ctx) -> [Finding]`; the orchestrator owns only crawl+merge+score.
-
-## 5. Run / test cheatsheet
+## 7. Run / test cheatsheet
 ```bash
-# full audit (JSON)
-python skills/audit-orchestrator/scripts/run_audit.py example.com
-# analytics dashboard (HTML) · Markdown brief · CSV sidecar
+python skills/audit-orchestrator/scripts/run_audit.py example.com                       # JSON
 python skills/audit-orchestrator/scripts/run_audit.py example.com --format html --out report.html
 python skills/audit-orchestrator/scripts/run_audit.py example.com --format md --out report.md
 python skills/audit-orchestrator/scripts/run_audit.py example.com --csv findings.csv
-# subset / profile / history
 python skills/audit-orchestrator/scripts/run_audit.py example.com --skills crawl-render,structured-data
-python skills/audit-orchestrator/scripts/run_audit.py example.com --profile strict --compare-previous
-# tests
-python -m unittest discover -t . -s tests
+python skills/audit-orchestrator/scripts/run_audit.py example.com --profile strict --verify-external
+python skills/audit-orchestrator/scripts/eval.py                                         # eval harness
+python -m unittest discover -t . -s tests                                               # 191 tests, offline
 ```
 Exit codes: 0 ok · 1 partial (a check errored/timed out) · 2 bad input/unauditable.
 
-## 6. Key decisions & gotchas (don't re-litigate)
-- **stdlib only** — no pip deps, by design (portable, self-contained per the brief). Keep it.
-- **False-positive discipline** matters for the rubric. Guards already added:
-  stale-copyright needs no other recent-date signal; brand-name check ignores localized
-  `og:site_name`; product detection needs real commerce cues (not prose prices).
-- **SSRF classifier uses `is_global`** as the deciding signal — a NAT64 IPv6 (`64:ff9b::/96`)
-  is `is_reserved` yet globally routable, so checking reserved first wrongly blocked real
-  sites (fixed). Don't revert to a reserved-first check.
+## 8. Release discipline (IMPORTANT)
+The user drives releases. Do **NOT** `git commit`, `git push`, or tag unless they explicitly
+say so *in that turn* ("commit and push", "tag it"). After an increment: run tests, report what
+changed, **offer**, then wait. Commit trailer `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`;
+PR trailer `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
+
+## 9. Key decisions & gotchas (don't re-litigate)
+- **stdlib only.** Keep it. No pip deps.
+- **False-positive discipline** drives the rubric. Guards exist (stale-copyright needs no other
+  recent-date signal; brand-name check ignores localized `og:site_name`; product detection needs
+  real commerce cues; regional count driven by authoritative hreflang, not deep links).
+- **SSRF uses `is_global`** as the deciding signal — NAT64 IPv6 (`64:ff9b::/96`) is `is_reserved`
+  yet globally routable, so a reserved-first check wrongly blocked real sites. Don't revert.
 - Input is tolerant: bare domains, Markdown links `[t](url)`, `< >`/quote/backtick wrappers.
-- Thresholds live ONLY in `config.py`; checks read `ctx.cfg.t("name")`. Never hardcode.
+- Thresholds live ONLY in `config.py`; checks read `ctx.cfg.t("name")`.
 - Tests must stay **offline** (FakeFetcher in `tests/helpers.py`; mock server in
   `test_integration.py`). Run with `-t .` so the `tests` package `__init__` sets sys.path.
-- Windows/Git-Bash: `--out /tmp/x` gets path-translated oddly; use a real path.
+- Never delete the user's stray `*.pdf` from the repo root — it's `.gitignore`d and zip-excluded,
+  not removed.
+- Windows/Git-Bash: `--out /tmp/x` path-translates oddly; use a real path.
 
-## 7. Rebuild the submission zip (after any change)
+## 10. Rebuild the submission zip (after any change)
 ```bash
 cd D:/SIH && python - <<'PY'
 import os, zipfile
@@ -165,28 +135,19 @@ root="brand-ai-readiness-audit"; z=zipfile.ZipFile("brand-ai-readiness-audit.zip
 for dp,dn,fn in os.walk(root):
     dn[:]=[d for d in dn if d not in ("__pycache__",".git")]
     for f in fn:
-        if f.endswith((".pyc",".pdf")): continue   # exclude stray handouts/PDFs and bytecode
+        if f.endswith((".pyc",".pdf")): continue
         z.write(os.path.join(dp,f))
 z.close(); print("zip rebuilt")
 PY
 ```
-> Note: a stray `iitm.pdf` (~1.6 MB) was found in the repo root once; it's now `.gitignore`d and
-> excluded from the zip. Keep the `.pdf` exclusion so the submission stays small.
 
-## 8. Not done / possible next steps
-- [x] `git init` + first commit — done (branch `main`, commit bd8aa53).
-- [x] Published to GitHub (PUBLIC): https://github.com/rish240103034-commits/brand-ai-readiness-audit
-- [x] "60-second demo (for judges)" section in README — done (v1.2.0).
-- [x] Analyst-grade output: analytics layer + HTML dashboard + Markdown/CSV exports — done (v1.2.0).
-- [ ] NOT yet committed/pushed: the v1.2.0 changes are on disk only. `git add -A && git commit`
-      then push when ready (working tree was clean before this session's edits).
-- [ ] Optional new checks (drop-in, no core edits — see README "Add a new skill"):
-      hreflang/i18n, canonical conflicts, FAQ/HowTo schema opportunities, sitemap freshness.
-- [ ] Optional: true JS-render confirmation via an *optional* headless renderer that
-      degrades gracefully (currently render gaps are heuristic, medium-confidence by design).
-- [ ] Consider `--max-pages` default tuning per profile.
+## 11. Possible next steps
+- [ ] Push the regional-variants commit when the user approves (remember §4 credential gotcha).
+- [ ] Finalize the CHANGELOG `[Unreleased]` → a version + bump `marketplace.json` + tag (on request).
+- [ ] Optional: true JS-render confirmation via an *optional* headless renderer that degrades
+      gracefully (render gaps are heuristic / medium-confidence by design).
+- [ ] Coordinate with teammate `louvkrishnaupadhyay` to avoid diverging histories.
 
-## 9. Environment notes
-- Python 3.13 at `python` (Windows Store build); pip works. gh CLI installed + authenticated
-  (account `rish240103034-commits`).
-- No secrets or credentials are used by the tool. Nothing is uploaded anywhere.
+## 12. Environment
+Python 3.13 (`python`, Windows Store build); pip works. gh CLI authenticated as
+`rish240103034-commits`. No secrets used by the tool; nothing is uploaded anywhere.

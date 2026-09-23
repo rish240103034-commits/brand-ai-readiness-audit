@@ -4,6 +4,56 @@ All notable changes to the **brand-ai-readiness-audit** marketplace are document
 The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Regional 'branch' analysis — brands run India / Global / UK / … variants, and each can have very
+different AI-readiness.
+
+### Added
+- **Regional variant inventory** (`auditlib/regions.py`, `report.regions`): detects the brand's
+  declared locale branches (India, Global/x-default, UK, US, …). **hreflang alternates are the
+  authoritative source** — one entry per locale, its canonical entrypoint; a URL/selector fallback
+  (collapsed to region roots, deduped) runs only when a site declares no hreflang, so deep links
+  never inflate the count. Each branch's **reachability** is checked with a concurrent, no-retry,
+  robots-respecting HEAD probe across the whole declared set (bounded by a wall-clock budget; slow
+  hosts fail fast instead of starving it). A declared-but-dead branch (404/410/5xx) becomes a high
+  `i18n` finding; 401/403/405 count as reachable (gated, not dead). Surfaced as a "Regional variants"
+  table in the HTML dashboard and Markdown brief. **Reachability is light by default** (probes only a
+  small bounded set, keeping a routine audit's request footprint small) and goes **exhaustive only on
+  request** via `--check-regions` (or `--audit-regions`, which implies it) — so a normal audit doesn't
+  fire ~100+ extra requests at a brand's hosts.
+- **Opt-in per-region audit** (`--audit-regions`, `report.region_audits`): fully audits up to 3
+  reachable regional branches and scores them side-by-side (overall / discoverability / citation /
+  engagement), calling out the weakest region and how far it trails the primary. Bounded to protect
+  the runtime budget.
+- 10 new tests (`tests/test_regions.py`).
+- **Thin-crawl confidence guard** (`auditlib/reliability.py`, `report.reliability`): when a site
+  rate-limits/blocks/times-out the crawler and only ≤2 pages are readable, the report is marked
+  **provisional** — the score keeps its value but gains `provisional:true`/`confidence:"low"`, the
+  headline is prefixed "Provisional —", a `LOW CONFIDENCE` note is prepended, and the HTML dashboard
+  shows an amber banner (Markdown a callout) — so a score built on one page isn't mistaken for a full
+  assessment. Backed by a new `Fetcher.failure_count` (fetches that failed after all retries).
+- 6 new tests (`tests/test_reliability.py`).
+
+### Hardened (accuracy &amp; reliability)
+- **SSRF redirect revalidation** (`auditlib/http.py`): `validate_target` only vetted the *initial*
+  URL, so a public page could 3xx-redirect the fetcher to a private IP (e.g. cloud metadata) or
+  localhost and urllib would follow it. A new `_SafeRedirectHandler` re-validates scheme and host on
+  **every redirect hop**; both fetch paths use the SSRF-safe opener.
+- **Root-cause finding de-duplication** (`auditlib/report.py`): `build_report` now collapses findings
+  that share a `(dimension, category, normalized-title)` signature — keeping the strongest
+  severity/confidence and merging affected pages — so one root cause raised by two checks is counted
+  (and scored) once, never doubled.
+- **Auxiliary fetches fail fast** (`config.aux_timeout`, `Fetcher.fetch(max_attempts, timeout)`):
+  robots.txt and sitemap.xml are non-critical (on failure the audit proceeds permissively / skips the
+  sitemap), so they now use a single short-timeout attempt instead of the full retry+backoff. On a
+  slow/degraded network this cut a one-page audit from **~154 s to ~22 s**, and leaves the retry
+  budget for real pages. Page fetches keep full retries (accuracy).
+- **Broken-link accuracy** (`auditlib/checks/crawl_render.py`): the probe is now a fail-fast HEAD and
+  only **404/410/5xx** count as broken — **401/403/405/429 are gated/rate-limited, not dead** (matches
+  the project's false-positive rules), and the fast probe verifies more links within its budget.
+- Suite now **191 tests**, all offline; eval still recall 1.00 / 0 false positives.
+
 ## [2.7.0] — 2026-09-06
 
 Fact layer — the audit now reasons about the brand's **claims**, not just its markup, and answers

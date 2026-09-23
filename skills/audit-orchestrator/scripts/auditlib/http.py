@@ -110,6 +110,31 @@ def _is_private_host(host: str) -> bool:
     return classify_host(host) in _PRIVATE_CLASSES
 
 
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """SSRF guard for the redirect hop. ``validate_target`` only checks the *initial* URL; without
+    this, a public page could 3xx-redirect the fetcher to ``http://169.254.169.254/`` or
+    ``http://localhost/`` and urllib would follow it. Every redirect target is re-validated here:
+    non-http(s) schemes and private/loopback/link-local/reserved hosts are refused."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        parts = urllib.parse.urlsplit(newurl)
+        if parts.scheme not in ("http", "https"):
+            raise urllib.error.HTTPError(newurl, code, "blocked redirect scheme (SSRF guard)", headers, fp)
+        if _is_private_host(parts.hostname or ""):
+            raise urllib.error.HTTPError(newurl, code, "blocked redirect to private host (SSRF guard)",
+                                         headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+# One opener for the whole process: default handlers plus our SSRF-revalidating redirect handler.
+_SAFE_OPENER = urllib.request.build_opener(_SafeRedirectHandler())
+
+
+def _safe_urlopen(req, timeout):
+    """urlopen replacement whose redirects are SSRF-revalidated at every hop."""
+    return _SAFE_OPENER.open(req, timeout=timeout)
+
+
 def validate_target(raw: str, cfg: Config = CONFIG) -> Tuple[bool, str, str]:
     """Validate and normalize an audit target.
 
@@ -149,6 +174,7 @@ class Fetcher:
     _robots: Dict[str, urllib.robotparser.RobotFileParser] = field(default_factory=dict)
     _last_hit: Dict[str, float] = field(default_factory=dict)
     request_count: int = 0
+    failure_count: int = 0   # fetches that failed after all retries (timeout/DNS/TLS/robots-block)
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
     @property
@@ -170,7 +196,9 @@ class Fetcher:
         robots_url = origin + "/robots.txt"
         try:
             req = urllib.request.Request(robots_url, headers={"User-Agent": self.cfg.user_agent})
-            with urllib.request.urlopen(req, timeout=self.cfg.timeout) as resp:
+            # robots.txt is non-critical: on failure we proceed permissively, so a short single
+            # attempt (not the full page timeout) is enough and keeps runtime predictable.
+            with _safe_urlopen(req, timeout=self.cfg.aux_timeout) as resp:
                 data = resp.read(self.cfg.max_bytes).decode("utf-8", "replace")
             rp.parse(data.splitlines())
         except Exception as e:
@@ -237,12 +265,21 @@ class Fetcher:
             elapsed_ms=int((time.time() - start) * 1000), ok=200 <= r.status < 400,
             attempts=attempts)
 
-    def fetch(self, url: str, method: str = "GET") -> Response:
+    def fetch(self, url: str, method: str = "GET", max_attempts: Optional[int] = None,
+              timeout: Optional[float] = None) -> Response:
         """Fetch *url* read-only with caching, robots enforcement, and retry+backoff.
 
         Never raises: transport failures, HTTP errors, and robots blocks are all returned as
         a Response with ``ok=False`` and an ``error`` tag, so callers degrade gracefully.
+
+        ``max_attempts`` / ``timeout`` override the config for a single call. Non-critical fetches
+        (robots.txt, sitemap.xml, liveness probes) pass ``max_attempts=1`` with a short timeout so a
+        slow or dead auxiliary endpoint can't consume the retry budget that belongs to real pages —
+        which keeps runtime predictable *and* leaves more of the crawl budget for content.
         """
+        attempts_total = self.cfg.max_retries + 1 if max_attempts is None else max(1, max_attempts)
+        req_timeout = self.cfg.timeout if timeout is None else timeout
+
         with self._lock:
             cached = self._cache.get(url)
         if cached is not None:
@@ -250,15 +287,15 @@ class Fetcher:
 
         if self.respect_robots and not self.allowed(url):
             LOG.debug("robots blocked %s", url)
+            self._bump_failure()
             return self._store(url, self._error_response(url, 0, "blocked_by_robots"))
 
         self._throttle(url)
         start = time.time()
         last_err = "fetch_failed"
-        for attempt in range(1, self.cfg.max_retries + 2):  # 1 initial + N retries
+        for attempt in range(1, attempts_total + 1):  # 1 initial + (attempts_total-1) retries
             try:
-                with urllib.request.urlopen(self._build_request(url, method),
-                                            timeout=self.cfg.timeout) as r:
+                with _safe_urlopen(self._build_request(url, method), timeout=req_timeout) as r:
                     resp = self._parse_success(url, r, start, attempt)
                     self._bump()
                     return self._store(url, resp)
@@ -273,16 +310,17 @@ class Fetcher:
                     error=f"http_{e.code}", attempts=attempt))
             except Exception as e:  # timeout, DNS, TLS reset, etc. — retry with backoff
                 last_err = str(e)
-                if attempt <= self.cfg.max_retries:
+                if attempt < attempts_total:
                     backoff = self.cfg.backoff_base * (2 ** (attempt - 1))
                     LOG.debug("fetch %s attempt %d failed (%s); backing off %.1fs",
                               url, attempt, e, backoff)
                     time.sleep(backoff)
                 else:
-                    LOG.warning("fetch %s failed after %d attempts: %s", url, attempt, e)
+                    LOG.warning("fetch %s failed after %d attempt(s): %s", url, attempt, e)
+        self._bump_failure()
         return self._store(url, self._error_response(
             url, 0, last_err, elapsed_ms=int((time.time() - start) * 1000),
-            attempts=self.cfg.max_retries + 1))
+            attempts=attempts_total))
 
     def _store(self, url: str, resp: Response) -> Response:
         """Cache and return a response (thread-safe)."""
@@ -294,6 +332,11 @@ class Fetcher:
         """Atomically increment the request counter."""
         with self._lock:
             self.request_count += 1
+
+    def _bump_failure(self) -> None:
+        """Atomically count a fetch that failed after all retries (timeout/DNS/TLS/robots-block)."""
+        with self._lock:
+            self.failure_count += 1
 
     @staticmethod
     def _error_response(url: str, status: int, error: str, elapsed_ms: int = 0,
@@ -423,7 +466,8 @@ def discover_sitemap_urls(start_url: str, fetcher: Fetcher, limit: int = 50,
         if sm_url in seen_maps:
             continue
         seen_maps.add(sm_url)
-        r = fetcher.fetch(sm_url)
+        # Non-critical: fail fast so a slow/missing sitemap can't dominate runtime or crawl budget.
+        r = fetcher.fetch(sm_url, max_attempts=1, timeout=fetcher.cfg.aux_timeout)
         if not r.ok or "xml" not in (r.content_type.lower() + r.body[:100].lower()):
             continue
         for loc in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", r.body, re.I):

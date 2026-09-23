@@ -27,7 +27,9 @@ class FakeFetcher:
         p = urllib.parse.urlsplit(url)
         return f"{p.scheme}://{p.netloc}"
 
-    def fetch(self, url: str, method: str = "GET") -> http.Response:
+    def fetch(self, url: str, method: str = "GET", max_attempts=None, timeout=None) -> http.Response:
+        # max_attempts/timeout are accepted for signature parity with the real Fetcher (aux
+        # fast-fail path); the fake serves canned responses so they have no effect here.
         self.request_count += 1
         if url in self._extra:
             return self._extra[url]

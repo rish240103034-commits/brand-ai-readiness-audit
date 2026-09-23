@@ -96,6 +96,10 @@ class Config:
     max_pages: int = DEFAULT_MAX_PAGES
     max_retries: int = DEFAULT_MAX_RETRIES
     backoff_base: float = DEFAULT_BACKOFF_BASE
+    aux_timeout: float = 6.0       # short, single-attempt timeout for NON-critical fetches
+    #                                (robots.txt, sitemap.xml): a slow/dead auxiliary endpoint must
+    #                                not consume the retry budget owed to real pages, so these fail
+    #                                fast and the audit proceeds (permissive robots / skipped sitemap).
     analysis_timeout: int = 240    # global guard (s) for the analysis phase; well under 5 min
     crawl_budget: int = 120        # global wall-clock (s) for the crawl loop, so a slow/bot-
     #                                protected site can't push total runtime past the 5-min limit

@@ -9,8 +9,11 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import re
 from dataclasses import dataclass, field, asdict
 from typing import Any, Dict, List, Optional
+
+_CONF_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 SEVERITIES = ["critical", "high", "medium", "low", "info"]
 _SEV_RANK = {s: i for i, s in enumerate(SEVERITIES)}
@@ -75,6 +78,42 @@ class Finding:
         return d
 
 
+def _norm_title(title: str) -> str:
+    return re.sub(r"\s+", " ", (title or "").strip().lower())
+
+
+def _dedupe_findings(findings: List["Finding"]) -> List["Finding"]:
+    """Collapse findings that share a root-cause signature (dimension + category + normalized title).
+    Keeps the strongest (most severe, then highest confidence) as the primary and merges the others'
+    affected pages into it. Order-preserving. In practice skills own distinct failure classes, so this
+    is usually a no-op — but it guarantees no double-counting if two checks ever overlap."""
+    groups: Dict[Any, List["Finding"]] = {}
+    order: List[Any] = []
+    for f in findings:
+        sig = (f.dimension, (f.category or "").strip().lower(), _norm_title(f.title))
+        if sig not in groups:
+            groups[sig] = []
+            order.append(sig)
+        groups[sig].append(f)
+    out: List["Finding"] = []
+    for sig in order:
+        grp = groups[sig]
+        if len(grp) == 1:
+            out.append(grp[0])
+            continue
+        primary = min(grp, key=lambda f: (_SEV_RANK.get(f.normalized_severity(), 99),
+                                          _CONF_ORDER.get(getattr(f, "confidence", "high"), 1)))
+        merged: List[str] = []
+        for f in grp:
+            for p in (f.affected_pages or []):
+                if p not in merged:
+                    merged.append(p)
+        if merged:
+            primary.affected_pages = merged[:20]
+        out.append(primary)
+    return out
+
+
 def build_report(
     site: str,
     findings: List[Finding],
@@ -82,6 +121,9 @@ def build_report(
     notes: Optional[List[str]] = None,
     started_at: Optional[str] = None,
 ) -> Dict[str, Any]:
+    # De-duplicate by root-cause identity first, so the same problem raised by more than one skill
+    # is counted once (with affected pages merged) rather than inflating the findings list + score.
+    findings = _dedupe_findings(findings)
     # Deterministic ordering: severity, then dimension, then title.
     ordered = sorted(
         findings,

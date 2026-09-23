@@ -50,7 +50,7 @@ def analyze(ctx: AuditContext) -> List[Finding]:
 
 def _robots_raw(ctx: AuditContext) -> str:
     origin = ctx.fetcher._origin(ctx.start_url)
-    r = ctx.fetcher.fetch(origin + "/robots.txt")
+    r = ctx.fetcher.fetch(origin + "/robots.txt", max_attempts=1, timeout=ctx.cfg.aux_timeout)
     return r.body if r.ok else ""
 
 
@@ -338,13 +338,19 @@ def _broken_link_findings(ctx: AuditContext) -> List[Finding]:
             break  # respect the wall-clock budget on slow hosts
         probed += 1
         try:
-            r = ctx.fetcher.fetch(n)
+            # Fail fast: a HEAD-like single attempt with a short timeout, so slow links don't burn
+            # the probe budget — lets us verify MORE links within LINK_PROBE_BUDGET_S (better recall
+            # of genuinely-broken links) while timeouts remain "not broken", never a false positive.
+            r = ctx.fetcher.fetch(n, method="HEAD", max_attempts=1, timeout=ctx.cfg.aux_timeout)
+            if r.status in (405, 501):   # server refuses HEAD -> confirm with a single GET
+                r = ctx.fetcher.fetch(n, max_attempts=1, timeout=ctx.cfg.aux_timeout)
         except Exception:
             continue
-        # Only a definitive HTTP error status is "broken". A timeout / DNS / connection error
-        # (status 0) is NOT proof the link is broken — the host may be slow or bot-protected —
-        # so we never report those as broken (avoids false positives on real e-commerce sites).
-        if isinstance(r.status, int) and r.status >= 400:
+        # Only a definitively-gone or server-erroring status is "broken": 404/410 (removed) or 5xx.
+        # A timeout / DNS / connection error (status 0) is NOT proof of breakage (slow/bot-protected
+        # host), and 401/403/405/429 mean the link EXISTS but is gated/rate-limited — never "broken".
+        # This avoids the common false positive of flagging login-walled or bot-blocked links as dead.
+        if isinstance(r.status, int) and (r.status in (404, 410) or 500 <= r.status < 600):
             broken.append((n, r.status))
     if not broken:
         return []
@@ -447,7 +453,7 @@ def _noscript_findings(ctx: AuditContext) -> List[Finding]:
 
 def _sitemap_findings(ctx: AuditContext) -> List[Finding]:
     origin = ctx.fetcher._origin(ctx.start_url)
-    r = ctx.fetcher.fetch(origin + "/sitemap.xml")
+    r = ctx.fetcher.fetch(origin + "/sitemap.xml", max_attempts=1, timeout=ctx.cfg.aux_timeout)
     raw_robots = _robots_raw(ctx)
     declared = "sitemap:" in raw_robots.lower()
     if not r.ok and not declared:

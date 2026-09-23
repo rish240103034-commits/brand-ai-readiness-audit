@@ -12,7 +12,8 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `auditor` | string | — | `brand-ai-readiness-audit/<version>`. |
 | `pages_crawled` | int | — | Size of the analyzed sample. |
 | `summary` | object | ✅ | Counts (see below). |
-| `score` | object | — | AI Visibility Score (see below). |
+| `score` | object | — | AI Visibility Score (see below). Gains `provisional:true` + `confidence:"low"` when the crawl was too thin to trust. |
+| `reliability` | object | — | Crawl-confidence guard: was enough of the site readable to trust the score? (see below). |
 | `scores` | object | — | Flat headline view: `overall_ai_readiness`, `discoverability`, `citation_readiness`, `engagement_readiness` (see below). |
 | `claims` | object | — | Extracted brand-fact inventory + status summary (see below). |
 | `citation_readiness` | object | — | 0–100 composite: will an AI *quote & attribute* this brand? (see below). |
@@ -31,6 +32,8 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `benchmark` | object | — | Present with `--compare-with`: competitor comparison + gaps (see below). |
 | `fix_plan` | array | — | Ordered, machine-executable remediation steps (see below). |
 | `consistency` | object | — | Hallucination-risk scan: self-contradictions across the site (see below). |
+| `regions` | object | — | Regional 'branch' inventory (India/Global/… variants) + reachability (see below). |
+| `region_audits` | object | — | Present with `--audit-regions`: full AI-readiness score per regional branch (see below). |
 | `knowledge_graph` | object | — | Entity graph an AI can build from the markup (see below). |
 | `prompt_pack` | object | — | Real-query readiness grades (see below). |
 | `findings` | array | ✅ | Zero or more finding objects. |
@@ -49,6 +52,15 @@ this marketplace adds a few additive fields. Consumers should ignore unknown fie
 | `headline` | string | e.g. `AI Visibility Score 72/100 (C)`. |
 
 See [severity-model](severity-model.md) for the scoring weights and the `impact`/`priority` model.
+
+## `reliability`
+Crawl-confidence guard (`auditlib/reliability.py`). A score from one readable page looks identical to
+one from a full sample, so when a site rate-limits/blocks/times-out the crawler this block flags the
+result as provisional. `{ pages_readable, http_failures (fetches that timed out or were blocked),
+requests_made, confidence ("ok"|"low"), provisional (bool), reason }`. When `provisional` is true the
+`score` also carries `provisional:true` + `confidence:"low"`, its `headline` is prefixed
+"Provisional — ", and a `LOW CONFIDENCE:` note is prepended to `notes`. Trigger: `pages_readable ≤ 2`.
+Never changes any finding — it only qualifies the headline.
 
 ## `analytics`
 Additive analyst layer computed **deterministically from the scored report** (no extra data is
@@ -156,6 +168,32 @@ Also carries `corpus` from the **provider-neutral `SearchProvider`** (`auditlib/
 a **keyless Common Crawl** presence check (is the domain in the open web corpus AI models learn from?);
 `--search-provider none` limits corroboration to Wikidata + declared links. A positive `absent` adds a
 single low/low finding; `unavailable`/`present` add none — the source is pluggable and never fabricated.
+
+## `regions`
+Regional 'branch' inventory (`auditlib/regions.py`) — the brand's declared locale variants and
+whether each is live. Present (non-empty) only when the site declares regional variants; a
+single-region site yields `{count:0, variants:[], …}`. `{ count, has_global, reachable, unreachable,
+unchecked, checked, regions[labels], note, variants[ { url, locale, region (e.g. "India", "Global
+(x-default)"), language, declared_via ["hreflang"|"selector"], is_default, reciprocal (bool|null),
+in_sample, reachable ("ok"|"error"|"unchecked"), status } ] }`. **hreflang alternates are the
+authoritative source** (one entry per locale); a URL/subdomain-selector fallback — collapsed to
+region roots and deduped — runs only when a site declares no hreflang, so deep pages never inflate
+the count. Reachability of not-sampled variants uses a **concurrent, no-retry, robots-respecting HEAD
+probe**, bounded by a wall-clock budget (slow hosts fail fast). It is **light by default** (probes
+only a small set, so a routine audit keeps a small request footprint) and **exhaustive only with
+`--check-regions`** (or `--audit-regions`); `exhaustive` records which mode ran, `checked` counts how
+many were resolved and `unchecked` how many were skipped (the `note` says whether that was the light
+default or the budget). A branch returning 404/410/5xx
+becomes a high `i18n` finding; 401/403/405 are treated as reachable (gated/method-blocked, not dead);
+transport errors stay `unchecked` (never falsely "dead").
+
+## `region_audits`
+Present only with `--audit-regions` (`auditlib/regions.py` + the orchestrator). Fully audits up to 3
+reachable regional branches (lighter crawl, no nested passes) and scores them side-by-side:
+`{ audited, note, regions[ { url, region, locale, score, grade, discoverability, citation,
+engagement, findings, is_primary } ] }`. `note` calls out the weakest branch and by how much it
+trails the primary (e.g. "India (54/100, F) trails Global (78/100) by 24 points — weakest on
+Discoverability"). Bounded so the opt-in pass stays within the runtime budget.
 
 ## `answer_readiness`
 Can an assistant answer common questions about the brand? (`auditlib/answer_readiness.py`.) Grades

@@ -31,6 +31,8 @@ running every other skill's checks over a shared crawl and merging their finding
   `--format json|html|md`, `--out FILE`, `--csv FILE`, `--no-external`,
   `--verify-external` (opt-in Wikidata + declared-profile + corpus-presence corroboration),
   `--search-provider commoncrawl|none` (provider-neutral corpus check used with `--verify-external`),
+  `--check-regions` (exhaustively probe reachability of every declared regional branch; default is light),
+  `--audit-regions` (fully audit each detected regional branch — India/Global/… — and score them side-by-side; implies `--check-regions`),
   `--compare-previous` (+ `--history-db PATH`), `--dry-run`, `--verbose`/`--quiet`.
 
 ## Procedure (deterministic)
@@ -53,7 +55,9 @@ running every other skill's checks over a shared crawl and merging their finding
    dimension, and de-duplicate.
 5. **Score**: compute the 0–100 AI Visibility Score (+ A–F grade and per-dimension
    sub-scores), enrich each finding with a plain-English *why* and an `impact`, and order
-   findings most-actionable-first.
+   findings most-actionable-first. A **confidence guard** (`reliability`) marks the score
+   *provisional* when the site blocked/timed-out the crawler and ≤2 pages were readable, so a
+   one-page result isn't mistaken for a full assessment.
 6. **Coverage + opportunities + pages + sections + scorecards**: build the per-area coverage matrix
    with named PASS/FAIL/NOT_VERIFIED/PARTIAL checks (so 0 findings ≠ healthy and rendered-DOM parity
    is marked not-verified, not healthy), surface proactive opportunities, assemble per-page detail
@@ -68,6 +72,12 @@ running every other skill's checks over a shared crawl and merging their finding
    **AI answer simulation** (`ai_answer_simulation`) projecting, per common question, whether an
    answer engine could answer and would cite this site. Emit the flat headline `scores`
    (overall / discoverability / citation / engagement) and a ranked `action_plan`.
+6c. **Regional branches** (`regions`): detect the brand's declared locale variants (India, Global/
+   x-default, UK, US, …) from hreflang (authoritative) with a URL-heuristic fallback, and probe
+   reachability — **light by default** (a small bounded set, to keep the request footprint small),
+   or **exhaustive** across every declared branch with `--check-regions`. A declared-but-dead branch
+   is a high finding. With `--audit-regions`, also fully audit each reachable branch and score them
+   side-by-side (`region_audits`) so a laggard region (e.g. India trailing Global) is visible.
 7. **Analyze** (analyst layer): derive pillar sub-scores (with coverage-aware status), an
    impact×effort matrix with quick wins, a "what-if" score projection, page hotspots, a
    Now/Next/Later roadmap, a short auto-written executive summary (`analytics`); the **visibility

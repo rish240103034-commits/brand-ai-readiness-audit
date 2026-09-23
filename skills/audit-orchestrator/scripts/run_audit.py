@@ -39,6 +39,8 @@ from auditlib import external as external_mod               # noqa: E402
 from auditlib import answer_readiness as answer_mod         # noqa: E402
 from auditlib import llmstxt as llmstxt_mod                 # noqa: E402
 from auditlib import consistency as consistency_mod         # noqa: E402
+from auditlib import regions as regions_mod                 # noqa: E402
+from auditlib import reliability as reliability_mod         # noqa: E402
 from auditlib import knowledge_graph as kg_mod              # noqa: E402
 from auditlib import prompts as prompts_mod                 # noqa: E402
 from auditlib import funnel as funnel_mod                   # noqa: E402
@@ -57,7 +59,7 @@ EXIT_OK, EXIT_PARTIAL, EXIT_BADINPUT = 0, 1, 2
 
 
 def run(url: str, cfg, external: bool = True, only_skills=None, verify_external: bool = False,
-        compare_with=None):
+        compare_with=None, audit_regions=False, check_regions=False):
     """Crawl once, run the selected skills, and return (report_dict, exit_code)."""
     started = report_mod._now_iso()
     t0 = time.time()
@@ -97,6 +99,16 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     except Exception as e:  # pragma: no cover - defensive
         notes.append(f"consistency scan skipped: {e}")
 
+    # Regional 'branch' detection: India / Global / UK / … variants + reachability. Reachability is
+    # LIGHT by default (small footprint); exhaustive only with --check-regions / --audit-regions.
+    regions_block = {"count": 0, "variants": []}
+    try:
+        regions_block, region_findings = regions_mod.scan(
+            ctx, exhaustive=(check_regions or audit_regions))
+        all_findings.extend(region_findings)
+    except Exception as e:  # pragma: no cover - defensive
+        notes.append(f"regional variant scan skipped: {e}")
+
     notes.append(f"Crawled {len(ctx.pages)} page(s) in {int((time.time()-t0)*1000)} ms; "
                  f"{fetcher.request_count} HTTP request(s). Static, read-only analysis.")
     notes.extend(ctx.notes)
@@ -107,6 +119,11 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     rpt["profile"] = cfg.profile
     rpt["skills_run"] = [s.id for s in skills]
     score_report(rpt)          # attach AI Visibility Score + grade
+    # Confidence guard: if the crawl was too thin (site blocked/timed out), mark the score provisional
+    # so a 1-page result isn't mistaken for a full assessment.
+    _safe(rpt, "reliability", lambda: reliability_mod.apply(rpt, reliability_mod.assess(
+        pages_readable=len(ctx.pages), http_failures=fetcher.failure_count,
+        requests_made=fetcher.request_count)), None)
     if ext_result is not None:
         rpt["external_verification"] = ext_result
     # Every derived/analysis block is wrapped: an edge case on an unseen site degrades to a note,
@@ -121,6 +138,7 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     rpt["answer_readiness"] = _safe(rpt, "answer-readiness", lambda: answer_mod.build(ctx), {})
     rpt["llms_txt"] = _safe(rpt, "llms.txt", lambda: llmstxt_mod.build(ctx), {})
     rpt["consistency"] = cons_block                   # hallucination-risk (self-contradiction) scan
+    rpt["regions"] = regions_block                    # regional 'branch' inventory (India/Global/…)
     rpt["knowledge_graph"] = _safe(rpt, "knowledge-graph", lambda: kg_mod.build(ctx), {})
     rpt["prompt_pack"] = _safe(rpt, "prompt-pack", lambda: prompts_mod.build(ctx, rpt["answer_readiness"]), {})
     _safe(rpt, "analytics", lambda: analytics_mod.attach(rpt), None)  # mutates rpt in place
@@ -139,6 +157,9 @@ def run(url: str, cfg, external: bool = True, only_skills=None, verify_external:
     if compare_with:
         rpt["benchmark"] = _safe(rpt, "benchmark",
                                  lambda: _run_benchmark(cfg, compare_with, rpt), {})
+    if audit_regions and regions_block.get("count", 0) >= 1:
+        rpt["region_audits"] = _safe(rpt, "region-audits",
+                                     lambda: _run_region_audits(cfg, regions_block, rpt, url), {})
 
     errs = report_mod.validate(rpt)
     if errs:
@@ -213,6 +234,27 @@ def _run_benchmark(cfg, competitors, primary_rpt):
     return benchmark_mod.build(primary_rpt, reports) if reports else {}
 
 
+def _run_region_audits(cfg, regions_block, primary_rpt, primary_url):
+    """Opt-in: fully audit up to 3 reachable regional branches (lighter crawl, no nested region/
+    benchmark passes) and build the per-region score comparison. Bounded to protect the runtime."""
+    reg_cfg = cfg.derive(max_pages=min(cfg.max_pages, 6))
+    variants = regions_block.get("variants", [])
+    primary_variant = next((v for v in variants
+                            if v["url"].rstrip("/") == primary_url.rstrip("/")), {"url": primary_url})
+    audited = []
+    for v in regions_mod.audit_candidates(regions_block, primary_url, limit=3):
+        valid, target, reason = http.validate_target(v["url"], reg_cfg)
+        if not valid:
+            LOG.warning("skipping region %r: %s", v["url"], reason)
+            continue
+        try:
+            rrpt, _ = run(target, reg_cfg, external=False, compare_with=None, audit_regions=False)
+            audited.append((v, rrpt))
+        except Exception as e:  # a bad region must never fail the primary audit
+            LOG.warning("region audit failed for %s: %s", target, e)
+    return regions_mod.build_audits(primary_rpt, primary_variant, audited)
+
+
 def _run_skills_concurrently(skills, ctx, cfg):
     """Run each skill's checks in a thread pool under a global timeout.
 
@@ -276,6 +318,12 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--search-provider", choices=["commoncrawl", "none"], default=None,
                     help="Corpus-presence provider used with --verify-external "
                          "(default commoncrawl, keyless; 'none' = Wikidata + declared links only)")
+    ap.add_argument("--check-regions", action="store_true",
+                    help="Exhaustively probe reachability of EVERY declared regional branch "
+                         "(default probes only a small set to keep the request footprint light)")
+    ap.add_argument("--audit-regions", action="store_true",
+                    help="Fully audit each detected regional branch (India/Global/…) and score them "
+                         "side-by-side (bounded; adds crawl time; implies --check-regions)")
     ap.add_argument("--compare-with", default=None, metavar="a.com,b.com",
                     help="Opt-in: benchmark against up to 3 competitor domains (side-by-side scores + gaps)")
     ap.add_argument("--timeout", type=int, default=None, help="Per-request timeout seconds")
@@ -320,7 +368,8 @@ def main(argv=None) -> int:
     try:
         competitors = [s.strip() for s in args.compare_with.split(",") if s.strip()] if args.compare_with else None
         rpt, code = run(target, cfg, external=not args.no_external, only_skills=only,
-                        verify_external=args.verify_external, compare_with=competitors)
+                        verify_external=args.verify_external, compare_with=competitors,
+                        audit_regions=args.audit_regions, check_regions=args.check_regions)
     except KeyboardInterrupt:
         LOG.error("interrupted")
         return 130

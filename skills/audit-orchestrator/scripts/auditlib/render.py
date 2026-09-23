@@ -47,11 +47,13 @@ def render_html(report: Dict[str, Any]) -> str:
     sections = [
         _hero(report, site, score, value, grade),
         _toolbar(),
+        _provisional_banner(report),
         _kpi_row(an, summary),
         _exec_summary(an),
         _benchmark_section(report),
         _funnel_section(report),
         _citation_section(report),
+        _regions_section(report),
         _coverage_section(report),
         _answer_readiness_section(report),
         _prompt_pack_section(report),
@@ -88,6 +90,15 @@ def render_html(report: Dict[str, Any]) -> str:
 <script id="audit-data" type="application/json">{data}</script>
 <script>{_JS}</script>
 </body></html>"""
+
+
+def _provisional_banner(report) -> str:
+    """A prominent low-confidence banner when the crawl was too thin to trust the score."""
+    rel = report.get("reliability") or {}
+    if not rel.get("provisional"):
+        return ""
+    return (f'<div class="provisional">⚠ <b>Provisional score — low confidence.</b> '
+            f'{html.escape(str(rel.get("reason", "")))}</div>')
 
 
 def _toolbar() -> str:
@@ -292,6 +303,56 @@ def _answer_readiness_section(report) -> str:
   <p class="ar-head"><b>{score}/{appl}</b> questions answerable from <b>machine-readable</b> data
      · {ar.get('text_only',0)} text-only · {ar.get('missing',0)} missing</p>
   <ul class="ar-list">{rows}</ul>
+</section>"""
+
+
+# --- regional variants (India / Global / …) ---------------------------------------
+
+_REACH = {"ok": ("#2e7d32", "reachable"), "error": ("#c0182f", "dead"),
+          "unchecked": ("#8a8f98", "not checked")}
+
+
+def _regions_section(report) -> str:
+    """Per-region 'branch' inventory: each declared locale variant + reachability. Present only when
+    the site actually declares regional variants (single-region sites show nothing)."""
+    reg = report.get("regions") or {}
+    variants = reg.get("variants") or []
+    if len(variants) < 1:
+        return ""
+    # per-region full audit (opt-in) shows scores; merge them in when present
+    audited = {a["url"]: a for a in ((report.get("region_audits") or {}).get("regions") or [])}
+    rows = ""
+    for v in variants:
+        col, lbl = _REACH.get(v.get("reachable"), ("#8a8f98", "?"))
+        via = ", ".join(v.get("declared_via", []))
+        recip = ("reciprocal" if v.get("reciprocal") else
+                 ("not reciprocal" if v.get("reciprocal") is False else "—"))
+        a = audited.get(v["url"])
+        score_cell = (f'<td class="rg-score"><b>{a["score"]}</b>/100 ({html.escape(a["grade"])})</td>'
+                      if a else ('<td class="rg-score rg-na">—</td>' if audited else ""))
+        star = ' <span class="rg-def">default</span>' if v.get("is_default") else ""
+        rows += (f'<tr><td class="rg-region">{html.escape(v.get("region","") or "?")}{star}</td>'
+                 f'<td>{html.escape(v.get("locale","") or "—")}</td>'
+                 f'<td class="rg-url">{html.escape(v["url"])}</td>'
+                 f'<td><span class="chip mini" style="background:{col}">{lbl}</span></td>'
+                 f'<td class="rg-meta">{html.escape(via)}</td>'
+                 f'<td class="rg-meta">{recip}</td>'
+                 f'{score_cell}</tr>')
+    score_head = ("<th>AI readiness</th>" if audited else "")
+    audit_note = ""
+    if audited:
+        ra = report.get("region_audits") or {}
+        if ra.get("note"):
+            audit_note = f'<p class="rg-audit-note">{html.escape(ra["note"])}</p>'
+    return f"""<section class="card">
+  <h2>Regional variants <span class="hint">the brand's India / Global / … branches, and whether each is live</span></h2>
+  <p class="ar-head">{html.escape(str(reg.get('note','')))}</p>
+  <table class="rg-table">
+    <thead><tr><th>Region</th><th>Locale</th><th>URL</th><th>Status</th>
+      <th>Declared via</th><th>hreflang</th>{score_head}</tr></thead>
+    <tbody>{rows}</tbody>
+  </table>
+  {audit_note}
 </section>"""
 
 
@@ -1434,6 +1495,20 @@ code { background:#f2f4f7; padding:1px 5px; border-radius:4px; font-size:12px; }
 .ar-list { list-style:none; margin:0; padding:0; }
 .ar-list li { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #f2f4f7; font-size:13px; }
 .ar-q { font-weight:600; color:#33404f; min-width:170px; } .ar-e { color:var(--muted); font-size:12px; }
+/* provisional / low-confidence banner */
+.provisional { margin:0; padding:12px 24px; background:#fff4e5; color:#7a4a00;
+  border-bottom:1px solid #f0d9b5; font-size:13px; line-height:1.5; }
+.provisional b { color:#8a3d00; }
+/* regional variants */
+.rg-table { width:100%; border-collapse:collapse; font-size:13px; }
+.rg-table th, .rg-table td { text-align:left; padding:8px 10px; border-bottom:1px solid #f2f4f7; vertical-align:top; }
+.rg-table th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+.rg-region { font-weight:600; color:#33404f; white-space:nowrap; }
+.rg-def { font-size:9px; font-weight:700; color:#fff; background:var(--accent); border-radius:20px; padding:1px 6px; text-transform:uppercase; letter-spacing:.03em; }
+.rg-url { word-break:break-all; color:#4a5563; }
+.rg-meta { color:var(--muted); font-size:12px; }
+.rg-score b { color:var(--ink); } .rg-score.rg-na { color:var(--muted); }
+.rg-audit-note { font-size:13px; color:#33404f; margin:10px 0 0; }
 /* citation readiness + answer simulation */
 .cr-list { list-style:none; margin:0 0 10px; padding:0; }
 .cr-list li { display:grid; grid-template-columns:180px 1fr 34px; grid-auto-rows:auto; align-items:center;
