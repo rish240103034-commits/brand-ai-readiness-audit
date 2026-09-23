@@ -48,6 +48,215 @@ Run the tests (fully offline):
 python -m unittest discover -t . -s tests
 ```
 
+
+## Adobe University Hackathon 2026 — Round 4
+
+> **Prototype Showcase — Live Agent Demo**
+>
+> This repository contains the existing Agent Skill Marketplace used for the
+> Adobe University Hackathon 2026 Round 3 submission. Round 4 demonstrates
+> that same marketplace running live through an AI agent and provides a
+> reproducible path for judges to rerun the audit.
+
+### Round 4 submission focus
+
+Round 4 is a **live demonstration and reproducibility round**, not a rebuild of
+the marketplace.
+
+The live demonstration uses the existing `audit-orchestrator` entrypoint:
+
+```bash
+python skills/audit-orchestrator/scripts/run_audit.py <URL>
+```
+
+The live run must exercise the actual marketplace and produce findings from the
+real target website. Findings are never hardcoded or pre-generated for the
+demo.
+
+The demonstration is organized into two parts:
+
+| Part | Purpose | Maximum time |
+|---|---|---:|
+| Part 1 | Methodology — signals, severity, suggested actions, prioritization | 3 minutes |
+| Part 2 | Live trial — unseen URL, evidence, finding drill-down, prioritization | 2 minutes |
+
+### Round 4 methodology
+
+The marketplace turns observable website signals into evidence-backed,
+prioritized findings through the existing pipeline:
+
+```text
+Website
+   │
+   ▼
+robots / SSRF-safe crawl
+   │
+   ▼
+Shared AuditContext
+   │
+   ├── Crawl & Render
+   ├── Structured Data
+   ├── Content Extractability
+   ├── Freshness / Corroboration
+   └── Engagement
+   │
+   ▼
+Evidence-backed Findings
+   │
+   ├── severity
+   ├── confidence
+   ├── impact
+   ├── affected pages
+   ├── why
+   └── suggested action
+   │
+   ▼
+Scoring + Analytics + Prioritization
+   │
+   ▼
+Canonical JSON / HTML / Markdown / CSV
+```
+
+Each detection remains implemented by the existing skill/check architecture.
+The orchestrator owns the crawl, merge, scoring, and report contract; it does
+not contain the individual detection logic.
+
+For the live explanation, each demonstrated finding should be traceable through:
+
+```text
+Signal
+  → detection implementation
+  → observed evidence
+  → severity / confidence
+  → impact / priority
+  → suggested action
+  → report output
+```
+
+This keeps the Round 4 methodology grounded in the actual submitted engine.
+
+### Live trial
+
+The Round 4 live trial should:
+
+1. Enter a real, previously unseen public URL.
+2. Invoke the existing `audit-orchestrator`.
+3. Allow the agent/harness to run the marketplace.
+4. Show the resulting findings.
+5. Drill into at least one real finding.
+6. Show the evidence supporting that finding.
+7. Explain its severity and impact.
+8. Show the suggested remediation.
+9. Demonstrate that findings can be prioritized.
+10. State the exact LLM model and agent harness used for the run.
+
+Idle waiting during a live crawl may be trimmed for the recorded demonstration,
+but the URL, execution, and resulting findings must originate from one real
+continuous run.
+
+### Reproducibility
+
+Round 4 includes a reproduction manifest:
+
+```text
+REPLAY_YourTeamName.txt
+```
+
+The manifest records the exact information required to replay the demonstration:
+
+```text
+TEST_SITE_URLS:
+LLM_MODEL:
+AGENT_HARNESS:
+ENV_SETUP:
+TEST_STEPS:
+EXPECTED_OUTPUT:
+```
+
+The test steps must be copy-pasteable from a clean checkout and must invoke the
+actual marketplace entrypoint rather than a hardcoded demonstration path.
+
+The exact model and harness used for the final recorded run must be recorded in
+the reproduction manifest. Model/harness versions must not be guessed.
+
+### Round 4 integrity
+
+The Round 4 demonstration is based on the **same marketplace submitted for
+Round 3**. The live demonstration does not use a separate demo implementation,
+hardcoded findings, or a pre-rendered report presented as a live result.
+
+The marketplace remains:
+
+- read-only
+- recommend-only
+- robots.txt-respecting
+- SSRF-safe
+- deterministic by default
+- provider-neutral
+- self-contained
+- standard-library-only
+- time-bounded
+- free of model weights
+
+The existing audit behavior and Round 3 functionality remain the foundation
+of the Round 4 demonstration.
+
+### Round 4 verification checklist
+
+Before the final submission, verify:
+
+- [ ] The live demo invokes `audit-orchestrator`.
+- [ ] The demonstrated engine is the submitted marketplace.
+- [ ] The demo uses a real unseen URL.
+- [ ] Findings are produced live.
+- [ ] At least one finding has concrete evidence for drill-down.
+- [ ] Severity and suggested action are traceable to the engine.
+- [ ] Prioritization can be demonstrated.
+- [ ] The LLM model is recorded exactly.
+- [ ] The agent harness and version are recorded exactly.
+- [ ] `REPLAY_YourTeamName.txt` is complete and parseable.
+- [ ] Replay steps work from a clean checkout.
+- [ ] Existing offline tests pass.
+- [ ] The evaluation harness passes.
+- [ ] No secrets or credentials are included.
+- [ ] The repository remains within the submission size limit.
+- [ ] No demo-only or fabricated findings are present.
+
+### Recommended verification commands
+
+Run the existing offline suite:
+
+```bash
+python -m unittest discover -t . -s tests
+```
+
+Run the generalization/evaluation harness:
+
+```bash
+python skills/audit-orchestrator/scripts/eval.py
+```
+
+Run a live audit through the actual entrypoint:
+
+```bash
+python skills/audit-orchestrator/scripts/run_audit.py <URL>
+```
+
+Generate the interactive report when needed:
+
+```bash
+python skills/audit-orchestrator/scripts/run_audit.py <URL> --format html --out report.html
+```
+
+Generate machine-readable findings:
+
+```bash
+python skills/audit-orchestrator/scripts/run_audit.py <URL> --format json --out report.json
+```
+
+The existing CLI, report schema, tests, evaluation harness, and safety
+constraints remain authoritative for the marketplace itself.
+
 ## 60-second demo (for judges)
 Three commands, no setup — each finishes in well under a minute.
 
@@ -86,13 +295,6 @@ smashingmagazine.com) — or its [Markdown](examples/sample-report.md),
 > **What to look at:** the *score projection* ("+9 → a C with 2 quick wins") and the
 > *impact × effort* matrix turn a list of problems into a defensible plan — the analyst
 > judgment layered on top of the raw checks.
-
-## Round 4 — live demo & reproduction
-The Round 4 prototype demo runs the **exact submitted Round 3 engine (tag `v2.7.0`)** — no
-demo-only build, no hardcoded findings. Reproduce from a clean checkout with
-[`REPLAY_Alphacoders.txt`](REPLAY_Alphacoders.txt), and see the methodology map, 5-minute demo
-script, and a read-only terminal drill-down viewer in [`round4/`](round4/). On Windows, set
-`PYTHONUTF8=1` and use `--out FILE`.
 
 ## What you get: an analyst-grade report
 Every audit produces a headline **0–100 AI Visibility Score** with an **A–F grade** and
