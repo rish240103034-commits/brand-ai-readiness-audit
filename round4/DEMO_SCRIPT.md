@@ -55,10 +55,10 @@ Do this in the `../bar-v270` (v2.7.0) terminal so the engine is provably the sub
      these findings are from this one live crawl, nothing pre-generated."
 2. **(0:20–0:30) Enter a real URL on camera** and run the engine:
    ```bash
-   python skills/audit-orchestrator/scripts/run_audit.py https://www.sqlite.org --format html --out report.html
-   python skills/audit-orchestrator/scripts/run_audit.py https://www.sqlite.org --out report.json
+   python skills/audit-orchestrator/scripts/run_audit.py https://www.samsung.com --format html --out report.html
+   python skills/audit-orchestrator/scripts/run_audit.py https://www.samsung.com --out report.json
    ```
-   (Let it run continuously; trim only dead air in edit. ~30–45 s.)
+   (Let it run continuously; trim only dead air in edit. ~20–40 s.)
 3. **(0:30–1:00) Prioritized findings.** In the repo-root terminal:
    ```bash
    python round4/view_report.py report.json --top 6
@@ -68,23 +68,24 @@ Do this in the `../bar-v270` (v2.7.0) terminal so the engine is provably the sub
    ```bash
    python round4/view_report.py report.json --finding F-001
    ```
-   Read the chain aloud: **evidence** (`0 of 8 pages have JSON-LD`) → **why** → **severity/impact**
-   → **suggested fix** → **priority**. Optionally open `report.html` and show the same finding with
-   the page explorer / filters.
+   Read the chain aloud: **evidence** (samsung F-001 = *Product-like pages missing Product/Offer
+   schema*) → **why** → **severity/impact** → **suggested fix** → **priority**. Optionally open
+   `report.html` and show the same finding with the page explorer / filters.
 5. **(1:40–2:00) Close.** "Read-only, robots-respecting, SSRF-safe, deterministic, stdlib-only —
    and fully reproducible from a clean checkout via `REPLAY_Alphacoders.txt`."
 
 ---
 
 ## The exact agent prompt (paste into Claude Code for the live run)
-> Run our Round 3 marketplace audit on https://www.sqlite.org using the frozen v2.7.0 engine:
-> `python skills/audit-orchestrator/scripts/run_audit.py https://www.sqlite.org --format html --out report.html`
+> Run our Round 3 marketplace audit on https://www.samsung.com using the frozen v2.7.0 engine:
+> `python skills/audit-orchestrator/scripts/run_audit.py https://www.samsung.com --format html --out report.html`
 > and also `--out report.json`. Then show the top 6 findings with
 > `python round4/view_report.py report.json --top 6` and drill into F-001 with `--finding F-001`.
 > State the model and harness, confirm this is the real Round-3 entrypoint, and read the
 > evidence, severity, and suggested fix for F-001.
 
 ## Fallback sites (if the primary is slow/unreachable on the day)
+- `https://www.sqlite.org` (verified: ~36 s, 12 findings, 62/D — hero finding *No structured data anywhere*)
 - `https://www.iiitmanipur.ac.in` (verified: ~22 s, 12 findings, 60/D, clear structured-data story)
 - Any public login-free site. The engine is not tuned to any site; pick one live to prove it.
 

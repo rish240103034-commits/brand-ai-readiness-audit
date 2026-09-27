@@ -3,7 +3,7 @@
 A continuity doc for the next working session on **brand-ai-readiness-audit**. Read this
 first; it captures state, decisions, and where to look — so you don't re-derive context.
 
-_Last updated: 2026-09-23 · released tag v2.7.0 · regional-variants work committed on top (unreleased)_
+_Last updated: 2026-09-23 · released tag v2.7.0 · post-v2.7.0 work + Round 4 prep committed & pushed (main = `317c194`)_
 
 ---
 
@@ -46,8 +46,30 @@ stays an **opt-in, provider-neutral** abstraction (`--verify-external`) that deg
   `git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main`.
   `gh auth setup-git` has been run, so a fresh shell usually works.
 - Tags v1.1.0 … v2.7.0 exist on both local and remote.
+- `main` is pushed + in sync at **`317c194`** (Round 4 docs) → `047803c` (regional/reliability)
+  → `eefd964` → `553f3c3` (= tag v2.7.0). Post-v2.7.0 work is committed but **not tagged**.
 
-## 5. This session's committed work (regional variants + reliability)
+## 4b. Round 4 (prototype showcase) — INTEGRITY-CRITICAL
+- **The live demo MUST run the submitted Round 3 engine = tag `v2.7.0`** (user-confirmed), NOT
+  `main` HEAD. HEAD carries post-submission changes to 7 engine files + `regions.py`/`reliability.py`
+  → a materially different engine. Demoing HEAD would violate the Round 4 integrity rule.
+- Round 4 prep is **additive only** (commit `317c194`; engine byte-untouched — verified no changes
+  under `auditlib/`, `checks/`, `run_audit.py`, `marketplace.json`, `SKILL.md`):
+  - `REPLAY_Alphacoders.txt` (root) — reproduction pinned to `git checkout v2.7.0`. **Team = Alphacoders.**
+  - `round4/ROUND4_METHODOLOGY.md` — signal→code→evidence→severity→fix→priority→test map (v2.7.0 citations).
+  - `round4/DEMO_SCRIPT.md` — 5-min shot list (Part 1 methodology ≤3min, Part 2 live run ≤2min), exact
+    commands + agent prompt + disclosure lines.
+  - `round4/SUBMISSION_CHECKLIST.md`, `round4/view_report.py` (READ-ONLY terminal drill-down over the
+    engine's own `--out report.json`; Windows-safe; not part of the marketplace), `tests/test_view_report.py`.
+- **Demo model/harness (recorded):** **Claude Opus 4.8** via **Claude Code v2.1.281** (harness version read from the `AI_AGENT` env var: `claude-code_2-1-281_agent`). Video's live URL = **https://www.samsung.com** (v2.7.0 checkout confirmed by the user).
+- **Windows demo landmine (also in v2.7.0):** bare-stdout JSON → `UnicodeEncodeError` (cp1252). ALWAYS
+  demo with `--out FILE` and `set PYTHONUTF8=1`. Do NOT patch the frozen engine to fix it.
+- **Demo staging:** `git worktree add ../bar-v270 v2.7.0` runs the frozen engine while `round4/` tooling
+  stays on `main`. **Video site: samsung.com** (v2.7.0: ~20s, 8 pages, 9 findings, **77/100 C**, F-001 =
+  "Product-like pages missing Product/Offer schema", schema VALID). Other verified sites: sqlite.org
+  (~36s, 12 findings, 62/D), iiitmanipur.ac.in (~22s, 12, 60/D). v2.7.0 worktree: 168 tests, eval 8/8 / 0 FP.
+
+## 5. Post-v2.7.0 committed work (regional variants + reliability)
 New/changed toward the CHANGELOG `[Unreleased]` "Regional 'branch' analysis":
 - `auditlib/regions.py` — detects declared locale branches (India/Global/UK/US…). **hreflang
   alternates are authoritative**; URL/selector fallback only when no hreflang. Concurrent,
@@ -102,7 +124,8 @@ python skills/audit-orchestrator/scripts/run_audit.py example.com --csv findings
 python skills/audit-orchestrator/scripts/run_audit.py example.com --skills crawl-render,structured-data
 python skills/audit-orchestrator/scripts/run_audit.py example.com --profile strict --verify-external
 python skills/audit-orchestrator/scripts/eval.py                                         # eval harness
-python -m unittest discover -t . -s tests                                               # 191 tests, offline
+python round4/view_report.py report.json --finding F-001                                 # Round 4 drill-down
+python -m unittest discover -t . -s tests                                               # 195 tests (v2.7.0: 168), offline
 ```
 Exit codes: 0 ok · 1 partial (a check errored/timed out) · 2 bad input/unauditable.
 
@@ -142,7 +165,9 @@ PY
 ```
 
 ## 11. Possible next steps
-- [ ] Push the regional-variants commit when the user approves (remember §4 credential gotcha).
+- [x] Regional-variants + Round 4 prep committed & pushed (`main` = `317c194`, in sync).
+- [x] **Round 4 video recorded** (samsung.com, v2.7.0, Opus 4.8, Claude Code v2.1.281) and `REPLAY_Alphacoders.txt` finalized to match.
+- [ ] **FINAL SUBMISSION:** upload the video + `REPLAY_Alphacoders.txt` to the portal (Round 3 marketplace is NOT resubmitted).
 - [ ] Finalize the CHANGELOG `[Unreleased]` → a version + bump `marketplace.json` + tag (on request).
 - [ ] Optional: true JS-render confirmation via an *optional* headless renderer that degrades
       gracefully (render gaps are heuristic / medium-confidence by design).

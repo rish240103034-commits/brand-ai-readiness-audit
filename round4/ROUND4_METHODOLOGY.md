@@ -89,3 +89,63 @@ The checks encode *repeatable root causes* of AI invisibility (reach → read �
 resolve) and bounce (read → orient → act → wait), not memorized site quirks. The offline
 `eval.py` harness proves it: **recall 1.00** on labelled failure-mode fixtures and **0
 false positives** on the clean + non-English fixtures — reproducible with one command.
+
+---
+
+# Part 1 — 3-minute narration script (A / B / C)
+
+Read this while screen-sharing the code. `[SHOW …]` marks what to put on screen. Every claim
+points at real v2.7.0 code. Keep to ~3 minutes.
+
+## A. How we discovered the signals  (~70s)
+> "We didn't invent checks — we reasoned from **how an AI assistant actually uses a page**: to
+> cite a brand, a machine has to *reach* it, *read* it, *quote a clear fact*, *trust* it, and
+> *resolve* which entity it is. Each failure in that chain became a signal, and each signal is
+> one function.
+>
+> [SHOW `auditlib/checks/structured_data.py::_absence`] Take the strongest: **structured data**.
+> Assistants quote a fact most reliably when it's restated in machine-readable JSON-LD. So we
+> check whether any JSON-LD / microdata / RDFa exists — here, `_absence` (line 57). The evidence
+> is a *counted fact*, `0 of 8 pages`, not an opinion — no LLM guessing.
+>
+> [SHOW `auditlib/checks/crawl_render.py::_robots_findings`, `AI_BOTS` line 24] Before reading,
+> the crawler must be *let in*, so we parse robots.txt specifically for the **AI answer-engine
+> bots** — GPTBot, ClaudeBot, PerplexityBot, Google-Extended. [SHOW `registry.py::discover_skills`]
+> And the orchestrator doesn't hardcode any of this: it **auto-discovers** each skill from its
+> `SKILL.md` `metadata.checks`, runs them concurrently over **one** polite crawl, and merges the
+> results. Six skills, one entrypoint."
+
+*(Mention the other four in a breath: JS-render gap `_spa_findings`; extractability — title/meta/
+H1/alt `extractability.py`; freshness `freshness.py`; engagement — viewport/CTA `engagement.py`.)*
+
+## B. How we determine severity  (~55s)
+> "Severity is assigned **at the point of detection**, on a fixed ladder (see
+> `references/severity-model.md`): **critical** = the brand is effectively invisible;
+> **high** = a whole *class* of facts can't be read or quoted; **medium** = a meaningful signal
+> is missing; **low** = a refinement.
+>
+> [SHOW `crawl_render.py` lines 74 & 90] The nuance is the proof it's principled: blocking AI
+> **retrieval** crawlers is **critical** (the brand vanishes from answers) — but blocking AI
+> **training** crawlers is only **low**, because that's a legitimate publisher choice, not an
+> invisibility bug. Zero structured data is **high**; a missing meta description is **medium**.
+>
+> [SHOW `auditlib/scoring.py` lines 15–21] Then scoring is **deterministic**: each dimension
+> starts at 100 and loses `SEVERITY_PENALTY` (critical 35, high 18, medium 8, low 3) **×
+> `CONFIDENCE_FACTOR`** (heuristic checks at 0.75 or 0.5, so we never over-punish a guess).
+> Overall = discoverability×0.6 + engagement×0.4 → an A–F grade. Same inputs, same score, every run."
+
+## C. How we generate & prioritize fixes  (~55s)
+> "Every finding carries its own fix, matched to the **mechanism** it detected — not a generic
+> tip. [SHOW a finding's `how_to_fix` in `structured_data.py` line ~66, or `view_report.py --finding F-001`]
+> For 'no structured data' the fix is *add schema.org JSON-LD — Organization + WebSite on the
+> homepage, page-appropriate types elsewhere*, because that's exactly the missing machine-readable
+> restatement that made the fact unquotable. Problem → evidence → severity → **fix that closes that
+> specific gap**.
+>
+> [SHOW `scoring.py::score_report` line 108] Prioritization falls straight out of the model:
+> findings sort by `severity × confidence`, so the highest-leverage problem is always `F-001`.
+> [SHOW `analytics.py` / the HTML matrix] On top, the analyst layer crosses **impact × effort** to
+> flag *quick wins*, and computes `points_at_stake` — the actual score points you'd recover — so
+> the projection '*fix these two → +9 → a C*' is a real recomputation with the same model, not a
+> guess. That's the whole methodology: evidence-backed detection, principled severity, mechanism-
+> matched fixes, deterministic prioritization — and `eval.py` proves it generalizes to unseen sites."
