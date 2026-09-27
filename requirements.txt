@@ -1,0 +1,13 @@
+# brand-ai-readiness-audit — dependencies
+#
+# NONE. This marketplace runs on the Python standard library only (verified: every import
+# in skills/ resolves to a stdlib module or a local package). By design there are no
+# third-party packages, no model weights, and no build step.
+#
+#   Requires: Python 3.8+   (developed/tested on 3.13)
+#   Install : nothing — just run it, e.g.
+#             python skills/audit-orchestrator/scripts/run_audit.py example.com --out report.json
+#   Test    : python -m unittest discover -t . -s tests
+#
+# (The reportlab/markdown packages used to render the round4/*.pdf handouts are authoring-only
+#  tooling, NOT runtime dependencies of the marketplace, so they are intentionally not listed.)
